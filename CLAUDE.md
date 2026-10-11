@@ -11,7 +11,7 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 ## Commands
 - `pnpm install` / `pnpm dev` (api :3001, web :5173 with /api proxy)
 - `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm build`
-- `pnpm react-doctor` (full react-doctor) · `pnpm react-doctor:changed` (only new issues vs main). Not `pnpm doctor`: that name is pnpm's built-in environment check.
+- `pnpm react-doctor` (full react-doctor) · `pnpm react-doctor:changed` (only new issues vs main) · `pnpm react-doctor:gate` (score ≥ 90, 0 errors; same check as pre-push and CI). Not `pnpm doctor`: that name is pnpm's built-in environment check.
 - `docker build -t easy-grades . && docker run -p 8080:8080 easy-grades`
 
 ## Domain rules (do not change without evidence)
@@ -35,14 +35,15 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 ## Workflow
 - One branch per group from `main` (see plan "Branches & review"). Merge with `--no-ff` after the whole-branch review.
 - Implementation: subagents on **Haiku 5.5 (effort high)**; review: subagent on **Opus 5.5 (effort medium)** after each task and per branch.
-- **Every branch touching `apps/web`: run `pnpm react-doctor:changed` and fix every error before requesting review.** CI runs `pnpm react-doctor` with `--blocking error`.
+- **Every branch touching `apps/web`: run `pnpm react-doctor:changed` and fix every error before requesting review.**
+- **Score gate:** the pre-push hook (simple-git-hooks, installed by `prepare`) runs `pnpm react-doctor:gate` (score ≥ 90 and 0 errors) before any push or PR. CI runs the same gate in the "Lint, types, tests, React Doctor, build" job and blocks the merge when it fails. The gate calls react-doctor's score API and sends the diagnostics report (rules, files and lines) to that service, so it does not use `--no-telemetry`. `REACT_DOCTOR_MIN_SCORE` overrides the minimum. `pnpm react-doctor:changed` stays local and without telemetry.
 - TDD: failing test first. Commit per task.
 
 ## Gotchas
 - pnpm 11: `allowBuilds:` in pnpm-workspace.yaml (not `onlyBuiltDependencies`); `pnpm deploy` requires `--legacy`.
 - pdfjs-dist 6: import `pdfjs-dist/legacy/build/pdf.mjs`; pass `Uint8Array` (not Buffer); destroy the loading task (`task.destroy()`), not the doc; options `disableFontFace, useSystemFonts:false, useWorkerFetch:false, enableXfa:false` (`isEvalSupported` was removed in v6).
 - Windows: keep the repo at a short path; pnpm's nested store can exceed MAX_PATH (260 chars) and break Vitest startup with `ERR_PACKAGE_IMPORT_NOT_DEFINED`.
-- `react-doctor` always with `--no-telemetry` (otherwise it sends the score to an external API).
+- `react-doctor` local runs (`pnpm react-doctor`, `pnpm react-doctor:changed`) use `--no-telemetry`, which turns off the score API, share URL and crash reporting. The score gate (`pnpm react-doctor:gate`) is the one place that uses the score API, so it does not pass `--no-telemetry`.
 - `pnpm doctor` is pnpm's built-in environment check and shadows any script with that name, so react-doctor runs as `pnpm react-doctor` / `pnpm react-doctor:changed`.
 
 ## Frontend conventions
@@ -56,7 +57,7 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
   - `switch.tsx`: explicit transition list instead of `transition-all`, and the thumb adds `motion-reduce:transition-none`.
   
   react-doctor ignores the folder via `apps/web/doctor.config.json`.
-- Heavy code is lazy: Dashboard (from App), FlowchartScreen, and every Recharts chart. react-doctor's 3 `prefer-dynamic-import` warnings on chart files are known false positives (their parents already load them lazily); keep the rule on.
+- Heavy code is lazy: Dashboard (from App), FlowchartScreen, and every Recharts chart. The 3 chart files (`CrChart`, `HoursChart`, `ProjectionChart`) suppress `prefer-dynamic-import` with a `react-doctor-disable-next-line` comment directly above the recharts import, because they are only reached through `React.lazy`; keep the rule on and add the same comment for any new false positive.
 - React Flow colors that end up in SVG attributes (minimap nodes, background dots) must be set in CSS, not via props with `var(--x)`.
 - Vite `assetsInlineLimit: 0` keeps fonts out of `data:` URIs (CSP `font-src 'self'`).
 

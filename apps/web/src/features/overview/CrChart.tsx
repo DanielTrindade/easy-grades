@@ -1,4 +1,6 @@
 import { formatTerm, type TermCr } from '@easy-grades/core';
+// Only reached through React.lazy (see OverviewScreen/PlanningScreen), so recharts already loads on demand.
+// react-doctor-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { crDomain, crTicks } from './chart-utils';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
