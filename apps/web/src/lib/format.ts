@@ -5,6 +5,7 @@ export const formatCr = (value: number | null): string => (value === null ? 'sem
 export const formatGrade = (value: number | null): string => (value === null ? '—' : decimals(2).format(value));
 export const formatPercent = (value: number): string => `${decimals(2).format(value)}%`;
 export const formatHours = (value: number): string => `${integer.format(value)} h`;
+export const formatCount = (value: number): string => integer.format(value);
 
 const LOWERCASE_WORDS = new Set(['a', 'à', 'ao', 'as', 'da', 'das', 'de', 'do', 'dos', 'e', 'em', 'na', 'no', 'o', 'os', 'para', 'por']);
 const ROMAN = /^(?=[IVXLC]+$)C{0,3}(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
