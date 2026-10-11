@@ -3,6 +3,10 @@ import { TriangleAlert } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import type { Analysis } from '@/lib/use-analysis';
 import { formatCr, formatHours } from '@/lib/format';
+import { EnadeSection } from './EnadeSection';
+import { IntegrationTable } from './IntegrationTable';
+import { PaceSection } from './PaceSection';
+import { PerformanceSection } from './PerformanceSection';
 import { WatersBand } from './WatersBand';
 
 // Recharts is heavy: charts stream in after the numbers are on screen.
@@ -18,8 +22,9 @@ interface OverviewScreenProps {
 }
 
 export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewScreenProps) {
-  const { cr, crHistory, progress, forecast, unknownStatuses } = analysis;
-  const officialCr = data.transcript.officialCr;
+  const { cr, crHistory, progress, forecast, unknownStatuses, pace, performance } = analysis;
+  const { curriculum, transcript } = data;
+  const officialCr = transcript.officialCr;
   const graduation = forecast.graduationTerm ? formatTerm(forecast.graduationTerm) : 'sem previsão';
 
   return (
@@ -34,6 +39,9 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
           <p className="mt-1 font-heading text-display font-semibold leading-none">{formatCr(officialCr ?? cr)}</p>
           {officialCr !== null && cr !== null && officialCr !== cr && (
             <p className="mt-2 text-sm text-muted-foreground">Pelas notas do histórico: {formatCr(cr)}.</p>
+          )}
+          {performance.mandatoryCr !== null && (
+            <p className="mt-2 text-sm text-muted-foreground">CR nas obrigatórias: {formatCr(performance.mandatoryCr)}.</p>
           )}
         </div>
         <div>
@@ -71,6 +79,19 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
           </span>
         </p>
       )}
+
+      <IntegrationTable components={transcript.officialComponents} />
+
+      <div className="grid gap-12 lg:grid-cols-2">
+        <PaceSection
+          pace={pace}
+          minPeriods={curriculum.requirements.minPeriods}
+          maxPeriods={curriculum.requirements.maxPeriods}
+        />
+        <PerformanceSection performance={performance} />
+      </div>
+
+      <EnadeSection records={transcript.enade} />
 
       <div className="grid gap-12 lg:grid-cols-2">
         <Suspense fallback={chartFallback}>
