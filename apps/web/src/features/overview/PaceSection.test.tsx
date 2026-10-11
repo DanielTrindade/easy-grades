@@ -32,4 +32,20 @@ describe('PaceSection', () => {
     expect(screen.getByText('Para formar no prazo ideal: prazo encerrado')).toBeInTheDocument();
     expect(screen.getByText('Abaixo do ritmo do prazo ideal')).toBeInTheDocument();
   });
+
+  it('is neutral for a first-period student, with no average to show yet', () => {
+    const { container } = render(
+      <PaceSection
+        pace={paceInsights(sampleCurriculum, { ...sampleTranscript, entries: [] })}
+        minPeriods={8}
+        maxPeriods={12}
+      />,
+    );
+    expect(screen.getByText('Ainda sem período concluído para medir o ritmo')).toBeInTheDocument();
+    expect(container.querySelector('svg')).toHaveClass('text-muted-foreground');
+    expect(screen.getByText('Nenhum período concluído ainda (ideal 8, máximo 12)')).toBeInTheDocument();
+    expect(screen.queryByText(/Média de/)).not.toBeInTheDocument();
+    expect(screen.getByText('Para formar no prazo ideal: 400 h por período')).toBeInTheDocument();
+    expect(screen.getByText('No prazo máximo: 267 h por período')).toBeInTheDocument();
+  });
 });

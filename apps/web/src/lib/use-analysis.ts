@@ -17,7 +17,7 @@ export function analyze({ curriculum, transcript }: ParseResponse) {
     progress: computeProgress(curriculum, transcript),
     forecast: forecastGraduation(curriculum, transcript),
     pace: paceInsights(curriculum, transcript),
-    performance: performanceInsights(transcript),
+    performance: performanceInsights(curriculum, transcript),
     currentTerm: latestTerm(transcript),
     unknownStatuses: transcript.entries.filter((entry) => entry.status === 'desconhecido'),
   };

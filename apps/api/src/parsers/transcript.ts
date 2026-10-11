@@ -118,11 +118,21 @@ function readOfficialComponents(items: readonly TextItem[]): OfficialComponents 
   return Object.values(components).some((c) => c !== null) ? components : null;
 }
 
-/** ENADE rows follow the header "ENADE | ANO | SITUAÇÃO": label in x < 30, year in x 270–320, situation in x ≥ 360. */
+/** A four-digit year from 1990 to 2100. Anything else (missing, garbled, implausible) is null. */
+function enadeYear(text: string | undefined): number | null {
+  if (!text || !/^\d{4}$/.test(text)) return null;
+  const year = Number(text);
+  return year >= 1990 && year <= 2100 ? year : null;
+}
+
+/**
+ * ENADE rows follow the header "ENADE | ANO | SITUAÇÃO": label in x < 30, year in x 270–320, situation in x ≥ 360.
+ * A row without a situation is dropped; a row without a usable year keeps its record with year null.
+ */
 function readEnade(items: readonly TextItem[]): EnadeRecord[] {
   const records: EnadeRecord[] = [];
   let inSection = false;
-  for (const row of groupRows(items)) {
+  for (const row of groupRows(items, 1.5)) {
     if (rowText(row).startsWith('OBSERVAÇÕES')) break;
     const texts = new Set(row.items.map((i) => i.text));
     if (!inSection) {
@@ -133,13 +143,15 @@ function readEnade(items: readonly TextItem[]): EnadeRecord[] {
     const kind = label && label.x < 30 ? ENADE_KINDS[label.text] : undefined;
     if (!label || !kind) continue;
     const aligned = row.items.filter((i) => Math.abs(i.y - label.y) <= 1.5);
-    const year = aligned.find((i) => i.x >= 270 && i.x <= 320 && /^\d{4}$/.test(i.text));
+    const year = aligned.find((i) => i.x >= 270 && i.x <= 320)?.text;
     const situation = aligned
       .filter((i) => i.x >= 360)
       .map((i) => i.text)
       .join(' ')
+      .trim()
       .slice(0, 120);
-    records.push({ kind, year: year ? Number(year.text) : null, status: situation || 'Situação não informada' });
+    if (!situation) continue;
+    records.push({ kind, year: enadeYear(year), status: situation });
   }
   return records;
 }

@@ -52,6 +52,12 @@ describe('paceInsights', () => {
     expect(p).toMatchObject({ remainingHours: 0, status: 'concluido' });
   });
 
+  it('is inicio in the first period, when nothing is completed yet, not a deadline risk', () => {
+    const firstTerm = withEntries([entry({ term: '2024.1', grade: null, status: 'matriculado', rawStatus: 'Matricula' })]);
+    const p = paceInsights(sampleCurriculum, firstTerm);
+    expect(p).toMatchObject({ termsElapsed: 1, completedTerms: 0, remainingHours: 3200, status: 'inicio' });
+  });
+
   it('is atrasado when the average is below the ideal pace but above the maximum pace', () => {
     // minPeriods 6 → 1 ideal term left → needs 1130 h/term; maximum still reachable at 162 h/term.
     const p = paceInsights(withTotalHours(3200, 6, 12), sampleTranscript);
@@ -71,14 +77,45 @@ describe('paceInsights', () => {
 });
 
 describe('performanceInsights', () => {
-  const p = performanceInsights(sampleTranscript);
+  const p = performanceInsights(sampleCurriculum, sampleTranscript);
 
   it('sums taken and failed hours over statuses that count in the CR', () => {
     expect(p).toMatchObject({ takenHours: 2280, failedHours: 120, passRate: 94.74, failures: 2 });
   });
 
-  it('lists failures that were never passed afterwards', () => {
-    expect(p.unresolvedFailures).toEqual(['OPT202', 'OPT203']);
+  it('skips failed electives and optativas whose hour requirement is already met', () => {
+    // OPT202 and OPT203 failed, but optativas are already 180/180 h in the sample.
+    expect(p.unresolvedFailures).toEqual([]);
+    expect(p.retakingNow).toEqual([]);
+  });
+
+  it('lists obrigatória failures never passed afterwards, with name and category', () => {
+    const q = performanceInsights(
+      sampleCurriculum,
+      withEntries([entry({ code: 'ICC120', name: 'MATEMÁTICA DISCRETA', term: '2024.2', grade: 3.9, status: 'reprovado_nota', rawStatus: 'Repro Nota' })]),
+    );
+    expect(q.unresolvedFailures).toEqual([{ code: 'ICC120', name: 'MATEMÁTICA DISCRETA', category: 'obrigatoria' }]);
+  });
+
+  it('lists an optativa failure while its hour requirement is still unmet', () => {
+    const q = performanceInsights(
+      sampleCurriculum,
+      withEntries([entry({ code: 'OPT301', name: 'OPTATIVA DE TESTE', category: 'optativa', term: '2024.2', grade: 3, status: 'reprovado_nota', rawStatus: 'Repro Nota' })]),
+    );
+    expect(q.unresolvedFailures).toEqual([{ code: 'OPT301', name: 'OPTATIVA DE TESTE', category: 'optativa' }]);
+  });
+
+  it('separates failures being retaken now (enrolled in a later term) from the ones still to take', () => {
+    const q = performanceInsights(
+      sampleCurriculum,
+      withEntries([
+        entry({ code: 'ICC120', term: '2024.2', grade: 3.9, status: 'reprovado_nota', rawStatus: 'Repro Nota' }),
+        entry({ code: 'ICC120', term: '2026.2', grade: null, status: 'matriculado', rawStatus: 'Matricula' }),
+        entry({ code: 'ICC130', name: 'ESTRUTURAS', term: '2024.2', grade: 2, status: 'reprovado_freq', rawStatus: 'Reprof Freq' }),
+      ]),
+    );
+    expect(q).toMatchObject({ failures: 2, retakingNow: ['ICC120'] });
+    expect(q.unresolvedFailures).toEqual([{ code: 'ICC130', name: 'ESTRUTURAS', category: 'obrigatoria' }]);
   });
 
   it('reads the trend from the last two cumulative CRs (7.757 - 7.700 = +0.057)', () => {
@@ -98,12 +135,13 @@ describe('performanceInsights', () => {
   });
 
   it('reports no failures and a 100% pass rate when nothing was failed', () => {
-    const q = performanceInsights(withEntries([entry({ term: '2024.1', grade: 8 }), entry({ term: '2024.2', grade: 9 })]));
+    const q = performanceInsights(sampleCurriculum, withEntries([entry({ term: '2024.1', grade: 8 }), entry({ term: '2024.2', grade: 9 })]));
     expect(q).toMatchObject({ failures: 0, failedHours: 0, passRate: 100, unresolvedFailures: [] });
   });
 
   it('treats a later passing entry as resolving the failure', () => {
     const q = performanceInsights(
+      sampleCurriculum,
       withEntries([
         entry({ code: 'ICC120', term: '2024.2', grade: 3.9, status: 'reprovado_nota', rawStatus: 'Repro Nota' }),
         entry({ code: 'ICC120', term: '2025.1', grade: 7, status: 'aprovado' }),
@@ -113,24 +151,26 @@ describe('performanceInsights', () => {
   });
 
   it('returns nulls and zeros when nothing counts', () => {
-    expect(performanceInsights(withEntries([]))).toEqual({
-      takenHours: 0, failedHours: 0, passRate: null, failures: 0, unresolvedFailures: [],
+    expect(performanceInsights(sampleCurriculum, withEntries([]))).toEqual({
+      takenHours: 0, failedHours: 0, passRate: null, failures: 0, unresolvedFailures: [], retakingNow: [],
       lastTerm: null, previousCumulativeCr: null, trend: null, bestTerm: null, worstTerm: null,
       mandatoryCr: null, creditedCount: 0, creditedHours: 0,
     });
   });
 
   it('has no trend with a single term', () => {
-    const q = performanceInsights(withEntries([entry({ term: '2024.1', grade: 8 })]));
+    const q = performanceInsights(sampleCurriculum, withEntries([entry({ term: '2024.1', grade: 8 })]));
     expect(q).toMatchObject({ trend: null, previousCumulativeCr: null });
   });
 
   it('reads a stable trend within ±0.05 and a falling one beyond it', () => {
     const stable = performanceInsights(
+      sampleCurriculum,
       withEntries([entry({ term: '2024.1', grade: 8 }), entry({ term: '2024.2', grade: 8.04 })]),
     );
     expect(stable.trend).toBe('estavel');
     const falling = performanceInsights(
+      sampleCurriculum,
       withEntries([entry({ term: '2024.1', grade: 8 }), entry({ term: '2024.2', grade: 7 })]),
     );
     expect(falling.trend).toBe('caindo');
@@ -138,10 +178,12 @@ describe('performanceInsights', () => {
 
   it('breaks best/worst ties in favour of the most recent term', () => {
     const best = performanceInsights(
+      sampleCurriculum,
       withEntries([entry({ term: '2024.1', grade: 8 }), entry({ term: '2024.2', grade: 8 }), entry({ term: '2025.1', grade: 6 })]),
     );
     expect(best.bestTerm?.term).toBe('2024.2');
     const worst = performanceInsights(
+      sampleCurriculum,
       withEntries([entry({ term: '2024.1', grade: 6 }), entry({ term: '2024.2', grade: 8 }), entry({ term: '2025.1', grade: 6 })]),
     );
     expect(worst.worstTerm?.term).toBe('2025.1');
@@ -149,6 +191,7 @@ describe('performanceInsights', () => {
 
   it('ignores terms without a computable CR when picking best and worst', () => {
     const q = performanceInsights(
+      sampleCurriculum,
       withEntries([
         entry({ term: '2024.1', grade: null, status: 'aprovado' }),
         entry({ term: '2024.2', grade: 8 }),

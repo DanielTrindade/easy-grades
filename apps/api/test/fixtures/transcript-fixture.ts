@@ -88,21 +88,35 @@ function summaryTable(mode: 'full' | 'partial' | 'none'): Cell[] {
   ];
 }
 
-/** ENADE block after the summary table: header row, then one label row per exam status. */
-function enadeBlock(): Cell[] {
+export interface EnadeRowFixture {
+  kind: 'INGRESSANTE' | 'CONCLUINTE';
+  year?: string;
+  situation?: string;
+}
+
+const DEFAULT_ENADE: EnadeRowFixture[] = [
+  { kind: 'INGRESSANTE', year: '2024', situation: 'Dispensado em razão calendário trienal' },
+];
+
+/** ENADE block after the summary table: header row, then one label row per exam status (15 pt apart). */
+function enadeBlock(rows: EnadeRowFixture[]): Cell[] {
   return [
     { x: 23, y: 165, text: 'ENADE' },
     { x: 290, y: 165, text: 'ANO' },
     { x: 362, y: 165, text: 'SITUAÇÃO' },
-    { x: 23, y: 150, text: 'INGRESSANTE' },
-    { x: 290, y: 150, text: '2024' },
-    { x: 362, y: 150, text: 'Dispensado em razão' },
-    { x: 440, y: 150, text: 'calendário trienal' },
+    ...rows.flatMap((row, index): Cell[] => {
+      const y = 150 - index * 15;
+      return [
+        { x: 23, y, text: row.kind },
+        ...(row.year === undefined ? [] : [{ x: 290, y, text: row.year }]),
+        ...(row.situation === undefined ? [] : [{ x: 362, y, text: row.situation }]),
+      ];
+    }),
   ];
 }
 
 export function transcriptPages(
-  opts: { courseCode?: string; version?: string; table?: 'full' | 'partial' | 'none'; enade?: boolean } = {},
+  opts: { courseCode?: string; version?: string; table?: 'full' | 'partial' | 'none'; enade?: false | EnadeRowFixture[] } = {},
 ): Cell[][] {
   const header = studentHeader({ courseCode: opts.courseCode ?? 'IE17', version: opts.version ?? '2025/2' });
   const page1: Cell[] = [
@@ -155,7 +169,7 @@ export function transcriptPages(
     { x: 70, y: 345, text: 'ENADE - CONCLUINTE' },
     { x: 163.6, y: 320, text: '** COEFICIENTE DE RENDIMENTO ESCOLAR = 7.250 **' },
     ...summaryTable(opts.table ?? 'full'),
-    ...(opts.enade === false ? [] : enadeBlock()),
+    ...(opts.enade === false ? [] : enadeBlock(opts.enade ?? DEFAULT_ENADE)),
   ];
 
   const page3: Cell[] = [

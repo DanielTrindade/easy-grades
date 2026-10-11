@@ -82,6 +82,57 @@ describe('parseTranscript', () => {
     ]);
   });
 
+  it('reads a CONCLUINTE record next to an INGRESSANTE one', async () => {
+    const both = parseTranscript(
+      await extractItems(
+        await buildPdf(
+          transcriptPages({
+            enade: [
+              { kind: 'INGRESSANTE', year: '2024', situation: 'Dispensado em razão calendário trienal' },
+              { kind: 'CONCLUINTE', year: '2026', situation: 'Pendente' },
+            ],
+          }),
+        ),
+      ),
+    );
+    expect(TranscriptSchema.parse(both).enade).toEqual([
+      { kind: 'ingressante', year: 2024, status: 'Dispensado em razão calendário trienal' },
+      { kind: 'concluinte', year: 2026, status: 'Pendente' },
+    ]);
+  });
+
+  it('keeps an ENADE record whose year is missing, with a null year', async () => {
+    const t = parseTranscript(
+      await extractItems(await buildPdf(transcriptPages({ enade: [{ kind: 'CONCLUINTE', situation: 'Pendente' }] }))),
+    );
+    expect(TranscriptSchema.parse(t).enade).toEqual([{ kind: 'concluinte', year: null, status: 'Pendente' }]);
+  });
+
+  it.each([['1899'], ['2999'], ['20O4']])('nulls the ENADE year %s without failing the parse', async (year) => {
+    const t = parseTranscript(
+      await extractItems(
+        await buildPdf(transcriptPages({ enade: [{ kind: 'INGRESSANTE', year, situation: 'Pendente' }] })),
+      ),
+    );
+    expect(TranscriptSchema.parse(t).enade).toEqual([{ kind: 'ingressante', year: null, status: 'Pendente' }]);
+  });
+
+  it('omits an ENADE record with an empty situation', async () => {
+    const t = parseTranscript(
+      await extractItems(
+        await buildPdf(
+          transcriptPages({
+            enade: [
+              { kind: 'INGRESSANTE', year: '2024' },
+              { kind: 'CONCLUINTE', year: '2026', situation: 'Pendente' },
+            ],
+          }),
+        ),
+      ),
+    );
+    expect(TranscriptSchema.parse(t).enade).toEqual([{ kind: 'concluinte', year: 2026, status: 'Pendente' }]);
+  });
+
   it('never leaks personal data from the header, teacher rows or observations', async () => {
     const result = await parseDocuments(await buildPdf(curriculumPages()), await buildPdf(transcriptPages()));
     const json = JSON.stringify(result);

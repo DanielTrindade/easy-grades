@@ -21,8 +21,10 @@ afterEach(async () => {
   app = undefined;
 });
 
+// The 10 s production timeout can expire on a healthy parse when the whole suite runs in parallel, so success
+// paths get a generous one. The timeout test overrides it with 1 ms.
 async function start(opts: AppOptions = {}): Promise<FastifyInstance> {
-  app = await buildApp(opts);
+  app = await buildApp({ parseTimeoutMs: 30_000, ...opts });
   return app;
 }
 

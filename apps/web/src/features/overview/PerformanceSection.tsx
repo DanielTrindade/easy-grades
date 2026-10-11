@@ -1,6 +1,6 @@
 import { formatTerm, type PerformanceInsights } from '@easy-grades/core';
 import { Minus, TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react';
-import { formatCr, formatHours, formatPercent } from '@/lib/format';
+import { formatCr, formatHours, formatPercent, toTitleCase } from '@/lib/format';
 
 const TREND: Record<NonNullable<PerformanceInsights['trend']>, { icon: LucideIcon; verb: string; iconColor: string }> = {
   subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-igapo' },
@@ -15,7 +15,8 @@ interface PerformanceSectionProps {
 }
 
 export function PerformanceSection({ performance }: PerformanceSectionProps) {
-  const { passRate, failures, unresolvedFailures, trend, previousCumulativeCr, lastTerm, bestTerm, worstTerm } = performance;
+  const { passRate, failures, unresolvedFailures, retakingNow, trend, previousCumulativeCr, lastTerm, bestTerm, worstTerm } =
+    performance;
   const trendInfo = trend ? TREND[trend] : null;
 
   return (
@@ -38,7 +39,12 @@ export function PerformanceSection({ performance }: PerformanceSectionProps) {
 
       <div className="grid gap-1 text-sm">
         <p>{failures === 0 ? 'Nenhuma reprovação' : plural(failures, 'reprovação', 'reprovações')}</p>
-        {unresolvedFailures.length > 0 && <p>Ainda por cursar: {unresolvedFailures.join(', ')}</p>}
+        {unresolvedFailures.length > 0 && (
+          <p>
+            Ainda por cursar: {unresolvedFailures.map((f) => `${toTitleCase(f.name)} (${f.code})`).join(', ')}
+          </p>
+        )}
+        {retakingNow.length > 0 && <p>Refazendo agora: {retakingNow.join(', ')}</p>}
       </div>
 
       <div className="grid gap-2 text-sm">
