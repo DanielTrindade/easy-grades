@@ -1,7 +1,7 @@
 import { computeCr, crByTerm, type TermCr } from './cr';
 import { computeProgress } from './progress';
-import type { Curriculum, Transcript } from './schemas';
-import { countsInCr, isCompleted, isFailed } from './status';
+import type { Category, Curriculum, Transcript } from './schemas';
+import { countsInCr, isCompleted, isFailed, isInProgress } from './status';
 import { compareTerms, termIndex } from './terms';
 import { latestTerm } from './suggestions';
 
@@ -14,7 +14,13 @@ export interface PaceInsights {
   maxTermsLeft: number;
   requiredPaceIdeal: number | null;
   requiredPaceMax: number | null;
-  status: 'concluido' | 'no_ritmo' | 'atrasado' | 'risco_prazo_maximo';
+  status: 'concluido' | 'inicio' | 'no_ritmo' | 'atrasado' | 'risco_prazo_maximo';
+}
+
+export interface UnresolvedFailure {
+  code: string;
+  name: string;
+  category: Category;
 }
 
 export interface PerformanceInsights {
@@ -22,7 +28,10 @@ export interface PerformanceInsights {
   failedHours: number;
   passRate: number | null;
   failures: number;
-  unresolvedFailures: string[];
+  /** Failures never passed afterwards that still matter: obrigatórias, and electives/optativas whose hours are unmet. */
+  unresolvedFailures: UnresolvedFailure[];
+  /** Codes of the unresolved failures that are being taken again in a later term. */
+  retakingNow: string[];
   lastTerm: TermCr | null;
   previousCumulativeCr: number | null;
   trend: 'subindo' | 'caindo' | 'estavel' | null;
@@ -55,6 +64,7 @@ export function paceInsights(c: Curriculum, t: Transcript): PaceInsights {
 
   let status: PaceInsights['status'];
   if (remainingHours === 0) status = 'concluido';
+  else if (completedTerms === 0) status = 'inicio';
   else if (requiredPaceMax === null || avgHoursPerTerm < requiredPaceMax) status = 'risco_prazo_maximo';
   else if (requiredPaceIdeal === null || avgHoursPerTerm < requiredPaceIdeal) status = 'atrasado';
   else status = 'no_ritmo';
@@ -72,19 +82,36 @@ export function paceInsights(c: Curriculum, t: Transcript): PaceInsights {
   };
 }
 
-export function performanceInsights(t: Transcript): PerformanceInsights {
+export function performanceInsights(c: Curriculum, t: Transcript): PerformanceInsights {
   const counted = t.entries.filter((e) => countsInCr(e.status));
   const takenHours = counted.reduce((sum, e) => sum + (e.hours ?? 0), 0);
   const failed = t.entries.filter((e) => isFailed(e.status));
   const failedHours = failed.reduce((sum, e) => sum + (e.hours ?? 0), 0);
 
-  const unresolvedFailures = [
-    ...new Set(
-      failed
-        .filter((f) => !t.entries.some((e) => e.code === f.code && compareTerms(e.term, f.term) > 0 && isCompleted(e.status)))
-        .map((f) => f.code),
-    ),
-  ].sort();
+  // Electives and optativas only need retaking while their hour requirement is unmet.
+  const unmet = new Set<string>(
+    computeProgress(c, t)
+      .categories.filter((x) => x.doneHours < x.requiredHours)
+      .map((x) => x.key),
+  );
+  const open = failed.filter(
+    (f) =>
+      !t.entries.some((e) => e.code === f.code && compareTerms(e.term, f.term) > 0 && isCompleted(e.status)) &&
+      (f.category === 'obrigatoria' || ((f.category === 'optativa' || f.category === 'eletiva') && unmet.has(f.category))),
+  );
+  const retakingCodes = new Set(
+    open
+      .filter((f) => t.entries.some((e) => e.code === f.code && compareTerms(e.term, f.term) > 0 && isInProgress(e.status)))
+      .map((f) => f.code),
+  );
+  const byCode = new Map<string, UnresolvedFailure>();
+  for (const f of open) {
+    if (!byCode.has(f.code)) byCode.set(f.code, { code: f.code, name: f.name, category: f.category });
+  }
+  const unresolvedFailures = [...byCode.values()]
+    .filter((f) => !retakingCodes.has(f.code))
+    .sort((a, b) => a.code.localeCompare(b.code));
+  const retakingNow = [...retakingCodes].sort();
 
   const terms = crByTerm(t);
   const lastTerm = terms.at(-1) ?? null;
@@ -108,6 +135,7 @@ export function performanceInsights(t: Transcript): PerformanceInsights {
     passRate: takenHours > 0 ? round2(((takenHours - failedHours) / takenHours) * 100) : null,
     failures: failed.length,
     unresolvedFailures,
+    retakingNow,
     lastTerm,
     previousCumulativeCr,
     trend,
