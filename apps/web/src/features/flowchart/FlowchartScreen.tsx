@@ -2,8 +2,6 @@ import { COURSE_STATE_LABELS, layoutFlowchart, type ParseResponse } from '@easy-
 import {
   Background,
   Controls,
-  getNodesBounds,
-  getViewportForBounds,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
@@ -19,7 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import { CourseNode, type CourseNodeType } from './CourseNode';
+import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH, CourseNode, type CourseNodeType } from './CourseNode';
+import { exportFrame } from './export-frame';
 import { FlowchartList } from './FlowchartList';
 import { FlowLegend } from './FlowLegend';
 import { HighlightContext } from './HighlightContext';
@@ -35,7 +34,7 @@ function Graph({ data }: { data: ParseResponse }) {
   const [onlyRemaining, setOnlyRemaining] = useState(false);
   const [asList, setAsList] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const { getNodes, fitView, setViewport } = useReactFlow();
+  const { fitView, setViewport } = useReactFlow();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const layout = useMemo(() => layoutFlowchart(curriculum, transcript, { columnWidth: 264, rowHeight: 104 }), [curriculum, transcript]);
@@ -102,19 +101,18 @@ function Graph({ data }: { data: ParseResponse }) {
       });
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       await Promise.allSettled((viewportEl.getAnimations?.({ subtree: true }) ?? []).map((a) => a.finished));
-      // Frame the whole graph at 1:1 with a margin, regardless of the current zoom and pan on screen.
-      const padding = 48;
-      const bounds = getNodesBounds(getNodes());
-      const framed = { x: bounds.x - padding, y: bounds.y - padding, width: bounds.width + padding * 2, height: bounds.height + padding * 2 };
-      const width = Math.ceil(framed.width);
-      const height = Math.ceil(framed.height);
-      const viewport = getViewportForBounds(framed, width, height, 0.5, 2, 0);
+      // Frame the visible cards at 1:1 from the layout, regardless of the current zoom and pan on screen.
+      const frame = exportFrame(graph.nodes, COURSE_NODE_WIDTH, COURSE_NODE_HEIGHT, 48);
       const url = await toPng(viewportEl, {
         backgroundColor: getComputedStyle(document.body).backgroundColor,
-        width,
-        height,
+        width: frame.width,
+        height: frame.height,
         pixelRatio: 2,
-        style: { width: `${width}px`, height: `${height}px`, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})` },
+        style: {
+          width: `${frame.width}px`,
+          height: `${frame.height}px`,
+          transform: `translate(${frame.offsetX}px, ${frame.offsetY}px) scale(1)`,
+        },
       });
       const link = document.createElement('a');
       link.download = 'fluxograma.png';

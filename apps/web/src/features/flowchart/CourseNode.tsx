@@ -10,6 +10,7 @@ export type CourseNodeData = { course: FlowNode };
 export type CourseNodeType = Node<CourseNodeData, 'course'>;
 
 export const COURSE_NODE_WIDTH = 232;
+export const COURSE_NODE_HEIGHT = 84;
 
 function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
   const { course } = data;
@@ -20,9 +21,9 @@ function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
   return (
     <div
       data-dimmed={dimmed || undefined}
-      style={{ '--col': course.column, width: COURSE_NODE_WIDTH } as CSSProperties}
+      style={{ '--col': course.column, width: COURSE_NODE_WIDTH, height: COURSE_NODE_HEIGHT } as CSSProperties}
       className={cn(
-        'course-node h-[84px] rounded-lg border border-l-4 bg-card px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
+        'course-node rounded-lg border border-l-4 bg-card px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
         style.accent,
       )}
     >
