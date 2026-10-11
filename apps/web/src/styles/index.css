@@ -1,0 +1,254 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/literata";
+@import "@fontsource-variable/hanken-grotesk";
+@import "@xyflow/react/dist/style.css";
+
+/* Dark mode follows the operating system. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+/* Hover styles only where a fine pointer can hover, so touch taps don't leave them stuck. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
+@theme inline {
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Literata Variable", ui-serif, Georgia, serif;
+  /* Type scale steps from the visual direction (44 px and 64 px). */
+  --text-display: 2.75rem;
+  --text-stat: 4rem;
+
+  --color-negro: var(--negro);
+  --color-solimoes: var(--solimoes);
+  --color-igapo: var(--igapo);
+  --color-varzea: var(--varzea);
+  --color-vitoria: var(--vitoria);
+  --color-urucum: var(--urucum);
+  --color-neblina: var(--neblina);
+
+  --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/* Encontro das Águas palette: dark Rio Negro (done) meets clay Solimões (remaining). */
+:root {
+  --negro: #2b2118;
+  --solimoes: #c7a15a;
+  --igapo: #2e5e4e;
+  --varzea: #eef1ec;
+  --vitoria: #8fb57f;
+  --urucum: #b4432a;
+  --neblina: #a3aba4;
+  --water-done: #2b2118;
+  --water-left: #c7a15a;
+
+  --background: var(--varzea);
+  --foreground: var(--negro);
+  --card: #f7f8f5;
+  --card-foreground: var(--negro);
+  --popover: #fbfbf9;
+  --popover-foreground: var(--negro);
+  --primary: var(--igapo);
+  --primary-foreground: #f4f7f3;
+  --secondary: #e2e7e0;
+  --secondary-foreground: var(--negro);
+  --muted: #e2e7e0;
+  --muted-foreground: #565d57;
+  --accent: #dde5d9;
+  --accent-foreground: var(--negro);
+  --destructive: var(--urucum);
+  --border: #d3d9d1;
+  --input: #c3cbc1;
+  --ring: var(--igapo);
+  --chart-1: var(--igapo);
+  --chart-2: var(--solimoes);
+  --chart-3: var(--negro);
+  --chart-4: var(--vitoria);
+  --chart-5: var(--urucum);
+  --radius: 0.5rem;
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--negro);
+  --sidebar-primary: var(--igapo);
+  --sidebar-primary-foreground: #f4f7f3;
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--negro);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--igapo);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --negro: #ece4d8;
+    --solimoes: #d4b072;
+    --igapo: #6fa58f;
+    --varzea: #191511;
+    --vitoria: #9cc48c;
+    --urucum: #e07257;
+    --neblina: #5e655f;
+    --water-done: #6b4a2e;
+    --water-left: #d4b072;
+
+    --card: #221d18;
+    --popover: #27211b;
+    --primary-foreground: #10140f;
+    --secondary: #2c2620;
+    --muted: #2c2620;
+    --muted-foreground: #b3aa9c;
+    --accent: #332c25;
+    --border: #3a332b;
+    --input: #453d34;
+    --sidebar-primary-foreground: #10140f;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Press feedback (scale 0.97) lives in components/ui/button.tsx, so no class is needed on buttons. */
+
+/* Tooltip: 125 ms enter and exit with the snap ease; tw-animate reads these custom properties. */
+[data-slot="tooltip-content"] {
+  --tw-animation-duration: 125ms;
+  --tw-ease: var(--ease-snap);
+}
+
+/* WatersBand: one-time reveal when a dataset is first shown. */
+@keyframes waters-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.waters-band[data-reveal] {
+  animation: waters-in 900ms var(--ease-snap) both;
+}
+
+/* Flowchart: column-staggered entrance (40ms per column). */
+@keyframes node-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes node-fade {
+  from {
+    opacity: 0;
+  }
+}
+.course-node {
+  animation: node-in 250ms var(--ease-snap) both;
+  animation-delay: calc(var(--col, 0) * 40ms);
+}
+
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-node-boxshadow-selected: 0 0 0 2px var(--igapo);
+  --xy-minimap-background-color: var(--card);
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-border-color: var(--border);
+}
+.react-flow__minimap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+/* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
+.react-flow__minimap-node.mini-done {
+  fill: var(--igapo);
+}
+.react-flow__minimap-node.mini-left {
+  fill: var(--solimoes);
+}
+.react-flow__background {
+  --xy-background-pattern-dots-color-default: var(--border);
+}
+.react-flow__minimap-mask {
+  fill: color-mix(in oklch, var(--background) 70%, transparent);
+}
+.react-flow__node:focus-visible {
+  outline: 2px solid var(--igapo);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* tw-animate's zoom and slide classes are transforms: neutralize them and keep the opacity fade. */
+  * {
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+  }
+  .waters-band[data-reveal] {
+    animation: none;
+  }
+  .course-node {
+    animation: node-fade 150ms var(--ease-snap) both;
+    animation-delay: 0s;
+  }
+}

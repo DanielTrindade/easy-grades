@@ -1,0 +1,12 @@
+# Real student PDFs contain PII (CPF, RG, filiação) — never commit
+*.pdf
+!**/fixtures/**/*.pdf
+
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store

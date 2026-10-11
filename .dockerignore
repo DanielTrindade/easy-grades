@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/coverage
+**/*.pdf
+.git
+.github
+.env*
+docs
+.superpowers
+.opencode

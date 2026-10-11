@@ -1,0 +1,26 @@
+{
+  "name": "easy-grades",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.18.0",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint .",
+    "react-doctor": "react-doctor apps/web --verbose --blocking error --no-telemetry",
+    "react-doctor:changed": "react-doctor apps/web --verbose --scope changed --base main --blocking error --no-telemetry"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.0",
+    "react-doctor": "0.9.17",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}
