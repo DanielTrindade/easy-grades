@@ -1,17 +1,20 @@
 import { COURSE_STATE_LABELS, type FlowNode } from '@easy-grades/core';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
-import { memo, type CSSProperties } from 'react';
+import { memo, useContext, type CSSProperties } from 'react';
 import { STATE_STYLE } from '@/components/state-style';
 import { formatGrade, toTitleCase } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { HighlightContext } from './HighlightContext';
 
-export type CourseNodeData = { course: FlowNode; dimmed: boolean };
+export type CourseNodeData = { course: FlowNode };
 export type CourseNodeType = Node<CourseNodeData, 'course'>;
 
 export const COURSE_NODE_WIDTH = 232;
 
 function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
-  const { course, dimmed } = data;
+  const { course } = data;
+  const highlighted = useContext(HighlightContext);
+  const dimmed = highlighted !== null && !highlighted.has(course.code);
   const style = STATE_STYLE[course.state];
   const Icon = style.icon;
   return (

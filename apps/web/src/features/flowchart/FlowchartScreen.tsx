@@ -18,19 +18,23 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 import { CourseNode, type CourseNodeType } from './CourseNode';
 import { FlowchartList } from './FlowchartList';
 import { FlowLegend } from './FlowLegend';
+import { HighlightContext } from './HighlightContext';
 import { highlightSet, nextPinned, visibleGraph } from './highlight';
+import { useHoverFocus } from './hoverFocus';
 
 const nodeTypes = { course: CourseNode };
 
 function Graph({ data }: { data: ParseResponse }) {
   const { curriculum, transcript } = data;
-  const [hovered, setHovered] = useState<string | null>(null);
+  const hover = useHoverFocus();
   const [pinned, setPinned] = useState<string | null>(null);
   const [onlyRemaining, setOnlyRemaining] = useState(false);
   const [asList, setAsList] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const { getNodes, fitView, setViewport } = useReactFlow();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,22 +42,24 @@ function Graph({ data }: { data: ParseResponse }) {
   const graph = useMemo(() => visibleGraph(layout.nodes, layout.edges, onlyRemaining), [layout, onlyRemaining]);
   // A pinned course hidden by "Mostrar só o que falta" no longer drives the focus.
   const activePinned = pinned !== null && graph.nodes.some((n) => n.code === pinned) ? pinned : null;
-  const focus = hovered ?? activePinned;
+  const focus = hover.hovered ?? activePinned;
   const highlighted = useMemo(() => highlightSet(curriculum, focus), [curriculum, focus]);
 
+  // Depends only on the graph and the pin: hovering must not rebuild nodes, or React Flow re-measures and hides them.
+  // The dimming reaches each CourseNode through HighlightContext instead.
   const nodes = useMemo<CourseNodeType[]>(
     () =>
       graph.nodes.map((course) => ({
         id: course.code,
         type: 'course',
         position: { x: course.x, y: course.y },
-        data: { course, dimmed: highlighted !== null && !highlighted.has(course.code) },
+        data: { course },
         selected: course.code === activePinned,
         draggable: false,
         connectable: false,
         ariaLabel: `${course.code} ${course.name}, ${COURSE_STATE_LABELS[course.state]}`,
       })),
-    [graph.nodes, highlighted, activePinned],
+    [graph.nodes, activePinned],
   );
 
   const edges = useMemo<Edge[]>(
@@ -88,21 +94,26 @@ function Graph({ data }: { data: ParseResponse }) {
     const viewportEl = containerRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
     if (!viewportEl) return;
     try {
-      // Clear the focus so no course is faded in the image, then let the 150 ms opacity transition finish.
+      // Clear the focus and enter export mode (no entrance animation, no hidden nodes) so every course is captured at full opacity.
       flushSync(() => {
-        setHovered(null);
+        hover.clear();
         setPinned(null);
+        setExporting(true);
       });
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       await Promise.allSettled((viewportEl.getAnimations?.({ subtree: true }) ?? []).map((a) => a.finished));
+      // Frame the whole graph at 1:1 with a margin, regardless of the current zoom and pan on screen.
+      const padding = 48;
       const bounds = getNodesBounds(getNodes());
-      const width = Math.ceil(bounds.width + 160);
-      const height = Math.ceil(bounds.height + 160);
-      const viewport = getViewportForBounds(bounds, width, height, 0.5, 2, 0.08);
+      const framed = { x: bounds.x - padding, y: bounds.y - padding, width: bounds.width + padding * 2, height: bounds.height + padding * 2 };
+      const width = Math.ceil(framed.width);
+      const height = Math.ceil(framed.height);
+      const viewport = getViewportForBounds(framed, width, height, 0.5, 2, 0);
       const url = await toPng(viewportEl, {
         backgroundColor: getComputedStyle(document.body).backgroundColor,
         width,
         height,
+        pixelRatio: 2,
         style: { width: `${width}px`, height: `${height}px`, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})` },
       });
       const link = document.createElement('a');
@@ -112,6 +123,8 @@ function Graph({ data }: { data: ParseResponse }) {
       toast.success('Fluxograma exportado.');
     } catch {
       toast.error('Não foi possível exportar a imagem. Tente de novo.');
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -148,38 +161,46 @@ function Graph({ data }: { data: ParseResponse }) {
       {asList ? (
         <FlowchartList nodes={graph.nodes} curriculum={curriculum} />
       ) : (
-        <div ref={containerRef} className="-mx-4 h-[min(75dvh,760px)] border-y border-border sm:mx-0 sm:rounded-xl sm:border">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodeMouseEnter={(_, node) => setHovered(node.id)}
-            onNodeMouseLeave={() => setHovered(null)}
-            // Selection is driven by our `selected` prop, so React Flow's changes are folded into `pinned` here.
-            onNodesChange={(changes) => {
-              for (const change of changes) setPinned((prev) => nextPinned(prev, change));
-            }}
-            // Toggle on node.selected (render-time), not on prev: React Flow emits the select change before onNodeClick.
-            onNodeClick={(_, node) => setPinned(node.selected ? null : node.id)}
-            onPaneClick={() => setPinned(null)}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            onInit={onInit}
-            minZoom={0.2}
-            maxZoom={1.75}
-            proOptions={{ hideAttribution: true }}
-            aria-label="Fluxograma das disciplinas obrigatórias"
-          >
-            <Background gap={24} size={1} />
-            <Controls showInteractive={false} />
-            <MiniMap
-              pannable
-              zoomable
-              className="hidden sm:block"
-              nodeStrokeWidth={0}
-              nodeClassName={(n) => ((n.data as CourseNodeType['data']).course.state === 'concluida' ? 'mini-done' : 'mini-left')}
-            />
-          </ReactFlow>
+        <div
+          ref={containerRef}
+          className={cn(
+            '-mx-4 h-[min(75dvh,760px)] border-y border-border sm:mx-0 sm:rounded-xl sm:border',
+            exporting && 'is-exporting',
+          )}
+        >
+          <HighlightContext value={highlighted}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodeMouseEnter={(_, node) => hover.enter(node.id)}
+              onNodeMouseLeave={hover.leave}
+              // Selection is driven by our `selected` prop, so React Flow's changes are folded into `pinned` here.
+              onNodesChange={(changes) => {
+                for (const change of changes) setPinned((prev) => nextPinned(prev, change));
+              }}
+              // Toggle on node.selected (render-time), not on prev: React Flow emits the select change before onNodeClick.
+              onNodeClick={(_, node) => setPinned(node.selected ? null : node.id)}
+              onPaneClick={() => setPinned(null)}
+              nodesDraggable={false}
+              nodesConnectable={false}
+              onInit={onInit}
+              minZoom={0.2}
+              maxZoom={1.75}
+              proOptions={{ hideAttribution: true }}
+              aria-label="Fluxograma das disciplinas obrigatórias"
+            >
+              <Background gap={24} size={1} />
+              <Controls showInteractive={false} />
+              <MiniMap
+                pannable
+                zoomable
+                className="hidden sm:block"
+                nodeStrokeWidth={0}
+                nodeClassName={(n) => ((n.data as CourseNodeType['data']).course.state === 'concluida' ? 'mini-done' : 'mini-left')}
+              />
+            </ReactFlow>
+          </HighlightContext>
         </div>
       )}
     </div>

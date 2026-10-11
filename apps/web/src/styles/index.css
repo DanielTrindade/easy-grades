@@ -201,6 +201,15 @@
   animation: node-in 250ms var(--ease-snap) both;
   animation-delay: calc(var(--col, 0) * 40ms);
 }
+/* PNG export: the capture clones the live DOM, so freeze the entrance animation and never capture a hidden node. */
+.is-exporting .course-node {
+  animation: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+.is-exporting .react-flow__node {
+  visibility: visible !important;
+}
 
 .react-flow {
   --xy-background-color: transparent;

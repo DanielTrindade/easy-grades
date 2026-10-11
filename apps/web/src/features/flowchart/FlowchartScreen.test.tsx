@@ -1,8 +1,21 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import type { ComponentProps } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 import FlowchartScreen from './FlowchartScreen';
+
+// Records the `nodes` prop of every render, so a test can check whether the array identity changes.
+const seen = vi.hoisted(() => ({ nodes: [] as unknown[] }));
+
+vi.mock('@xyflow/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@xyflow/react')>();
+  function SpyReactFlow(props: ComponentProps<typeof actual.ReactFlow>) {
+    seen.nodes.push(props.nodes);
+    return <actual.ReactFlow {...props} />;
+  }
+  return { ...actual, ReactFlow: SpyReactFlow };
+});
 
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
 
@@ -24,6 +37,21 @@ function visibleTextOf(node: HTMLElement): string {
 }
 
 describe('FlowchartScreen focus', () => {
+  it('hovering dims the same courses without rebuilding the nodes array', async () => {
+    render(<FlowchartScreen data={data} />);
+    const before = seen.nodes[seen.nodes.length - 1];
+
+    fireEvent.mouseEnter(nodeOf('ICC431'));
+    expect(isDimmed('IEM075')).toBe(true);
+    expect(seen.nodes[seen.nodes.length - 1]).toBe(before);
+
+    // The clear waits ~80 ms, so crossing from one node to the next does not blink the highlight.
+    fireEvent.mouseLeave(nodeOf('ICC431'));
+    expect(isDimmed('IEM075')).toBe(true);
+    await waitFor(() => expect(isDimmed('IEM075')).toBe(false));
+    expect(seen.nodes[seen.nodes.length - 1]).toBe(before);
+  });
+
   // fireEvent.click, not user.click: user-event's mousedown reaches d3-zoom, which reads event.view (null in jsdom).
   it('pins a course on click, dims what is outside its chain and unpins on a second click', () => {
     render(<FlowchartScreen data={data} />);
