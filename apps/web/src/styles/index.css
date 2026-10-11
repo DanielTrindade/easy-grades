@@ -210,6 +210,16 @@
 .is-exporting .react-flow__node {
   visibility: visible !important;
 }
+/* Edges carry an inline opacity with a 150 ms transition; a pinned focus leaves them at 0.15 until it settles. */
+.is-exporting *,
+.is-exporting *::before,
+.is-exporting *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.is-exporting .react-flow__edge-path {
+  opacity: 1 !important;
+}
 
 .react-flow {
   --xy-background-color: transparent;

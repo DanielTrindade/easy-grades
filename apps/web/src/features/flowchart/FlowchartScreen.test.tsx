@@ -18,7 +18,7 @@ vi.mock('@xyflow/react', async (importOriginal) => {
 });
 
 // Controllable PNG export: each test decides when html-to-image settles.
-const png = vi.hoisted(() => ({ toPng: vi.fn(async () => 'data:image/png;base64,') }));
+const png = vi.hoisted(() => ({ toPng: vi.fn(async (_node: HTMLElement) => 'data:image/png;base64,') }));
 vi.mock('html-to-image', () => ({ toPng: png.toPng }));
 
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
@@ -124,6 +124,25 @@ describe('FlowchartScreen focus', () => {
 
     finish('data:image/png;base64,');
     await waitFor(() => expect(exportButton).toBeEnabled());
+  });
+
+  it('exports in export mode with no course dimmed, even when a course is pinned', async () => {
+    let captured: { exporting: boolean; dimmed: number } | undefined;
+    png.toPng.mockImplementationOnce(async (node) => {
+      captured = {
+        exporting: node.closest('.is-exporting') !== null,
+        dimmed: document.querySelectorAll('[data-dimmed]').length,
+      };
+      return 'data:image/png;base64,';
+    });
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(nodeOf('ICC431'));
+    expect(isDimmed('IEM075')).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+    await waitFor(() => expect(captured).toBeDefined());
+    expect(captured).toEqual({ exporting: true, dimmed: 0 });
   });
 
   it('switches between the graph and the list with the keyboard', async () => {

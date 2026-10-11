@@ -96,11 +96,12 @@ function Graph({ data }: { data: ParseResponse }) {
     const viewportEl = containerRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
     if (!viewportEl) return;
     try {
-      // Clear the focus and enter export mode (no entrance animation, no hidden nodes) so every course is captured at full opacity.
+      // Enter export mode first (no transitions, no entrance animation, no hidden nodes), then clear the focus,
+      // so the dimming and edge fades are cut at once and every course is captured at full opacity.
+      flushSync(() => setExporting(true));
       flushSync(() => {
         hover.clear();
         setPinned(null);
-        setExporting(true);
       });
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       await Promise.allSettled((viewportEl.getAnimations?.({ subtree: true }) ?? []).map((a) => a.finished));
