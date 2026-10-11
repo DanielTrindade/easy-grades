@@ -2,7 +2,7 @@ import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import FlowchartScreen from './FlowchartScreen';
 
 // Records the `nodes` prop of every render, so a test can check whether the array identity changes.
@@ -17,7 +17,15 @@ vi.mock('@xyflow/react', async (importOriginal) => {
   return { ...actual, ReactFlow: SpyReactFlow };
 });
 
+// Controllable PNG export: each test decides when html-to-image settles.
+const png = vi.hoisted(() => ({ toPng: vi.fn(async () => 'data:image/png;base64,') }));
+vi.mock('html-to-image', () => ({ toPng: png.toPng }));
+
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
+
+beforeEach(() => {
+  seen.nodes.length = 0;
+});
 
 function nodeOf(code: string): HTMLElement {
   const node = document.querySelector<HTMLElement>(`.react-flow__node[data-id="${code}"]`);
@@ -29,6 +37,13 @@ function isDimmed(code: string): boolean {
   return nodeOf(code).querySelector('[data-dimmed]') !== null;
 }
 
+// Nodes React Flow has not measured yet are rendered with visibility hidden; a visible flowchart has none of them.
+function hiddenNodeIds(): string[] {
+  return [...document.querySelectorAll<HTMLElement>('.react-flow__node')]
+    .filter((n) => n.style.visibility === 'hidden')
+    .map((n) => n.dataset.id ?? '');
+}
+
 // Text a sighted user can read: sr-only copies (screen-reader-only) are removed before reading.
 function visibleTextOf(node: HTMLElement): string {
   const copy = node.cloneNode(true) as HTMLElement;
@@ -37,6 +52,14 @@ function visibleTextOf(node: HTMLElement): string {
 }
 
 describe('FlowchartScreen focus', () => {
+  it('no flowchart node is hidden before or after pinning a course', () => {
+    render(<FlowchartScreen data={data} />);
+    expect(hiddenNodeIds()).toEqual([]);
+
+    fireEvent.click(nodeOf('ICC431'));
+    expect(hiddenNodeIds()).toEqual([]);
+  });
+
   it('hovering dims the same courses without rebuilding the nodes array', async () => {
     render(<FlowchartScreen data={data} />);
     const before = seen.nodes[seen.nodes.length - 1];
@@ -88,6 +111,19 @@ describe('FlowchartScreen focus', () => {
     render(<FlowchartScreen data={data} />);
 
     expect(visibleTextOf(nodeOf('ICC431'))).toMatch(/(Concluída|Em curso|Reprovada|Disponível|Bloqueada)/);
+  });
+
+  it('disables the export button while the PNG is being generated', async () => {
+    let finish!: (url: string) => void;
+    png.toPng.mockReturnValueOnce(new Promise<string>((resolve) => (finish = resolve)));
+    render(<FlowchartScreen data={data} />);
+    const exportButton = screen.getByRole('button', { name: 'Exportar PNG' });
+
+    fireEvent.click(exportButton);
+    await waitFor(() => expect(exportButton).toBeDisabled());
+
+    finish('data:image/png;base64,');
+    await waitFor(() => expect(exportButton).toBeEnabled());
   });
 
   it('switches between the graph and the list with the keyboard', async () => {
