@@ -22,7 +22,7 @@ export default tseslint.config(
     languageOptions: { globals: globals.browser },
   },
   {
-    files: ['apps/api/**/*.ts', 'packages/**/*.ts', '*.js'],
+    files: ['apps/api/**/*.ts', 'packages/**/*.ts', '*.js', 'scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 );
