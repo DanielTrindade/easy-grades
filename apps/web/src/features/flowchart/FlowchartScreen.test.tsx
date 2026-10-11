@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH } from './CourseNode';
 import FlowchartScreen from './FlowchartScreen';
 
 // Records the `nodes` prop of every render, so a test can check whether the array identity changes.
@@ -58,6 +59,16 @@ describe('FlowchartScreen focus', () => {
 
     fireEvent.click(nodeOf('ICC431'));
     expect(hiddenNodeIds()).toEqual([]);
+  });
+
+  // React Flow keeps a node's handle positions across a rebuild only when the node carries its measured size.
+  // Without it, pinning or unpinning removes every edge until the nodes are measured again, and the PNG export can capture that gap.
+  it('gives every node its measured size, so a pin change keeps the edges', () => {
+    render(<FlowchartScreen data={data} />);
+    fireEvent.click(nodeOf('ICC431'));
+    const pinned = seen.nodes[seen.nodes.length - 1] as { id: string; measured?: { width: number; height: number } }[];
+    expect(pinned.length).toBeGreaterThan(0);
+    expect(pinned.filter((n) => n.measured?.width !== COURSE_NODE_WIDTH || n.measured?.height !== COURSE_NODE_HEIGHT).map((n) => n.id)).toEqual([]);
   });
 
   it('hovering dims the same courses without rebuilding the nodes array', async () => {

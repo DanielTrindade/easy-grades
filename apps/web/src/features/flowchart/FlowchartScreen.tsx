@@ -47,6 +47,7 @@ function Graph({ data }: { data: ParseResponse }) {
   // Depends only on the graph and the pin: hovering must not rebuild nodes, or React Flow re-measures and hides them.
   // The dimming reaches each CourseNode through HighlightContext instead.
   // The explicit width and height let React Flow show a node at once, without waiting for its first measurement.
+  // `measured` keeps React Flow's handle positions when the pin rebuilds this array: without it every edge leaves the DOM for a couple of frames.
   const nodes = useMemo<CourseNodeType[]>(
     () =>
       graph.nodes.map((course) => ({
@@ -55,6 +56,7 @@ function Graph({ data }: { data: ParseResponse }) {
         position: { x: course.x, y: course.y },
         width: COURSE_NODE_WIDTH,
         height: COURSE_NODE_HEIGHT,
+        measured: { width: COURSE_NODE_WIDTH, height: COURSE_NODE_HEIGHT },
         data: { course },
         selected: course.code === activePinned,
         draggable: false,
