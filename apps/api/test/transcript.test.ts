@@ -46,9 +46,40 @@ describe('parseTranscript', () => {
       { code: 'ENADE02', name: 'ENADE - CONCLUINTE', idealPeriod: null },
     ]);
     expect(t.officialCr).toBe(7.25);
-    expect(t.officialProgressPercent).toBe(14.06);
+    expect(t.officialProgressPercent).toBe(65.63);
     expect(t.aaccDoneHours).toBe(30);
     expect(t.extensaoDoneHours).toBe(0);
+  });
+
+  it('reads hours and credits of each component from the summary table', () => {
+    expect(parseTranscript(items).officialComponents).toEqual({
+      obrigatoria: { hours: { required: 2370, done: 1830, percent: 77.22 }, credits: { required: 140, done: 114, percent: 81.43 } },
+      optativa: { hours: { required: 180, done: 180, percent: 100 }, credits: { required: 6, done: 6, percent: 100 } },
+      eletiva: { hours: { required: 120, done: 60, percent: 50 }, credits: { required: 4, done: 2, percent: 50 } },
+      aacc: { hours: { required: 210, done: 30, percent: 14.29 }, credits: { required: 0, done: 0, percent: 0 } },
+      extensao: { hours: { required: 320, done: 0, percent: 0 }, credits: { required: 0, done: 0, percent: 0 } },
+      total: { hours: { required: 3200, done: 2100, percent: 65.63 }, credits: { required: 150, done: 122, percent: 81.33 } },
+    });
+  });
+
+  it('nulls only the component whose row lacks its values', async () => {
+    const partial = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'partial' }))));
+    expect(partial.officialComponents?.eletiva).toBeNull();
+    expect(partial.officialComponents?.obrigatoria).not.toBeNull();
+    expect(partial.officialComponents?.total).not.toBeNull();
+  });
+
+  it('has no official components and no ENADE when the tables are absent', async () => {
+    const bare = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'none', enade: false }))));
+    expect(bare.officialComponents).toBeNull();
+    expect(bare.officialProgressPercent).toBeNull();
+    expect(bare.enade).toEqual([]);
+  });
+
+  it('reads the ENADE status with its year', () => {
+    expect(parseTranscript(items).enade).toEqual([
+      { kind: 'ingressante', year: 2024, status: 'Dispensado em razão calendário trienal' },
+    ]);
   });
 
   it('never leaks personal data from the header, teacher rows or observations', async () => {

@@ -1,8 +1,13 @@
 import {
   mapStatus,
+  OFFICIAL_COMPONENT_KEYS,
   termFromAdmission,
   termFromLabel,
   type Category,
+  type EnadeRecord,
+  type OfficialComponent,
+  type OfficialComponentKey,
+  type OfficialComponents,
   type PendingCourse,
   type Transcript,
   type TranscriptEntry,
@@ -55,6 +60,88 @@ function tableNumber(items: readonly TextItem[], label: string, xMin: number, xM
   if (!anchor) return null;
   const match = /(\d+(?:,\d+)?)/.exec(valueNear(items, anchor, xMin, xMax, dyMin) ?? '');
   return match ? Number(match[1]!.replace(',', '.')) : null;
+}
+
+/** Labels of the summary table at the end of the body, in x < 30 (the section title "ATIVIDADE CURRICULAR DE EXTENSÃO" sits at x ≈ 197). */
+const SUMMARY_LABELS: Record<OfficialComponentKey, string> = {
+  obrigatoria: 'DISCIPLINAS OBRIGATÓRIAS',
+  optativa: 'DISCIPLINAS OPTATIVAS',
+  eletiva: 'DISCIPLINAS ELETIVAS',
+  aacc: 'ATIVIDADES-ACADÊMICO-CIENTÍFICO-',
+  extensao: 'ATIVIDADE CURRICULAR DE EXTENSÃO',
+  total: 'TOTAL',
+};
+type XRange = readonly [number, number];
+interface Columns {
+  required: XRange;
+  done: XRange;
+  percent: XRange;
+}
+const HOURS_COLUMNS: Columns = { required: [222, 262], done: [282, 330], percent: [340, 380] };
+const CREDITS_COLUMNS: Columns = { required: [400, 445], done: [460, 505], percent: [515, 560] };
+const ENADE_KINDS: Record<string, EnadeRecord['kind']> = { INGRESSANTE: 'ingressante', CONCLUINTE: 'concluinte' };
+
+const countValue = (text: string | null): number | null => (text !== null && /^\d+$/.test(text) ? Number(text) : null);
+const percentValue = (text: string | null): number | null => {
+  const match = /^(\d{1,3}(?:[.,]\d+)?)\s*%?$/.exec(text ?? '');
+  const value = match ? Number(match[1]!.replace(',', '.')) : null;
+  return value !== null && value <= 100 ? value : null;
+};
+
+function readMeasure(
+  items: readonly TextItem[],
+  anchor: TextItem,
+  dyMin: number,
+  columns: Columns,
+): OfficialComponent['hours'] | null {
+  const cell = (range: XRange, parse: (text: string | null) => number | null) =>
+    parse(valueNear(items, anchor, range[0], range[1], dyMin));
+  const required = cell(columns.required, countValue);
+  const done = cell(columns.done, countValue);
+  const percent = cell(columns.percent, percentValue);
+  return required === null || done === null || percent === null ? null : { required, done, percent };
+}
+
+function readComponent(items: readonly TextItem[], key: OfficialComponentKey): OfficialComponent | null {
+  const anchor = items.find((i) => i.x < 30 && i.text === SUMMARY_LABELS[key]);
+  if (!anchor) return null;
+  // AACC values sit ~4.7 pt below their (wrapped) label; every other row is aligned with it.
+  const dyMin = key === 'aacc' ? -8 : -1.5;
+  const hours = readMeasure(items, anchor, dyMin, HOURS_COLUMNS);
+  const credits = readMeasure(items, anchor, dyMin, CREDITS_COLUMNS);
+  return hours && credits ? { hours, credits } : null;
+}
+
+/** Null when no row of the summary table is present; a row with missing values is null on its own. */
+function readOfficialComponents(items: readonly TextItem[]): OfficialComponents | null {
+  const components = Object.fromEntries(OFFICIAL_COMPONENT_KEYS.map((key) => [key, readComponent(items, key)])) as OfficialComponents;
+  return Object.values(components).some((c) => c !== null) ? components : null;
+}
+
+/** ENADE rows follow the header "ENADE | ANO | SITUAÇÃO": label in x < 30, year in x 270–320, situation in x ≥ 360. */
+function readEnade(items: readonly TextItem[]): EnadeRecord[] {
+  const records: EnadeRecord[] = [];
+  let inSection = false;
+  for (const row of groupRows(items)) {
+    if (rowText(row).startsWith('OBSERVAÇÕES')) break;
+    const texts = new Set(row.items.map((i) => i.text));
+    if (!inSection) {
+      inSection = texts.has('ENADE') && texts.has('ANO') && texts.has('SITUAÇÃO');
+      continue;
+    }
+    const label = row.items[0];
+    const kind = label && label.x < 30 ? ENADE_KINDS[label.text] : undefined;
+    if (!label || !kind) continue;
+    const aligned = row.items.filter((i) => Math.abs(i.y - label.y) <= 1.5);
+    const year = aligned.find((i) => i.x >= 270 && i.x <= 320 && /^\d{4}$/.test(i.text));
+    const situation = aligned
+      .filter((i) => i.x >= 360)
+      .map((i) => i.text)
+      .join(' ')
+      .slice(0, 120);
+    records.push({ kind, year: year ? Number(year.text) : null, status: situation || 'Situação não informada' });
+  }
+  return records;
 }
 
 export function parseTranscript(items: readonly TextItem[]): Transcript {
@@ -127,6 +214,8 @@ export function parseTranscript(items: readonly TextItem[]): Transcript {
     officialProgressPercent: tableNumber(body, 'TOTAL', 340, 380),
     aaccDoneHours: tableNumber(body, 'ATIVIDADES-ACADÊMICO-CIENTÍFICO-', 280, 330, -8),
     extensaoDoneHours: tableNumber(body, 'ATIVIDADE CURRICULAR DE EXTENSÃO', 280, 330),
+    officialComponents: readOfficialComponents(body),
+    enade: readEnade(body),
     entries,
     pending,
   };

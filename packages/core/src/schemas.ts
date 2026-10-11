@@ -74,6 +74,29 @@ export const PendingCourseSchema = z.object({
 });
 export type PendingCourse = z.infer<typeof PendingCourseSchema>;
 
+const MeasureSchema = z.object({ required: Int, done: Int, percent: z.number().min(0).max(100) });
+export const OfficialComponentSchema = z.object({ hours: MeasureSchema, credits: MeasureSchema });
+export type OfficialComponent = z.infer<typeof OfficialComponentSchema>;
+export const OFFICIAL_COMPONENT_KEYS = ['obrigatoria', 'optativa', 'eletiva', 'aacc', 'extensao', 'total'] as const;
+export type OfficialComponentKey = (typeof OFFICIAL_COMPONENT_KEYS)[number];
+
+export const OfficialComponentsSchema = z.object({
+  obrigatoria: OfficialComponentSchema.nullable(),
+  optativa: OfficialComponentSchema.nullable(),
+  eletiva: OfficialComponentSchema.nullable(),
+  aacc: OfficialComponentSchema.nullable(),
+  extensao: OfficialComponentSchema.nullable(),
+  total: OfficialComponentSchema.nullable(),
+});
+export type OfficialComponents = z.infer<typeof OfficialComponentsSchema>;
+
+export const EnadeRecordSchema = z.object({
+  kind: z.enum(['ingressante', 'concluinte']),
+  year: z.number().int().min(1990).max(2100).nullable(),
+  status: z.string().min(1).max(120),
+});
+export type EnadeRecord = z.infer<typeof EnadeRecordSchema>;
+
 export const TranscriptSchema = z.object({
   courseCode: z.string().regex(/^[A-Z0-9]{2,8}$/),
   curriculumVersion: z.string().regex(/^\d{4}\/\d$/),
@@ -82,6 +105,9 @@ export const TranscriptSchema = z.object({
   officialProgressPercent: z.number().min(0).max(100).nullable(),
   aaccDoneHours: Int.nullable(),
   extensaoDoneHours: Int.nullable(),
+  // Optional for data saved before these existed: missing values default to "not in the transcript".
+  officialComponents: OfficialComponentsSchema.nullable().default(null),
+  enade: z.array(EnadeRecordSchema).default([]),
   entries: z.array(TranscriptEntrySchema),
   pending: z.array(PendingCourseSchema),
 });
