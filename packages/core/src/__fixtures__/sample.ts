@@ -159,6 +159,17 @@ export const sampleTranscript: Transcript = {
   officialProgressPercent: 64.69,
   aaccDoneHours: 0,
   extensaoDoneHours: 0,
+  // Same numbers as the table a real e-Campus transcript prints: hours and credits are the completed entries per
+  // component, capped at the requirement (optativas 420 h / 28 cr cursadas → 180 h / 6 cr exigidos).
+  officialComponents: {
+    obrigatoria: { hours: { required: 2370, done: 1830, percent: 77.22 }, credits: { required: 140, done: 114, percent: 81.43 } },
+    optativa: { hours: { required: 180, done: 180, percent: 100 }, credits: { required: 6, done: 6, percent: 100 } },
+    eletiva: { hours: { required: 120, done: 60, percent: 50 }, credits: { required: 4, done: 2, percent: 50 } },
+    aacc: { hours: { required: 210, done: 0, percent: 0 }, credits: { required: 0, done: 0, percent: 100 } },
+    extensao: { hours: { required: 320, done: 0, percent: 0 }, credits: { required: 0, done: 0, percent: 100 } },
+    total: { hours: { required: 3200, done: 2070, percent: 64.69 }, credits: { required: 150, done: 122, percent: 81.33 } },
+  },
+  enade: [{ kind: 'ingressante', year: 2024, status: 'Dispensado em razão calendário trienal' }],
   entries,
   pending: [
     { code: 'ICC006', name: 'PROJETO E ANÁLISE DE ALGORITMOS', idealPeriod: 6 },
