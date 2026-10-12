@@ -8,3 +8,4 @@ export * from './prerequisites';
 export * from './suggestions';
 export * from './forecast';
 export * from './flowchart';
+export * from './insights';

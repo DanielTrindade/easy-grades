@@ -3,6 +3,12 @@ import { TriangleAlert } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import type { Analysis } from '@/lib/use-analysis';
 import { formatCr, formatHours } from '@/lib/format';
+import { AaccCard } from './AaccCard';
+import { EnadeSection } from './EnadeSection';
+import { IntegrationTable } from './IntegrationTable';
+import { PaceSection } from './PaceSection';
+import { PerformanceSection } from './PerformanceSection';
+import { usePendingAacc } from './use-pending-aacc';
 import { WatersBand } from './WatersBand';
 
 // Recharts is heavy: charts stream in after the numbers are on screen.
@@ -18,15 +24,18 @@ interface OverviewScreenProps {
 }
 
 export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewScreenProps) {
-  const { cr, crHistory, progress, forecast, unknownStatuses } = analysis;
-  const officialCr = data.transcript.officialCr;
+  const { cr, crHistory, progress, forecast, unknownStatuses, pace, performance } = analysis;
+  const { curriculum, transcript } = data;
+  const officialCr = transcript.officialCr;
   const graduation = forecast.graduationTerm ? formatTerm(forecast.graduationTerm) : 'sem previsão';
+
+  const { aacc, pendingPercent, countedHours, officialAacc } = usePendingAacc(curriculum, transcript, progress);
 
   return (
     <div className="grid gap-14">
-      <WatersBand progress={progress} reveal={reveal} onRevealed={onRevealed} />
+      <WatersBand progress={progress} pendingPercent={pendingPercent} reveal={reveal} onRevealed={onRevealed} />
 
-      <section aria-label="Resumo" className="grid gap-8 border-y border-border py-8 sm:grid-cols-3">
+      <section aria-label="Resumo" className="grid min-w-0 gap-8 border-y border-border py-8 sm:grid-cols-3">
         <div>
           <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
             Coeficiente de rendimento
@@ -34,6 +43,9 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
           <p className="mt-1 font-heading text-display font-semibold leading-none">{formatCr(officialCr ?? cr)}</p>
           {officialCr !== null && cr !== null && officialCr !== cr && (
             <p className="mt-2 text-sm text-muted-foreground">Pelas notas do histórico: {formatCr(cr)}.</p>
+          )}
+          {performance.mandatoryCr !== null && (
+            <p className="mt-2 text-sm text-muted-foreground">CR nas obrigatórias: {formatCr(performance.mandatoryCr)}.</p>
           )}
         </div>
         <div>
@@ -72,7 +84,30 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
         </p>
       )}
 
-      <div className="grid gap-12 lg:grid-cols-2">
+      <IntegrationTable components={transcript.officialComponents} />
+
+      <div className="grid min-w-0 gap-12 lg:grid-cols-2">
+        <PaceSection
+          pace={pace}
+          minPeriods={curriculum.requirements.minPeriods}
+          maxPeriods={curriculum.requirements.maxPeriods}
+        />
+        <PerformanceSection performance={performance} />
+      </div>
+
+      <EnadeSection records={transcript.enade} />
+
+      <AaccCard
+        officialHours={officialAacc.doneHours}
+        requiredHours={officialAacc.requiredHours}
+        countedHours={countedHours}
+        activities={aacc.items}
+        loading={aacc.loading}
+        onAdd={aacc.add}
+        onRemove={aacc.remove}
+      />
+
+      <div className="grid min-w-0 gap-12 lg:grid-cols-2">
         <Suspense fallback={chartFallback}>
           <CrChart history={crHistory} />
         </Suspense>

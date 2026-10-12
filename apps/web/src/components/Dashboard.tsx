@@ -16,10 +16,13 @@ interface DashboardProps {
   dataset: Dataset;
   onRevealed: () => void;
   onNewUpload: () => void;
+  /** Explicit "Limpar dados": removes the dataset and the registered activities. */
   onClear: () => void;
+  /** Crash recovery: removes only the parsed PDF data, never the activities the student registered. */
+  onResetDataset: () => void | Promise<void>;
 }
 
-export function Dashboard({ dataset, onRevealed, onNewUpload, onClear }: DashboardProps) {
+export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDataset }: DashboardProps) {
   const view = useHashView();
   const analysis = useAnalysis(dataset.data);
   const { curriculum } = dataset.data;
@@ -66,7 +69,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear }: Dashboa
           />
         )}
         {view === 'fluxograma' && (
-          <ErrorBoundary onReset={onClear}>
+          <ErrorBoundary onReset={onResetDataset}>
             <Suspense fallback={<p className="text-muted-foreground">Montando o fluxograma…</p>}>
               <FlowchartScreen data={dataset.data} />
             </Suspense>

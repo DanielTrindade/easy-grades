@@ -46,9 +46,99 @@ describe('parseTranscript', () => {
       { code: 'ENADE02', name: 'ENADE - CONCLUINTE', idealPeriod: null },
     ]);
     expect(t.officialCr).toBe(7.25);
-    expect(t.officialProgressPercent).toBe(14.06);
+    expect(t.officialProgressPercent).toBe(65.63);
     expect(t.aaccDoneHours).toBe(30);
     expect(t.extensaoDoneHours).toBe(0);
+  });
+
+  it('reads hours and credits of each component from the summary table', () => {
+    expect(parseTranscript(items).officialComponents).toEqual({
+      obrigatoria: { hours: { required: 2370, done: 1830, percent: 77.22 }, credits: { required: 140, done: 114, percent: 81.43 } },
+      optativa: { hours: { required: 180, done: 180, percent: 100 }, credits: { required: 6, done: 6, percent: 100 } },
+      eletiva: { hours: { required: 120, done: 60, percent: 50 }, credits: { required: 4, done: 2, percent: 50 } },
+      aacc: { hours: { required: 210, done: 30, percent: 14.29 }, credits: { required: 0, done: 0, percent: 0 } },
+      extensao: { hours: { required: 320, done: 0, percent: 0 }, credits: { required: 0, done: 0, percent: 0 } },
+      total: { hours: { required: 3200, done: 2100, percent: 65.63 }, credits: { required: 150, done: 122, percent: 81.33 } },
+    });
+  });
+
+  it('nulls only the component whose row lacks its values', async () => {
+    const partial = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'partial' }))));
+    expect(partial.officialComponents?.eletiva).toBeNull();
+    expect(partial.officialComponents?.obrigatoria).not.toBeNull();
+    expect(partial.officialComponents?.total).not.toBeNull();
+  });
+
+  it('caps a printed percentage above 100 at 100 instead of nulling the row', async () => {
+    const over = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'over100' }))));
+    expect(over.officialComponents?.optativa).toEqual({
+      hours: { required: 160, done: 180, percent: 100 },
+      credits: { required: 6, done: 6, percent: 100 },
+    });
+  });
+
+  it('has no official components and no ENADE when the tables are absent', async () => {
+    const bare = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'none', enade: false }))));
+    expect(bare.officialComponents).toBeNull();
+    expect(bare.officialProgressPercent).toBeNull();
+    expect(bare.enade).toEqual([]);
+  });
+
+  it('reads the ENADE status with its year', () => {
+    expect(parseTranscript(items).enade).toEqual([
+      { kind: 'ingressante', year: 2024, status: 'Dispensado em razão calendário trienal' },
+    ]);
+  });
+
+  it('reads a CONCLUINTE record next to an INGRESSANTE one', async () => {
+    const both = parseTranscript(
+      await extractItems(
+        await buildPdf(
+          transcriptPages({
+            enade: [
+              { kind: 'INGRESSANTE', year: '2024', situation: 'Dispensado em razão calendário trienal' },
+              { kind: 'CONCLUINTE', year: '2026', situation: 'Pendente' },
+            ],
+          }),
+        ),
+      ),
+    );
+    expect(TranscriptSchema.parse(both).enade).toEqual([
+      { kind: 'ingressante', year: 2024, status: 'Dispensado em razão calendário trienal' },
+      { kind: 'concluinte', year: 2026, status: 'Pendente' },
+    ]);
+  });
+
+  it('keeps an ENADE record whose year is missing, with a null year', async () => {
+    const t = parseTranscript(
+      await extractItems(await buildPdf(transcriptPages({ enade: [{ kind: 'CONCLUINTE', situation: 'Pendente' }] }))),
+    );
+    expect(TranscriptSchema.parse(t).enade).toEqual([{ kind: 'concluinte', year: null, status: 'Pendente' }]);
+  });
+
+  it.each([['1899'], ['2999'], ['20O4']])('nulls the ENADE year %s without failing the parse', async (year) => {
+    const t = parseTranscript(
+      await extractItems(
+        await buildPdf(transcriptPages({ enade: [{ kind: 'INGRESSANTE', year, situation: 'Pendente' }] })),
+      ),
+    );
+    expect(TranscriptSchema.parse(t).enade).toEqual([{ kind: 'ingressante', year: null, status: 'Pendente' }]);
+  });
+
+  it('omits an ENADE record with an empty situation', async () => {
+    const t = parseTranscript(
+      await extractItems(
+        await buildPdf(
+          transcriptPages({
+            enade: [
+              { kind: 'INGRESSANTE', year: '2024' },
+              { kind: 'CONCLUINTE', year: '2026', situation: 'Pendente' },
+            ],
+          }),
+        ),
+      ),
+    );
+    expect(TranscriptSchema.parse(t).enade).toEqual([{ kind: 'concluinte', year: 2026, status: 'Pendente' }]);
   });
 
   it('never leaks personal data from the header, teacher rows or observations', async () => {
