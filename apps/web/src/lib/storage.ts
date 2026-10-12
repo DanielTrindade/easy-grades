@@ -20,7 +20,8 @@ export interface Dataset {
 }
 
 let store: UseStore | undefined;
-const db = (): UseStore => (store ??= createStore('easy-grades', 'kv'));
+/** The IndexedDB store shared with the other per-browser records (dataset, registered activities). */
+export const db = (): UseStore => (store ??= createStore('easy-grades', 'kv'));
 
 export async function loadDataset(): Promise<Dataset | null> {
   try {
