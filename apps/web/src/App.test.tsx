@@ -74,6 +74,25 @@ describe('App', () => {
     expect(await loadDataset()).toBeNull();
   });
 
+  it('[clear] the dialog warns that registered activities are erased too, and confirming removes them', async () => {
+    await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
+    await saveAaccActivities([{ id: 'a1', description: 'Monitoria de cálculo', hours: 20, type: 'monitoria' }]);
+    render(<App />);
+    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 5000 });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar dados' }));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(
+      within(dialog).getByText(
+        'O currículo, o histórico e as atividades complementares que você registrou serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.',
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
+
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' })).toBeDisabled();
+    await waitFor(async () => expect(await loadAaccActivities()).toEqual([]));
+  });
+
   it('[reset] "Limpar dados e recomeçar" after a flowchart crash keeps the registered activities', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });

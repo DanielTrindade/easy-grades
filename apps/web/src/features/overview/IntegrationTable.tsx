@@ -64,7 +64,10 @@ export function IntegrationTable({ components }: IntegrationTableProps) {
               const measure = components[key];
               return (
                 <TableRow key={key} className={key === 'total' ? 'font-medium' : undefined}>
-                  <th scope="row" className="p-2 text-left align-middle font-normal whitespace-normal">
+                  <th
+                    scope="row"
+                    className={`p-2 text-left align-middle whitespace-normal ${key === 'total' ? 'font-medium' : 'font-normal'}`}
+                  >
                     {label}
                   </th>
                   <TableCell className="whitespace-normal">

@@ -72,13 +72,20 @@ function summaryRow(label: string, y: number, values: readonly string[], valuesD
   ];
 }
 
-/** Summary table at the end of the body. `partial` leaves the ELETIVAS credit cells empty. */
-function summaryTable(mode: 'full' | 'partial' | 'none'): Cell[] {
+/**
+ * Summary table at the end of the body. `partial` leaves the ELETIVAS credit cells empty.
+ * `over100` prints OPTATIVAS with more hours than required, so its hours percentage is above 100.
+ */
+function summaryTable(mode: 'full' | 'partial' | 'over100' | 'none'): Cell[] {
   if (mode === 'none') return [];
   return [
     { x: 23, y: 290, text: 'COMPONENTES CURRICULARES' },
     ...summaryRow('DISCIPLINAS OBRIGATÓRIAS', 272, ['2370', '1830', '77,22 %', '140', '114', '81,43 %']),
-    ...summaryRow('DISCIPLINAS OPTATIVAS', 258, ['180', '180', '100,00 %', '6', '6', '100,00 %']),
+    ...summaryRow(
+      'DISCIPLINAS OPTATIVAS',
+      258,
+      mode === 'over100' ? ['160', '180', '112,50 %', '6', '6', '100,00 %'] : ['180', '180', '100,00 %', '6', '6', '100,00 %'],
+    ),
     ...summaryRow('DISCIPLINAS ELETIVAS', 244, ['120', '60', '50,00 %', mode === 'partial' ? '' : '4', mode === 'partial' ? '' : '2', mode === 'partial' ? '' : '50,00 %']),
     ...summaryRow('ATIVIDADE CURRICULAR DE EXTENSÃO', 230, ['320', '0', '0,00 %', '0', '0', '0,00 %']),
     // The AACC values sit ~4.7 pt below the label, and the label wraps onto a second line ("CULTURAIS").
@@ -116,7 +123,12 @@ function enadeBlock(rows: EnadeRowFixture[]): Cell[] {
 }
 
 export function transcriptPages(
-  opts: { courseCode?: string; version?: string; table?: 'full' | 'partial' | 'none'; enade?: false | EnadeRowFixture[] } = {},
+  opts: {
+    courseCode?: string;
+    version?: string;
+    table?: 'full' | 'partial' | 'over100' | 'none';
+    enade?: false | EnadeRowFixture[];
+  } = {},
 ): Cell[][] {
   const header = studentHeader({ courseCode: opts.courseCode ?? 'IE17', version: opts.version ?? '2025/2' });
   const page1: Cell[] = [

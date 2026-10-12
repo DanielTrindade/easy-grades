@@ -24,6 +24,9 @@ describe('IntegrationTable', () => {
     render(<IntegrationTable components={components} />);
     const total = within(screen.getByRole('table')).getAllByRole('row').at(-1)!;
     expect(total).toHaveClass('font-medium');
+    // The row label must carry the same weight, not reset it to normal.
+    expect(within(total).getByRole('rowheader', { name: 'Total' })).toHaveClass('font-medium');
+    expect(within(total).getByRole('rowheader', { name: 'Total' })).not.toHaveClass('font-normal');
     expect(within(total).getByText('2.070 h de 3.200 h')).toBeInTheDocument();
     expect(within(total).getByText('64,69%')).toBeInTheDocument();
     expect(within(total).getByText('122 de 150')).toBeInTheDocument();

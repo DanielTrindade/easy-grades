@@ -52,6 +52,17 @@ describe('AaccCard', () => {
     // Two full registrations take longer than the default timeout when the whole suite runs in parallel.
   }, 15_000);
 
+  it('wraps a long activity description instead of cutting it off', async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<Harness />);
+    const long = 'Participação no projeto de extensão sobre práticas sustentáveis em comunidades ribeirinhas';
+    await register(user, long, '20');
+
+    const description = screen.getByText(long);
+    expect(description).toHaveClass('break-words');
+    expect(description).not.toHaveClass('truncate');
+  });
+
   it('removes an activity from the list and from the pending total', async () => {
     const user = userEvent.setup({ delay: null });
     render(<Harness />);
