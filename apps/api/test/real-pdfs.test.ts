@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { computeCr, computeProgress } from '@easy-grades/core';
+import { computeCr, computeProgress, OFFICIAL_COMPONENT_KEYS } from '@easy-grades/core';
 import { describe, expect, it } from 'vitest';
 import { parseDocuments } from '../src/parsers/documents';
 
@@ -26,6 +26,17 @@ describe.skipIf(!hasPdfs)('real e-Campus PDFs', () => {
     expect(transcript.officialCr).not.toBeNull();
     expect(computeCr(transcript.entries)).toBe(transcript.officialCr);
     expect(computeProgress(curriculum, transcript).percent).toBe(transcript.officialProgressPercent);
+
+    // The official integralização table: every row read, and consistent with the transcript's own totals.
+    const official = transcript.officialComponents;
+    expect(official).not.toBeNull();
+    for (const key of OFFICIAL_COMPONENT_KEYS) {
+      expect(official![key]).not.toBeNull();
+    }
+    expect(official!.total!.hours.percent).toBe(transcript.officialProgressPercent);
+    expect(official!.aacc!.hours.done).toBe(transcript.aaccDoneHours);
+    expect(official!.extensao!.hours.done).toBe(transcript.extensaoDoneHours);
+    expect(transcript.enade.length).toBeGreaterThanOrEqual(1);
 
     const json = JSON.stringify(result);
     expect(json).not.toMatch(/\d{3}\.\d{3}\.\d{3}-\d{2}/); // CPF

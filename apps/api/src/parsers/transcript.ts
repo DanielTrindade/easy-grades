@@ -82,10 +82,10 @@ const CREDITS_COLUMNS: Columns = { required: [400, 445], done: [460, 505], perce
 const ENADE_KINDS: Record<string, EnadeRecord['kind']> = { INGRESSANTE: 'ingressante', CONCLUINTE: 'concluinte' };
 
 const countValue = (text: string | null): number | null => (text !== null && /^\d+$/.test(text) ? Number(text) : null);
+/** A printed percentage, capped at 100: a component over its requirement (e.g. optativas) still shows as complete. */
 const percentValue = (text: string | null): number | null => {
   const match = /^(\d{1,3}(?:[.,]\d+)?)\s*%?$/.exec(text ?? '');
-  const value = match ? Number(match[1]!.replace(',', '.')) : null;
-  return value !== null && value <= 100 ? value : null;
+  return match ? Math.min(Number(match[1]!.replace(',', '.')), 100) : null;
 };
 
 function readMeasure(

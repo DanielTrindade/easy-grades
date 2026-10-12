@@ -69,6 +69,14 @@ describe('parseTranscript', () => {
     expect(partial.officialComponents?.total).not.toBeNull();
   });
 
+  it('caps a printed percentage above 100 at 100 instead of nulling the row', async () => {
+    const over = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'over100' }))));
+    expect(over.officialComponents?.optativa).toEqual({
+      hours: { required: 160, done: 180, percent: 100 },
+      credits: { required: 6, done: 6, percent: 100 },
+    });
+  });
+
   it('has no official components and no ENADE when the tables are absent', async () => {
     const bare = parseTranscript(await extractItems(await buildPdf(transcriptPages({ table: 'none', enade: false }))));
     expect(bare.officialComponents).toBeNull();

@@ -167,7 +167,7 @@ export function AaccCard({
           {activities.map((activity) => (
             <li key={activity.id} className="flex items-center justify-between gap-4 py-3">
               <div className="min-w-0">
-                <p className="truncate font-medium">{activity.description}</p>
+                <p className="break-words font-medium">{activity.description}</p>
                 <p className="text-sm text-muted-foreground">{AACC_TYPE_LABELS[activity.type]}</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
