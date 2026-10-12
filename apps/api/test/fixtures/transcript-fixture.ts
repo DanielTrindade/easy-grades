@@ -62,7 +62,74 @@ function teacher(y: number): Cell[] {
   ];
 }
 
-export function transcriptPages(opts: { courseCode?: string; version?: string } = {}): Cell[][] {
+// x of the six summary-table columns: CH exigida, CH realizada, % CH, créditos exigidos, créditos realizados, % créditos.
+const SUMMARY_X = [232.8, 296, 348.2, 416.5, 477.5, 530] as const;
+
+function summaryRow(label: string, y: number, values: readonly string[], valuesDy = 0): Cell[] {
+  return [
+    { x: 23, y, text: label },
+    ...values.flatMap((text, i) => (text ? [{ x: SUMMARY_X[i]!, y: y + valuesDy, text }] : [])),
+  ];
+}
+
+/**
+ * Summary table at the end of the body. `partial` leaves the ELETIVAS credit cells empty.
+ * `over100` prints OPTATIVAS with more hours than required, so its hours percentage is above 100.
+ */
+function summaryTable(mode: 'full' | 'partial' | 'over100' | 'none'): Cell[] {
+  if (mode === 'none') return [];
+  return [
+    { x: 23, y: 290, text: 'COMPONENTES CURRICULARES' },
+    ...summaryRow('DISCIPLINAS OBRIGATÓRIAS', 272, ['2370', '1830', '77,22 %', '140', '114', '81,43 %']),
+    ...summaryRow(
+      'DISCIPLINAS OPTATIVAS',
+      258,
+      mode === 'over100' ? ['160', '180', '112,50 %', '6', '6', '100,00 %'] : ['180', '180', '100,00 %', '6', '6', '100,00 %'],
+    ),
+    ...summaryRow('DISCIPLINAS ELETIVAS', 244, ['120', '60', '50,00 %', mode === 'partial' ? '' : '4', mode === 'partial' ? '' : '2', mode === 'partial' ? '' : '50,00 %']),
+    ...summaryRow('ATIVIDADE CURRICULAR DE EXTENSÃO', 230, ['320', '0', '0,00 %', '0', '0', '0,00 %']),
+    // The AACC values sit ~4.7 pt below the label, and the label wraps onto a second line ("CULTURAIS").
+    ...summaryRow('ATIVIDADES-ACADÊMICO-CIENTÍFICO-', 216, ['210', '30', '14,29 %', '0', '0', '0,00 %'], -4.7),
+    { x: 23, y: 207, text: 'CULTURAIS' },
+    ...summaryRow('TOTAL', 190, ['3200', '2100', '65,63 %', '150', '122', '81,33 %']),
+  ];
+}
+
+export interface EnadeRowFixture {
+  kind: 'INGRESSANTE' | 'CONCLUINTE';
+  year?: string;
+  situation?: string;
+}
+
+const DEFAULT_ENADE: EnadeRowFixture[] = [
+  { kind: 'INGRESSANTE', year: '2024', situation: 'Dispensado em razão calendário trienal' },
+];
+
+/** ENADE block after the summary table: header row, then one label row per exam status (15 pt apart). */
+function enadeBlock(rows: EnadeRowFixture[]): Cell[] {
+  return [
+    { x: 23, y: 165, text: 'ENADE' },
+    { x: 290, y: 165, text: 'ANO' },
+    { x: 362, y: 165, text: 'SITUAÇÃO' },
+    ...rows.flatMap((row, index): Cell[] => {
+      const y = 150 - index * 15;
+      return [
+        { x: 23, y, text: row.kind },
+        ...(row.year === undefined ? [] : [{ x: 290, y, text: row.year }]),
+        ...(row.situation === undefined ? [] : [{ x: 362, y, text: row.situation }]),
+      ];
+    }),
+  ];
+}
+
+export function transcriptPages(
+  opts: {
+    courseCode?: string;
+    version?: string;
+    table?: 'full' | 'partial' | 'over100' | 'none';
+    enade?: false | EnadeRowFixture[];
+  } = {},
+): Cell[][] {
   const header = studentHeader({ courseCode: opts.courseCode ?? 'IE17', version: opts.version ?? '2025/2' });
   const page1: Cell[] = [
     ...header,
@@ -113,20 +180,8 @@ export function transcriptPages(opts: { courseCode?: string; version?: string } 
     { x: 19, y: 345, text: 'ENADE02' },
     { x: 70, y: 345, text: 'ENADE - CONCLUINTE' },
     { x: 163.6, y: 320, text: '** COEFICIENTE DE RENDIMENTO ESCOLAR = 7.250 **' },
-    { x: 23, y: 290, text: 'COMPONENTES CURRICULARES' },
-    { x: 23, y: 270, text: 'ATIVIDADE CURRICULAR DE EXTENSÃO' },
-    { x: 232.8, y: 270, text: '320' },
-    { x: 298.3, y: 270, text: '0' },
-    { x: 350.1, y: 270.3, text: '0,00 %' },
-    { x: 23, y: 257.7, text: 'ATIVIDADES-ACADÊMICO-CIENTÍFICO-' },
-    { x: 232.8, y: 253, text: '210' },
-    { x: 296, y: 253, text: '30' },
-    { x: 348.2, y: 253.3, text: '14,29 %' },
-    { x: 23, y: 248.3, text: 'CULTURAIS' },
-    { x: 23, y: 230, text: 'TOTAL' },
-    { x: 230.6, y: 230, text: '3200' },
-    { x: 291.6, y: 230, text: '450' },
-    { x: 348.2, y: 230.3, text: '14,06 %' },
+    ...summaryTable(opts.table ?? 'full'),
+    ...(opts.enade === false ? [] : enadeBlock(opts.enade ?? DEFAULT_ENADE)),
   ];
 
   const page3: Cell[] = [

@@ -23,7 +23,7 @@ export function ClearDataButton({ onConfirm }: { onConfirm: () => void }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Limpar dados deste navegador?</AlertDialogTitle>
           <AlertDialogDescription>
-            O currículo e o histórico lidos serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.
+            O currículo, o histórico e as atividades complementares que você registrou serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -4,6 +4,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { UploadScreen } from '@/features/upload/UploadScreen';
+import { clearAaccActivities } from '@/lib/aacc-storage';
 import { clearDataset, loadDataset, markRevealed, saveDataset, type Dataset } from '@/lib/storage';
 
 // Charts and the dashboard load only after there is data to show; the upload screen stays light.
@@ -34,7 +35,8 @@ export default function App() {
   }
 
   async function handleClear() {
-    await clearDataset();
+    // Registered activities are per browser too, so "Limpar dados" removes them with the dataset.
+    await Promise.all([clearDataset(), clearAaccActivities()]);
     setState({ status: 'upload', previous: null });
   }
 
@@ -70,6 +72,7 @@ export default function App() {
               onRevealed={handleRevealed}
               onNewUpload={() => setState({ status: 'upload', previous: state.dataset })}
               onClear={handleClear}
+              onResetDataset={clearDataset}
             />
           </Suspense>
         </ErrorBoundary>
