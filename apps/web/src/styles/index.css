@@ -83,6 +83,8 @@
   --neblina: #a3aba4;
   --water-done: #2b2118;
   --water-left: #c7a15a;
+  /* Registered-by-you stripes: between the done and the remaining tones. */
+  --water-pending: #5a4426;
 
   --background: var(--varzea);
   --foreground: var(--negro);
@@ -129,6 +131,7 @@
     --neblina: #5e655f;
     --water-done: #6b4a2e;
     --water-left: #d4b072;
+    --water-pending: #9a7440;
 
     --card: #221d18;
     --popover: #27211b;

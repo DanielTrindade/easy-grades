@@ -3,10 +3,12 @@ import { TriangleAlert } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import type { Analysis } from '@/lib/use-analysis';
 import { formatCr, formatHours } from '@/lib/format';
+import { AaccCard } from './AaccCard';
 import { EnadeSection } from './EnadeSection';
 import { IntegrationTable } from './IntegrationTable';
 import { PaceSection } from './PaceSection';
 import { PerformanceSection } from './PerformanceSection';
+import { usePendingAacc } from './use-pending-aacc';
 import { WatersBand } from './WatersBand';
 
 // Recharts is heavy: charts stream in after the numbers are on screen.
@@ -27,9 +29,11 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
   const officialCr = transcript.officialCr;
   const graduation = forecast.graduationTerm ? formatTerm(forecast.graduationTerm) : 'sem previsão';
 
+  const { aacc, pendingPercent, countedHours, officialAacc } = usePendingAacc(curriculum, transcript, progress);
+
   return (
     <div className="grid gap-14">
-      <WatersBand progress={progress} reveal={reveal} onRevealed={onRevealed} />
+      <WatersBand progress={progress} pendingPercent={pendingPercent} reveal={reveal} onRevealed={onRevealed} />
 
       <section aria-label="Resumo" className="grid gap-8 border-y border-border py-8 sm:grid-cols-3">
         <div>
@@ -92,6 +96,16 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
       </div>
 
       <EnadeSection records={transcript.enade} />
+
+      <AaccCard
+        officialHours={officialAacc.doneHours}
+        requiredHours={officialAacc.requiredHours}
+        countedHours={countedHours}
+        activities={aacc.items}
+        loading={aacc.loading}
+        onAdd={aacc.add}
+        onRemove={aacc.remove}
+      />
 
       <div className="grid gap-12 lg:grid-cols-2">
         <Suspense fallback={chartFallback}>
