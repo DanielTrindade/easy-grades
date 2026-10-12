@@ -35,7 +35,7 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
     <div className="grid gap-14">
       <WatersBand progress={progress} pendingPercent={pendingPercent} reveal={reveal} onRevealed={onRevealed} />
 
-      <section aria-label="Resumo" className="grid gap-8 border-y border-border py-8 sm:grid-cols-3">
+      <section aria-label="Resumo" className="grid min-w-0 gap-8 border-y border-border py-8 sm:grid-cols-3">
         <div>
           <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
             Coeficiente de rendimento
@@ -86,7 +86,7 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
 
       <IntegrationTable components={transcript.officialComponents} />
 
-      <div className="grid gap-12 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-12 lg:grid-cols-2">
         <PaceSection
           pace={pace}
           minPeriods={curriculum.requirements.minPeriods}
@@ -107,7 +107,7 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
         onRemove={aacc.remove}
       />
 
-      <div className="grid gap-12 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-12 lg:grid-cols-2">
         <Suspense fallback={chartFallback}>
           <CrChart history={crHistory} />
         </Suspense>

@@ -10,7 +10,7 @@ describe('IntegrationTable', () => {
     render(<IntegrationTable components={components} />);
     const rows = within(screen.getByRole('table')).getAllByRole('row').slice(1);
     expect(rows).toHaveLength(6);
-    expect(rows.map((row) => within(row).getAllByRole('cell')[0]?.textContent)).toEqual([
+    expect(rows.map((row) => within(row).getByRole('rowheader').textContent)).toEqual([
       'Obrigatórias',
       'Optativas',
       'Eletivas',
@@ -30,6 +30,30 @@ describe('IntegrationTable', () => {
     expect(within(total).getByText('81,33%')).toBeInTheDocument();
   });
 
+  it('puts the table in a focusable scroll region named after the section heading', () => {
+    render(<IntegrationTable components={components} />);
+    const region = screen.getByRole('region', { name: 'Integralização oficial' });
+    expect(region).toHaveClass('overflow-x-auto');
+    expect(region).toHaveAttribute('tabindex', '0');
+    expect(within(region).getByRole('table')).toBeInTheDocument();
+  });
+
+  it('names the table after the section heading', () => {
+    render(<IntegrationTable components={components} />);
+    expect(screen.getByRole('table', { name: 'Integralização oficial' })).toBeInTheDocument();
+  });
+
+  it('shows a dash instead of 0 de 0 when a component requires no credits', () => {
+    const noCredits = {
+      ...components,
+      extensao: { hours: { required: 0, done: 0, percent: 100 }, credits: { required: 0, done: 0, percent: 100 } },
+    };
+    render(<IntegrationTable components={noCredits} />);
+    const extension = screen.getByRole('rowheader', { name: 'Extensão' }).closest('tr')!;
+    expect(within(extension).queryByText('0 de 0')).not.toBeInTheDocument();
+    expect(within(extension).getAllByText('—')).toHaveLength(2);
+  });
+
   it('explains the gap when credit and hour percentages differ by 5 points or more', () => {
     render(<IntegrationTable components={components} />);
     expect(
@@ -45,6 +69,15 @@ describe('IntegrationTable', () => {
       total: { hours: { required: 3200, done: 2070, percent: 64.69 }, credits: { required: 150, done: 98, percent: 65.5 } },
     };
     render(<IntegrationTable components={close} />);
+    expect(screen.queryByText(/Por créditos você já cumpriu/)).not.toBeInTheDocument();
+  });
+
+  it('does not show the gap note when hours are ahead of credits', () => {
+    const hoursAhead = {
+      ...components,
+      total: { hours: { required: 3200, done: 2400, percent: 75 }, credits: { required: 150, done: 98, percent: 65.33 } },
+    };
+    render(<IntegrationTable components={hoursAhead} />);
     expect(screen.queryByText(/Por créditos você já cumpriu/)).not.toBeInTheDocument();
   });
 

@@ -26,7 +26,7 @@ export function WatersBand({ progress, pendingPercent = 0, reveal, onRevealed }:
     : `${formatPercent(percent)} do curso concluído`;
 
   return (
-    <section aria-labelledby="progresso">
+    <section aria-labelledby="progresso" className="min-w-0">
       <h1 id="progresso" className="text-[clamp(2.75rem,8vw,4rem)] font-semibold">
         {formatPercent(percent)}
       </h1>

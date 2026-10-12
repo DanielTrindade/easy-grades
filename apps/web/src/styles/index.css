@@ -25,6 +25,7 @@
 
   --color-negro: var(--negro);
   --color-solimoes: var(--solimoes);
+  --color-solimoes-strong: var(--solimoes-strong);
   --color-igapo: var(--igapo);
   --color-varzea: var(--varzea);
   --color-vitoria: var(--vitoria);
@@ -85,6 +86,8 @@
   --water-left: #c7a15a;
   /* Registered-by-you stripes: between the done and the remaining tones. */
   --water-pending: #5a4426;
+  /* Clay for icons and text on the light background (the plain Solimões is 2,1:1 there). */
+  --solimoes-strong: #8a6a2c;
 
   --background: var(--varzea);
   --foreground: var(--negro);
@@ -132,6 +135,7 @@
     --water-done: #6b4a2e;
     --water-left: #d4b072;
     --water-pending: #9a7440;
+    --solimoes-strong: var(--solimoes);
 
     --card: #221d18;
     --popover: #27211b;
