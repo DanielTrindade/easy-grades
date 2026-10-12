@@ -68,7 +68,7 @@ export function AaccCard({
   }
 
   return (
-    <section aria-labelledby="atividades-complementares" className="grid gap-6">
+    <section aria-labelledby="atividades-complementares" className="grid min-w-0 gap-6">
       <div className="grid gap-2">
         <h2 id="atividades-complementares" className="text-xl font-semibold">
           Atividades complementares

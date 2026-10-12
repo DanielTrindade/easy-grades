@@ -20,7 +20,7 @@ export function PerformanceSection({ performance }: PerformanceSectionProps) {
   const trendInfo = trend ? TREND[trend] : null;
 
   return (
-    <section aria-labelledby="desempenho" className="grid content-start gap-4">
+    <section aria-labelledby="desempenho" className="grid min-w-0 content-start gap-4">
       <h2 id="desempenho" className="text-xl font-semibold">
         Desempenho
       </h2>

@@ -6,7 +6,7 @@ const PACE_STATUS: Record<PaceInsights['status'], { icon: LucideIcon; label: str
   concluido: { icon: CircleCheck, label: 'Carga horária concluída', iconColor: 'text-igapo' },
   inicio: { icon: Clock, label: 'Ainda sem período concluído para medir o ritmo', iconColor: 'text-muted-foreground' },
   no_ritmo: { icon: CircleCheck, label: 'No ritmo para o prazo ideal', iconColor: 'text-igapo' },
-  atrasado: { icon: TriangleAlert, label: 'Abaixo do ritmo do prazo ideal', iconColor: 'text-solimoes' },
+  atrasado: { icon: TriangleAlert, label: 'Abaixo do ritmo do prazo ideal', iconColor: 'text-solimoes-strong' },
   risco_prazo_maximo: { icon: OctagonAlert, label: 'Risco de ultrapassar o prazo máximo', iconColor: 'text-urucum' },
 };
 
@@ -22,7 +22,7 @@ export function PaceSection({ pace, minPeriods, maxPeriods }: PaceSectionProps) 
   const paceText = (hours: number | null) => (hours === null ? 'prazo encerrado' : `${formatHours(hours)} por período`);
 
   return (
-    <section aria-labelledby="ritmo" className="grid content-start gap-4">
+    <section aria-labelledby="ritmo" className="grid min-w-0 content-start gap-4">
       <h2 id="ritmo" className="text-xl font-semibold">
         Ritmo e prazo
       </h2>

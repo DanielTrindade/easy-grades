@@ -1,12 +1,24 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
+import { clearAaccActivities, loadAaccActivities, saveAaccActivities } from './lib/aacc-storage';
 import { clearDataset, loadDataset, saveDataset, STORAGE_VERSION, writeRawForTests } from './lib/storage';
+
+// Lets a test make the flowchart throw on render, to exercise its error boundary.
+const flowchart = vi.hoisted(() => ({ broken: false }));
+vi.mock('@/features/flowchart/FlowchartScreen', () => ({
+  default: () => {
+    if (flowchart.broken) throw new Error('flowchart boom');
+    return <p>Fluxograma de teste</p>;
+  },
+}));
 
 describe('App', () => {
   beforeEach(async () => {
     await clearDataset();
+    await clearAaccActivities();
+    flowchart.broken = false;
     window.location.hash = '';
   });
 
@@ -60,5 +72,21 @@ describe('App', () => {
 
     expect(await screen.findByRole('button', { name: 'Ler meus PDFs' })).toBeDisabled();
     expect(await loadDataset()).toBeNull();
+  });
+
+  it('[reset] "Limpar dados e recomeçar" after a flowchart crash keeps the registered activities', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
+    await saveAaccActivities([{ id: 'a1', description: 'Monitoria de cálculo', hours: 20, type: 'monitoria' }]);
+    flowchart.broken = true;
+    window.location.hash = '/fluxograma';
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Limpar dados e recomeçar' }, { timeout: 5000 }));
+
+    await waitFor(async () => expect(await loadDataset()).toBeNull());
+    expect(await loadAaccActivities()).toEqual([
+      { id: 'a1', description: 'Monitoria de cálculo', hours: 20, type: 'monitoria' },
+    ]);
   });
 });

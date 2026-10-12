@@ -72,6 +72,7 @@ export default function App() {
               onRevealed={handleRevealed}
               onNewUpload={() => setState({ status: 'upload', previous: state.dataset })}
               onClear={handleClear}
+              onResetDataset={clearDataset}
             />
           </Suspense>
         </ErrorBoundary>
