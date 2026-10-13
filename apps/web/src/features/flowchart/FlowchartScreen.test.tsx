@@ -126,17 +126,28 @@ describe('FlowchartScreen focus', () => {
     expect(visibleTextOf(nodeOf('ICC431'))).toMatch(/(Concluída|Em curso|Reprovada|Disponível|Bloqueada)/);
   });
 
-  it('disables the export button while the PNG is being generated', async () => {
+  // The flowchart is about progression, not grades: the card carries credits only; grades live in Disciplinas.
+  it('shows the credits without the grade on the card', () => {
+    render(<FlowchartScreen data={data} />);
+
+    const text = visibleTextOf(nodeOf('ICC431'));
+    expect(text).toMatch(/créditos?/);
+    expect(text).not.toMatch(/nota/i);
+  });
+
+  it('disables the export button and shows progress while the PNG is being generated', async () => {
     let finish!: (url: string) => void;
     png.toPng.mockReturnValueOnce(new Promise<string>((resolve) => (finish = resolve)));
     render(<FlowchartScreen data={data} />);
     const exportButton = screen.getByRole('button', { name: 'Exportar PNG' });
 
     fireEvent.click(exportButton);
-    await waitFor(() => expect(exportButton).toBeDisabled());
+    const busy = await screen.findByRole('button', { name: 'Exportando…' });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveAttribute('aria-busy', 'true');
 
     finish('data:image/png;base64,');
-    await waitFor(() => expect(exportButton).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Exportar PNG' })).toBeEnabled());
   });
 
   it('exports in export mode with no course dimmed, even when a course is pinned', async () => {
@@ -158,6 +169,28 @@ describe('FlowchartScreen focus', () => {
     expect(captured).toEqual({ exporting: true, dimmed: 0 });
   });
 
+  // The image is always the graph, whatever view the student is reading: the button never depends on the view.
+  it('exports the flowchart image from the list view and comes back to the list', async () => {
+    const user = userEvent.setup({ delay: null });
+    let captured: { exporting: boolean } | undefined;
+    png.toPng.mockImplementationOnce(async (node) => {
+      captured = { exporting: node.closest('.is-exporting') !== null };
+      return 'data:image/png;base64,';
+    });
+    const { container } = render(<FlowchartScreen data={data} />);
+
+    const toggle = screen.getByRole('switch', { name: 'Ver como lista' });
+    toggle.focus();
+    await user.keyboard(' ');
+    expect(container.querySelector('.react-flow')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+    await waitFor(() => expect(captured).toBeDefined());
+    expect(captured).toEqual({ exporting: true });
+    await waitFor(() => expect(container.querySelector('.react-flow')).toBeNull());
+    expect(screen.getAllByRole('heading', { name: /º período$/ }).length).toBeGreaterThan(0);
+  });
+
   it('switches between the graph and the list with the keyboard', async () => {
     const user = userEvent.setup({ delay: null });
     const { container } = render(<FlowchartScreen data={data} />);
@@ -169,7 +202,8 @@ describe('FlowchartScreen focus', () => {
     expect(toggle).toBeChecked();
     expect(container.querySelector('.react-flow')).toBeNull();
     expect(screen.getAllByRole('heading', { name: /º período$/ }).length).toBeGreaterThan(0);
-    expect(exportButton).toBeDisabled();
+    // The export stays available: it captures the graph even while the list is on screen.
+    expect(exportButton).toBeEnabled();
 
     await user.keyboard(' ');
     expect(container.querySelector('.react-flow')).not.toBeNull();
