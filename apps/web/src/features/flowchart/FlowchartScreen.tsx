@@ -9,7 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
-import { Download } from 'lucide-react';
+import { Download, LoaderCircle } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { toast } from 'sonner';
@@ -33,14 +33,14 @@ function Graph({ data }: { data: ParseResponse }) {
   const hover = useHoverFocus();
   const [pinned, setPinned] = useState<string | null>(null);
   const [onlyRemaining, setOnlyRemaining] = useState(false);
-  // Narrow screens open as a list; the student's last choice (kept in localStorage) wins over that default.
-  const [flowView, setFlowView] = useState<FlowView>(() => pickFlowView(window.innerWidth, readStoredFlowView()));
+  // The graph is the default view; the student's last choice (kept in localStorage) wins over it.
+  const [flowView, setFlowView] = useState<FlowView>(() => pickFlowView(readStoredFlowView()));
   const asList = flowView === 'lista';
   const [exporting, setExporting] = useState(false);
   const { fitView, setViewport } = useReactFlow();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const layout = useMemo(() => layoutFlowchart(curriculum, transcript, { columnWidth: 264, rowHeight: 104 }), [curriculum, transcript]);
+  const layout = useMemo(() => layoutFlowchart(curriculum, transcript, { columnWidth: 264, rowHeight: 112 }), [curriculum, transcript]);
   const graph = useMemo(() => visibleGraph(layout.nodes, layout.edges, onlyRemaining), [layout, onlyRemaining]);
   // A pinned course hidden by "Mostrar só o que falta" no longer drives the focus.
   const activePinned = pinned !== null && graph.nodes.some((n) => n.code === pinned) ? pinned : null;
@@ -97,9 +97,26 @@ function Graph({ data }: { data: ParseResponse }) {
     else void setViewport({ x: 24, y: 24, zoom: 0.8 });
   }, [fitView, setViewport, layout.width]);
 
+  // The graph mounts a frame after the list is left, so the capture waits for its viewport instead of assuming it.
+  const waitForViewport = useCallback(async (): Promise<HTMLElement | null> => {
+    for (let frame = 0; frame < 60; frame++) {
+      const viewport = containerRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
+      if (viewport) return viewport;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    return null;
+  }, []);
+
   async function exportPng() {
-    const viewportEl = containerRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
-    if (!viewportEl) return;
+    // The image is always the graph: when the list is on screen, the graph mounts for the capture and leaves right after.
+    const fromList = asList;
+    if (fromList) flushSync(() => setFlowView('grafo'));
+    const viewportEl = await waitForViewport();
+    if (!viewportEl) {
+      if (fromList) setFlowView('lista');
+      toast.error('Não foi possível exportar a imagem. Tente de novo.');
+      return;
+    }
     try {
       // Enter export mode first (no transitions, no entrance animation, no hidden nodes), then clear the focus,
       // so the dimming and edge fades are cut at once and every course is captured at full opacity.
@@ -132,6 +149,7 @@ function Graph({ data }: { data: ParseResponse }) {
       toast.error('Não foi possível exportar a imagem. Tente de novo.');
     } finally {
       setExporting(false);
+      if (fromList) setFlowView('lista');
     }
   }
 
@@ -141,13 +159,17 @@ function Graph({ data }: { data: ParseResponse }) {
         <div>
           <h1 className="text-3xl sm:text-display">Fluxograma do curso</h1>
           <p className="mt-2 max-w-[60ch] text-muted-foreground">
-            Passe o mouse ou selecione uma disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
+            Passe o mouse ou toque numa disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
             percorrer os períodos.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={exportPng} disabled={asList || exporting} className="max-md:h-11">
-          <Download aria-hidden />
-          Exportar PNG
+        <Button variant="outline" size="sm" onClick={exportPng} disabled={exporting} aria-busy={exporting} className="max-md:h-11">
+          {exporting ? (
+            <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" />
+          ) : (
+            <Download aria-hidden />
+          )}
+          {exporting ? 'Exportando…' : 'Exportar PNG'}
         </Button>
       </div>
 

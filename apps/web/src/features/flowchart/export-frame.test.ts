@@ -5,7 +5,8 @@ import { exportFrame } from './export-frame';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH } from './CourseNode';
 
 const PADDING = 48;
-const layout = layoutFlowchart(sampleCurriculum, sampleTranscript, { columnWidth: 264, rowHeight: 104 });
+// The same grid the screen uses, so the test pins what the exported image actually frames.
+const layout = layoutFlowchart(sampleCurriculum, sampleTranscript, { columnWidth: 264, rowHeight: 112 });
 
 describe('exportFrame', () => {
   it('frames the default flowchart layout from the cards the grid places', () => {
@@ -15,8 +16,8 @@ describe('exportFrame', () => {
 
     const frame = exportFrame(layout.nodes, COURSE_NODE_WIDTH, COURSE_NODE_HEIGHT, PADDING);
 
-    expect(frame.width).toBe(7 * 264 + 232 + 96);
-    expect(frame.height).toBe((6 - 1) * 104 + 84 + 96);
+    expect(frame.width).toBe(7 * 264 + COURSE_NODE_WIDTH + 96);
+    expect(frame.height).toBe((6 - 1) * 112 + COURSE_NODE_HEIGHT + 96);
     expect(frame.offsetX).toBe(PADDING);
     expect(frame.offsetY).toBe(PADDING);
   });
