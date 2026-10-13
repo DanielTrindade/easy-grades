@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/bricolage-grotesque/wdth.css";
-@import "@fontsource-variable/hanken-grotesk";
+@import "@fontsource-variable/mona-sans/wdth.css";
 @import "@xyflow/react/dist/style.css";
 
 /* Dark mode follows the operating system. */
@@ -16,30 +15,39 @@
   }
 }
 
-/* Headings and big numbers: Bricolage at weight 750 on the condensed axis (wdth 78), with tight ink-like spacing. */
+/* Headings and big numbers: Mona Sans at weight 800 on the widest axis (wdth 125), with tight spacing. */
 @utility heading-ink {
   font-family: var(--font-heading);
-  font-weight: 750;
-  font-stretch: 78%;
-  letter-spacing: -0.015em;
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
   line-height: 1.05;
 }
 
+/* Course codes: the same family at 87.5% width, in the muted ink. No monospace font. */
+@utility code-label {
+  font-stretch: 87.5%;
+  color: var(--suave);
+}
+
 @theme inline {
-  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
   /* Type scale steps from the visual direction (44 px and 64 px). */
   --text-display: 2.75rem;
   --text-stat: 4rem;
 
-  --color-papel: var(--papel);
-  --color-pauta: var(--pauta);
-  --color-tinta: var(--tinta);
-  --color-tinta-escura: var(--tinta-escura);
-  --color-marca: var(--marca);
-  --color-correcao: var(--correcao);
-  --color-correcao-foreground: var(--correcao-foreground);
-  --color-grafite: var(--grafite);
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-suave: var(--suave);
+  --color-linha: var(--linha);
+  --color-campo: var(--campo);
+  --color-esmeralda: var(--esmeralda);
+  --color-esmeralda-texto: var(--esmeralda-texto);
+  --color-esmeralda-fundo: var(--esmeralda-fundo);
+  --color-erro: var(--erro);
+  --color-erro-foreground: var(--erro-foreground);
 
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
@@ -80,82 +88,88 @@
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  /* Panels and sheets are 14 px; controls stay on --radius (8 px). */
+  --radius-xl: 0.875rem;
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-/* Caderno palette: squared notebook paper, blue ink, yellow highlighter, red correction pen, pencil grey. */
+/* Palette: cool graphite neutrals and one accent, esmeralda, which means "approved" everywhere it appears. */
 :root {
-  --papel: #f4f6fa;
-  --pauta: #c9d3e6;
-  --tinta: #1d3fa0;
-  --tinta-escura: #14275f;
-  --marca: #f2e94e;
-  --correcao: #c4302b;
-  /* Text on a --correcao fill: white is 5.5:1 here. */
-  --correcao-foreground: #ffffff;
-  --grafite: #5b6170;
+  --fundo: #f4f4f2;
+  --superficie: #ffffff;
+  --texto: #18191c;
+  --suave: #5d6068;
+  --linha: #e2e2de;
+  /* Field borders: 3.4:1 on fundo and 3.8:1 on superficie (WCAG 1.4.11). The spec value #8E9198 gave 2.9:1 on fundo. */
+  --campo: #7f848c;
+  --esmeralda: #0f8f61;
+  /* Esmeralda as text on fundo and superficie: 4.5:1 or better. */
+  --esmeralda-texto: #0b7651;
+  --esmeralda-fundo: #dcf1e8;
+  --erro: #c23b3b;
+  /* Text on an --erro fill. */
+  --erro-foreground: #ffffff;
 
-  /* MarkerBand: the hatched highlighter used for activities the student registered (the done fill is --marca). */
-  --band-pending: color-mix(in oklab, var(--marca) 50%, transparent);
+  /* MarkerBand: the hatched esmeralda used for activities the student registered (the done fill is solid esmeralda). */
+  --band-pending: color-mix(in oklab, var(--esmeralda) 45%, transparent);
 
-  --background: var(--papel);
-  --foreground: #14275f;
-  --card: #ffffff;
-  --card-foreground: var(--foreground);
-  --popover: var(--card);
-  --popover-foreground: var(--foreground);
-  --primary: var(--tinta);
-  --primary-foreground: var(--papel);
-  --secondary: #e6ebf5;
-  --secondary-foreground: var(--foreground);
-  --muted: #e6ebf5;
-  --muted-foreground: var(--grafite);
-  --accent: #dce4f3;
-  --accent-foreground: var(--foreground);
-  --destructive: var(--correcao);
-  --border: var(--pauta);
-  /* Field borders: 3.3:1 on the white card (WCAG 1.4.11). */
-  --input: #7f8dae;
-  --ring: var(--tinta);
-  --chart-1: var(--tinta);
-  --chart-2: var(--marca);
-  --chart-3: var(--grafite);
-  --chart-4: #5b8def;
-  --chart-5: var(--correcao);
-  --radius: 0.375rem;
-  --sidebar: var(--card);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--tinta);
-  --sidebar-primary-foreground: var(--papel);
+  --background: var(--fundo);
+  --foreground: var(--texto);
+  --card: var(--superficie);
+  --card-foreground: var(--texto);
+  --popover: var(--superficie);
+  --popover-foreground: var(--texto);
+  /* Buttons are graphite, not green: esmeralda is reserved for progress, approval and focus. */
+  --primary: var(--texto);
+  --primary-foreground: var(--fundo);
+  --secondary: #ededea;
+  --secondary-foreground: var(--texto);
+  --muted: #ededea;
+  --muted-foreground: var(--suave);
+  --accent: #ededea;
+  --accent-foreground: var(--texto);
+  --destructive: var(--erro);
+  --border: var(--linha);
+  --input: var(--campo);
+  --ring: var(--esmeralda);
+  --chart-1: var(--esmeralda);
+  --chart-2: var(--texto);
+  --chart-3: var(--suave);
+  --chart-4: #1f6b4f;
+  --chart-5: var(--erro);
+  --radius: 0.5rem;
+  --sidebar: var(--superficie);
+  --sidebar-foreground: var(--texto);
+  --sidebar-primary: var(--texto);
+  --sidebar-primary-foreground: var(--fundo);
   --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-accent-foreground: var(--texto);
   --sidebar-border: var(--border);
-  --sidebar-ring: var(--tinta);
+  --sidebar-ring: var(--esmeralda);
 }
 
-/* Dark is the notebook at night: navy paper, not neutral black. */
+/* Dark is graphite at night: a cool near-black, not navy. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --papel: #0e1424;
-    --pauta: #26304a;
-    --tinta: #8fa8ff;
-    --marca: #e8dd45;
-    --correcao: #ff7a70;
-    /* Navy ink on the coral fill: 7.2:1. White here was 2.5:1. */
-    --correcao-foreground: #0e1424;
-    --grafite: #a4abba;
+    --fundo: #141517;
+    --superficie: #1c1d20;
+    --texto: #ecedee;
+    --suave: #9a9ca3;
+    --linha: #2a2c30;
+    /* Field borders: 3.8:1 on fundo and 3.5:1 on superficie (WCAG 1.4.11). The spec value #474A51 gave 1.9:1. */
+    --campo: #6e727b;
+    --esmeralda: #2fbf8a;
+    --esmeralda-texto: #4fd6a2;
+    --esmeralda-fundo: #173a2e;
+    --erro: #f07070;
+    /* Graphite ink on the coral fill keeps the same contrast as in light mode. */
+    --erro-foreground: #141517;
 
-    --foreground: #e6eaf3;
-    --card: #141b2e;
-    --primary-foreground: #0e1424;
-    --secondary: #1b2440;
-    --muted: #1b2440;
-    --accent: #222d4a;
-    /* Field borders: 3.4:1 on the navy card (WCAG 1.4.11). */
-    --input: #5f6f97;
-    --chart-4: #b9c8ff;
-    --sidebar-primary-foreground: #0e1424;
+    --secondary: #232427;
+    --muted: #232427;
+    --accent: #232427;
+    --chart-4: #7fd1b0;
+    --sidebar-primary-foreground: var(--fundo);
   }
 }
 
@@ -186,7 +200,7 @@
   --tw-ease: var(--ease-snap);
 }
 
-/* Squared notebook paper: the upload hero's background, faded out at the edges so it stays a whisper. */
+/* Squared grid: the upload hero's background, faded out at the edges so it stays a whisper. */
 .grid-paper {
   position: relative;
   isolation: isolate;
@@ -197,19 +211,19 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: linear-gradient(var(--pauta) 1px, transparent 1px), linear-gradient(90deg, var(--pauta) 1px, transparent 1px);
+  background-image: linear-gradient(var(--linha) 1px, transparent 1px), linear-gradient(90deg, var(--linha) 1px, transparent 1px);
   background-size: 8px 8px;
   -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
   mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
 }
 
-/* MarkerBand: squared notebook paper with a border. The highlighter fills are child spans in .marker-fills. */
+/* MarkerBand: a surface with a grid of hairlines and a border. The fills are child spans in .marker-fills. */
 .marker-band {
-  background-color: var(--papel);
-  background-image: linear-gradient(var(--pauta) 1px, transparent 1px), linear-gradient(90deg, var(--pauta) 1px, transparent 1px);
+  background-color: var(--superficie);
+  background-image: linear-gradient(var(--linha) 1px, transparent 1px), linear-gradient(90deg, var(--linha) 1px, transparent 1px);
   background-size: 8px 8px;
-  border: 1px solid var(--tinta);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--linha);
+  border-radius: var(--radius);
 }
 /* One-time reveal when a dataset is first shown: the highlighter sweeps left to right. Only the fills wrapper moves. */
 @keyframes marker-in {
@@ -262,7 +276,7 @@
 
 .react-flow {
   --xy-background-color: transparent;
-  --xy-node-boxshadow-selected: 0 0 0 2px var(--tinta);
+  --xy-node-boxshadow-selected: 0 0 0 2px var(--esmeralda);
   --xy-minimap-background-color: var(--card);
   --xy-controls-button-background-color: var(--card);
   --xy-controls-button-color: var(--foreground);
@@ -275,21 +289,19 @@
 }
 /* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
 .react-flow__minimap-node.mini-done {
-  fill: var(--marca);
-  stroke: var(--tinta);
-  stroke-width: 1px;
+  fill: var(--esmeralda);
 }
 .react-flow__minimap-node.mini-left {
-  fill: var(--pauta);
+  fill: var(--linha);
 }
 .react-flow__background {
-  --xy-background-pattern-dots-color-default: var(--pauta);
+  --xy-background-pattern-dots-color-default: var(--linha);
 }
 .react-flow__minimap-mask {
   fill: color-mix(in oklch, var(--background) 70%, transparent);
 }
 .react-flow__node:focus-visible {
-  outline: 2px solid var(--tinta);
+  outline: 2px solid var(--esmeralda);
   outline-offset: 3px;
   border-radius: var(--radius);
 }

@@ -47,7 +47,7 @@ export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }:
       >
         {/* Only the fills animate: the border and the grid paper stay visible while the highlighter sweeps in. */}
         <div className="marker-fills absolute inset-0">
-          <span aria-hidden data-segment="done" className="absolute inset-y-0 left-0 bg-marca" style={{ width: `${percent}%` }} />
+          <span aria-hidden data-segment="done" className="absolute inset-y-0 left-0 bg-esmeralda" style={{ width: `${percent}%` }} />
           {hasPending && (
             <span
               aria-hidden

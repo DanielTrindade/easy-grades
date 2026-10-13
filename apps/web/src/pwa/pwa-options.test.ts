@@ -37,8 +37,8 @@ describe('PWA manifest', () => {
   it('is standalone with the spec colors and any orientation', () => {
     expect(manifest.display).toBe('standalone');
     expect(manifest.orientation).toBe('any');
-    expect(manifest.background_color).toBe('#F4F6FA');
-    expect(manifest.theme_color).toBe('#1D3FA0');
+    expect(manifest.background_color).toBe('#F4F4F2');
+    expect(manifest.theme_color).toBe('#18191C');
   });
 
   it('declares 192, 512 and a separate 512 maskable icon', () => {

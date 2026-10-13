@@ -74,8 +74,8 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
       </section>
 
       {unknownStatuses.length > 0 && (
-        <p role="status" className="flex gap-2 rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm">
-          <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-correcao" />
+        <p role="status" className="flex gap-2 rounded-lg border border-erro/40 bg-erro/10 p-3 text-sm">
+          <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-erro" />
           <span>
             {unknownStatuses.length === 1 ? 'Uma disciplina tem' : `${unknownStatuses.length} disciplinas têm`} situação que
             não reconhecemos ({[...new Set(unknownStatuses.map((e) => e.rawStatus || 'vazia'))].join(', ')}) e ficaram fora

@@ -79,7 +79,7 @@ function Graph({ data }: { data: ParseResponse }) {
           target: edge.target,
           focusable: false,
           style: {
-            stroke: edge.satisfied ? 'var(--tinta)' : 'var(--grafite)',
+            stroke: edge.satisfied ? 'var(--texto)' : 'var(--suave)',
             strokeWidth: inChain ? 2.5 : 1.5,
             strokeDasharray: edge.alternative ? '5 4' : undefined,
             opacity: highlighted === null || inChain ? 1 : 0.15,

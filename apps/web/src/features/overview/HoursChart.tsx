@@ -6,8 +6,8 @@ import { hoursByTerm } from './chart-utils';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 
 const config = {
-  done: { label: 'Horas concluídas', color: 'var(--tinta)' },
-  failed: { label: 'Horas reprovadas', color: 'var(--correcao)' },
+  done: { label: 'Horas concluídas', color: 'var(--esmeralda)' },
+  failed: { label: 'Horas reprovadas', color: 'var(--erro)' },
 } satisfies ChartConfig;
 
 export default function HoursChart({ transcript }: { transcript: Transcript }) {

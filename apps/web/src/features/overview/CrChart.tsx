@@ -7,7 +7,7 @@ import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartToo
 
 const config = {
   termCr: { label: 'CR do período', color: 'var(--chart-4)' },
-  cumulativeCr: { label: 'CR acumulado', color: 'var(--tinta)' },
+  cumulativeCr: { label: 'CR acumulado', color: 'var(--esmeralda)' },
 } satisfies ChartConfig;
 
 export default function CrChart({ history }: { history: TermCr[] }) {

@@ -8,38 +8,58 @@ interface CreditMeterProps {
   max: number;
 }
 
+/** Above this many credits per period, one cell stands for two credits, so the grid stays readable on a phone. */
+const CREDITS_PER_CELL_ABOVE = 40;
+
 /**
- * Credits chosen against the period limits of the curriculum. The fill grows with scaleX; the limits are tick marks.
- * Below the minimum is a warning, above the maximum an error. Both carry an icon and text, never colour alone.
+ * Credits chosen against the period limits of the curriculum, as a grid of cells: one per credit, the same 3×3
+ * rhythm as the symbol. Filled cells are esmeralda, the cell that holds the minimum has a marker, and credits past
+ * the maximum add error cells. The status line carries an icon and text, never color alone.
  */
 export function CreditMeter({ credits, min, max }: CreditMeterProps) {
   const status = creditStatus(credits, min, max);
-  const scale = Math.max(max, min, credits, 1);
-  const tick = (value: number) => `${(value / scale) * 100}%`;
+  const unit = max > CREDITS_PER_CELL_ABOVE ? 2 : 1;
+  const limitCells = Math.ceil(max / unit);
+  const filledCells = Math.ceil(credits / unit);
+  const overflowCells = Math.max(0, filledCells - limitCells);
+  const cells = limitCells + overflowCells;
+  // The cell that holds the last credit of the minimum.
+  const minCell = min > 0 ? Math.ceil(min / unit) - 1 : -1;
 
   return (
     <div className="grid gap-2">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className="text-muted-foreground">Créditos no semestre</span>
-        <span className="font-medium tabular-nums">{credits}</span>
+      {/* The native meter carries the value for assistive tech; the visible cells are a picture of it. */}
+      <meter className="sr-only" min={0} max={max} value={credits} aria-label="Créditos no semestre">
+        {`${credits} créditos`}
+      </meter>
+      <div aria-hidden className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${cells}, minmax(0, 1fr))` }}>
+        {Array.from({ length: cells }, (_, index) => {
+          const filled = index < filledCells;
+          const overflow = index >= limitCells;
+          return (
+            <span
+              key={index}
+              aria-hidden
+              data-cell={overflow ? 'over' : filled ? 'filled' : 'empty'}
+              data-min={index === minCell || undefined}
+              className="relative h-3.5 overflow-hidden rounded-[2px] bg-linha"
+            >
+              {/* Fills fade in with opacity only, so a change of credits never moves the layout. */}
+              <span
+                className={cn('absolute inset-0 transition-opacity duration-150 ease-snap', overflow ? 'bg-erro' : 'bg-esmeralda')}
+                style={{ opacity: filled ? 1 : 0 }}
+              />
+              {index === minCell && <span className="absolute inset-x-0 bottom-0 h-[3px] bg-texto" />}
+            </span>
+          );
+        })}
       </div>
-      <div className="relative h-3">
-        <div className="absolute inset-0 overflow-hidden rounded-full border border-tinta bg-background">
-          <div
-            aria-hidden
-            className="absolute inset-0 origin-left bg-marca transition-transform duration-200 ease-snap motion-reduce:transition-none"
-            style={{ transform: `scaleX(${credits / scale})` }}
-          />
-        </div>
-        {/* The ticks sit outside the track, so its overflow-hidden does not clip them. */}
-        <span aria-hidden className="absolute -top-1 -bottom-1 w-px bg-grafite" style={{ left: tick(min) }} />
-        <span aria-hidden className="absolute -top-1 -bottom-1 w-px bg-grafite" style={{ left: tick(max) }} />
+      <div className="flex items-center justify-between gap-3 text-sm tabular-nums text-suave">
+        <span>mínimo {min}</span>
+        <span>máximo {max}</span>
       </div>
       <p
-        className={cn(
-          'flex items-start gap-1.5 text-sm',
-          status === 'above' ? 'text-correcao' : status === 'below' ? 'text-tinta' : 'text-muted-foreground',
-        )}
+        className={cn('flex items-start gap-1.5 text-sm', status === 'above' ? 'text-erro' : 'text-suave')}
         aria-live="polite"
       >
         {status === 'above' && <OctagonAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}

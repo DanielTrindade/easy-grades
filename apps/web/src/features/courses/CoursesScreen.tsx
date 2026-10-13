@@ -83,7 +83,7 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
           })}
           value={status}
           onValueChange={setStatus}
-          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-pauta px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-tinta aria-checked:bg-tinta aria-checked:text-papel aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
+          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-texto aria-checked:bg-texto aria-checked:text-fundo aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
         />
 
         <div className="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-end">
@@ -132,11 +132,11 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
         </p>
         <ChoiceGroup
           label="Agrupar por"
-          className="inline-flex rounded-lg border border-pauta p-0.5"
+          className="inline-flex rounded-lg border border-linha p-0.5"
           items={GROUP_OPTIONS}
           value={groupBy}
           onValueChange={setGroupBy}
-          itemClassName="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:bg-tinta aria-checked:text-papel aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
+          itemClassName="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:bg-texto aria-checked:text-fundo aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
         />
       </div>
 
