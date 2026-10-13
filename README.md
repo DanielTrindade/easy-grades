@@ -4,7 +4,7 @@ O Easy Grades ajuda o estudante da UFAM a acompanhar o curso a partir de dois PD
 
 ## O que você vê
 
-- **Progresso por carga horária:** percentual concluído do curso, em barra da paleta Encontro das Águas, com o avanço por categoria (obrigatórias, optativas, eletivas, atividades complementares e extensão).
+- **Progresso por carga horária:** percentual concluído do curso, em faixa de marca-texto sobre papel quadriculado (paleta Caderno), com o avanço por categoria (obrigatórias, optativas, eletivas, atividades complementares e extensão).
 - **CR e CR por período:** coeficiente de rendimento acumulado e por semestre, calculado a partir das disciplinas do histórico.
 - **Fluxograma interativo:** disciplinas obrigatórias em colunas por período ideal, com as ligações de pré-requisito. Cada disciplina mostra o status (concluída, em curso, reprovada, disponível ou bloqueada). Ao passar o cursor ou clicar, a cadeia de pré-requisitos é destacada. O fluxograma pode ser exportado em PNG.
 - **Disciplinas:** tudo o que consta no histórico, com filtros por status, categoria, período e busca.

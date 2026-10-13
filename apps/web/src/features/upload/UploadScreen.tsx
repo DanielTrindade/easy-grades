@@ -1,5 +1,6 @@
 import { ERROR_MESSAGES, type ParseResponse } from '@easy-grades/core';
 import { useState, type FormEvent } from 'react';
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
 import { ApiError, uploadDocuments } from '@/lib/api';
 import { Dropzone } from './Dropzone';
@@ -30,9 +31,9 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
 
   return (
     <main className="mx-auto grid min-h-dvh max-w-6xl content-center gap-12 px-4 py-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-      <section>
-        <p className="font-heading text-lg font-semibold">Easy Grades</p>
-        <h1 className="mt-8 max-w-[18ch] text-4xl font-semibold sm:text-display">
+      <section className="grid-paper">
+        <BrandMark size={64} className="flex-col items-start gap-3" />
+        <h1 className="mt-8 max-w-[18ch] text-4xl sm:text-display">
           Veja onde você está no curso e o que cabe no próximo semestre.
         </h1>
         <p className="mt-5 max-w-[60ch] text-muted-foreground">
@@ -64,7 +65,7 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           disabled={sending}
         />
         {error && (
-          <p role="alert" className="rounded-lg border border-urucum/40 bg-urucum/10 p-3 text-sm text-urucum">
+          <p role="alert" className="rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm text-correcao">
             {error}
           </p>
         )}

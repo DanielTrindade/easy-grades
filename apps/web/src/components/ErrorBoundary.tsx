@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (!this.state.failed) return this.props.children;
     return (
       <div role="alert" className="mx-auto grid max-w-[60ch] content-center gap-4 px-4 py-16">
-        <h2 className="text-2xl font-semibold">Algo não carregou.</h2>
+        <h2 className="text-2xl">Algo não carregou.</h2>
         <p className="text-muted-foreground">
           Recarregue a página. Se continuar, limpe os dados salvos e envie os PDFs de novo.
         </p>

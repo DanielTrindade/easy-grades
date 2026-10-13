@@ -70,7 +70,7 @@ export function AaccCard({
   return (
     <section aria-labelledby="atividades-complementares" className="grid min-w-0 gap-6">
       <div className="grid gap-2">
-        <h2 id="atividades-complementares" className="text-xl font-semibold">
+        <h2 id="atividades-complementares" className="text-xl">
           Atividades complementares
         </h2>
         <p className="max-w-[60ch] text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ export function AaccCard({
       </div>
 
       {officialHours > 0 && activities.length > 0 && (
-        <p role="status" className="rounded-lg border border-urucum/40 bg-urucum/10 p-3 text-sm">
+        <p role="status" className="rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm">
           {`O histórico já tem ${formatHours(officialHours)} lançadas. Confira se alguma atividade registrada aqui já foi lançada e remova-a para não contar duas vezes.`}
         </p>
       )}
@@ -105,7 +105,7 @@ export function AaccCard({
             aria-describedby={errors.description ? `${descriptionId}-erro` : undefined}
           />
           {errors.description && (
-            <p id={`${descriptionId}-erro`} role="alert" className="text-sm text-urucum">
+            <p id={`${descriptionId}-erro`} role="alert" className="text-sm text-correcao">
               {errors.description}
             </p>
           )}
@@ -126,7 +126,7 @@ export function AaccCard({
             aria-describedby={errors.hours ? `${hoursId}-erro` : undefined}
           />
           {errors.hours && (
-            <p id={`${hoursId}-erro`} role="alert" className="text-sm text-urucum">
+            <p id={`${hoursId}-erro`} role="alert" className="text-sm text-correcao">
               {errors.hours}
             </p>
           )}
