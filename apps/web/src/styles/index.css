@@ -319,3 +319,57 @@
     animation-delay: 0s;
   }
 }
+
+/* Bottom sheet (Meu semestre). The content moves with transform only; the overlay only changes opacity. */
+@keyframes sheet-drawer-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-drawer-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+[data-slot='sheet-content'][data-side='bottom'][data-state='open'] {
+  animation: sheet-drawer-in 300ms var(--ease-drawer) both;
+}
+[data-slot='sheet-content'][data-side='bottom'][data-state='closed'] {
+  animation: sheet-drawer-out 200ms var(--ease-drawer) both;
+}
+[data-slot='sheet-overlay'][data-state='open'] {
+  animation: sheet-fade-in 200ms ease both;
+}
+[data-slot='sheet-overlay'][data-state='closed'] {
+  animation: sheet-fade-out 200ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='sheet-content'][data-side='bottom'][data-state='open'] {
+    animation: sheet-fade-in 150ms ease both;
+  }
+  [data-slot='sheet-content'][data-side='bottom'][data-state='closed'] {
+    animation: sheet-fade-out 150ms ease both;
+  }
+}
