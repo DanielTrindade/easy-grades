@@ -83,4 +83,22 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 
 ## Deploy
 - `docker build -t easy-grades .` → single image; `PORT` (8080), `STATIC_DIR`, `TRUST_PROXY=true` only behind a reverse proxy.
-- CD pushes `ghcr.io/<owner>/<repo>:{sha,latest}` after CI passes on main.
+- Production: Cloud Run service `easy-grades`, project `easy-grades-ufam`, region `us-central1` (Tier 1: the free tier covers it, including North America egress). URL: https://easy-grades-951677258273.us-central1.run.app
+- **CD deploys every merge to main** (`.github/workflows/cd.yml`, runs after CI succeeds on a push to main):
+  1. `image`: builds once and pushes `ghcr.io/<owner>/<repo>:{sha-<commit>,latest}`.
+  2. `deploy` (GitHub environment `production`): pulls that image **by digest**, pushes it to Artifact Registry `us-central1-docker.pkg.dev/easy-grades-ufam/easy-grades/easy-grades:sha-<commit>`, runs `gcloud run deploy --image` and smoke-tests `/api/health`.
+  - Only the image changes. Service account, scaling, memory, env vars and public access live on the service; change them by hand with your own gcloud account (`gcloud run services update ...`).
+- **Pipeline security (do not weaken):**
+  - No service-account key exists. GitHub authenticates through Workload Identity Federation: pool `github`, provider `easy-grades`. The provider's attribute condition accepts only repository_id 1414027694, owner_id 29515575, `ref == refs/heads/main` and `environment == production`. The deployer impersonation is bound only to subject `repo:DanielTrindade/easy-grades:environment:production`.
+  - The `production` environment only allows the `main` branch. Its variables are `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER` and `GCP_DEPLOYER_SA`. None of them is secret.
+  - Deployer `github-deployer@easy-grades-ufam.iam.gserviceaccount.com` has three grants and none at project level: `run.developer` on the service, `artifactregistry.writer` on the `easy-grades` repo, and `iam.serviceAccountUser` on the runtime account. It cannot change IAM; this was tested by impersonation.
+  - Runtime account: `easy-grades-run@...`, with no roles. Never run the service as the default Compute account, which has Editor on the project.
+  - Workflow token: `permissions: {}` at the top, then per job. Only `deploy` gets `id-token: write`. The access token lives 15 min, no credentials file is written, checkout uses `persist-credentials: false`, and the Google actions are pinned by commit SHA.
+  - `concurrency: cd-production` never cancels a deploy halfway.
+- Manual fallback (personal gcloud account): `gcloud run deploy easy-grades --source . --project easy-grades-ufam --region us-central1 --quiet`. `.gcloudignore` keeps `*.pdf` (the real PDFs at the root), node_modules and dist out of the upload. Check it with `gcloud meta list-files-for-upload .` after changing it.
+- Zero-cost guards:
+  - min-instances 0 and max-instances 2;
+  - Artifact Registry cleanup policies (`easy-grades` and `cloud-run-source-deploy`) keep the 2 newest images;
+  - the source bucket deletes objects after 3 days;
+  - a 5 BRL budget sends alerts;
+  - the `_Default` log sink excludes Cloud Run request logs, which would otherwise store client IPs.
