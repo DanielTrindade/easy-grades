@@ -2,7 +2,7 @@ import { COURSE_STATE_LABELS, type FlowNode } from '@easy-grades/core';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { memo, useContext, type CSSProperties } from 'react';
 import { STATE_STYLE } from '@/components/state-style';
-import { formatGrade, toTitleCase } from '@/lib/format';
+import { pluralize, toTitleCase } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { HighlightContext } from './HighlightContext';
 
@@ -10,7 +10,8 @@ export type CourseNodeData = { course: FlowNode };
 export type CourseNodeType = Node<CourseNodeData, 'course'>;
 
 export const COURSE_NODE_WIDTH = 232;
-export const COURSE_NODE_HEIGHT = 84;
+/** Tall enough for a two-line name with the credits line pinned to the bottom. */
+export const COURSE_NODE_HEIGHT = 96;
 
 function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
   const { course } = data;
@@ -23,24 +24,22 @@ function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
       data-dimmed={dimmed || undefined}
       style={{ '--col': course.column, width: COURSE_NODE_WIDTH, height: COURSE_NODE_HEIGHT } as CSSProperties}
       className={cn(
-        'course-node rounded-lg border border-l-4 px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
+        // overflow-hidden + a clamped name keep every text inside the fixed card, however long the course name is.
+        'course-node flex flex-col overflow-hidden rounded-lg border border-l-4 px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
         style.surface,
         style.accent,
       )}
     >
       <Handle type="target" position={Position.Left} isConnectable={false} className="!size-1.5 !border-0 !bg-suave" />
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-muted-foreground">{course.code}</span>
+        <span className="code-label text-xs font-semibold">{course.code}</span>
         <span className="flex items-center gap-1 text-xs font-medium">
-          <Icon aria-hidden className={cn('size-3.5', style.iconColor)} />
+          <Icon aria-hidden className={cn('size-3.5 shrink-0', style.iconColor)} />
           {COURSE_STATE_LABELS[course.state]}
         </span>
       </div>
-      <p className="mt-1 line-clamp-2 text-sm font-medium leading-snug">{toTitleCase(course.name)}</p>
-      <p className="mt-1.5 text-xs text-muted-foreground">
-        {course.credits} créditos
-        {course.grade !== null && `, nota ${formatGrade(course.grade)}`}
-      </p>
+      <p className="mt-1.5 line-clamp-2 text-sm font-medium leading-tight break-words">{toTitleCase(course.name)}</p>
+      <p className="mt-auto pt-1 text-xs text-muted-foreground">{pluralize(course.credits, 'crédito', 'créditos')}</p>
       <Handle type="source" position={Position.Right} isConnectable={false} className="!size-1.5 !border-0 !bg-suave" />
     </div>
   );

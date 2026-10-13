@@ -210,7 +210,7 @@ CR = Σ (nota × CH) / Σ CH      sobre entradas com status ∈ {aprovado, disp_
 3. **Fluxograma do curso** (tela própria, destaque da plataforma):
    - **Layout:** colunas = períodos ideais 1–8, cartões = disciplinas obrigatórias.
    - **Ligações:** setas entre cartões para cada pré-requisito, em curvas suaves. Blocos OR em traço diferente.
-   - **Status:** concluída, em curso, reprovada, disponível ou bloqueada. Cada cartão mostra cor + ícone + código, nome curto, créditos e nota.
+   - **Status:** concluída, em curso, reprovada, disponível ou bloqueada. Cada cartão mostra cor + ícone + código, nome curto e créditos. As notas não aparecem no fluxograma: elas vivem em Disciplinas e na Visão geral.
    - **Interação:**
      - hover/foco/clique numa disciplina destaca a cadeia de pré-requisitos (para trás) e o que ela desbloqueia (para frente); o resto fica esmaecido;
      - zoom/pan e minimapa, com "ajustar à tela";
@@ -223,7 +223,7 @@ CR = Σ (nota × CH) / Σ CH      sobre entradas com status ∈ {aprovado, disp_
      - posição determinística calculada em `packages/core` (`layoutFlowchart`): x pelo período, y ordenado para minimizar cruzamentos (barycenter simples). Sem dagre/elk;
      - entrada com stagger por coluna (motion), respeitando `prefers-reduced-motion`.
    - **Acessibilidade:** navegação por teclado entre nós, e uma lista alternativa acessível (tabela por período) para leitores de tela.
-   - **Exportação:** botão "Exportar PNG" (`html-to-image`), gerado localmente.
+   - **Exportação:** botão "Exportar PNG" (`html-to-image`), gerado localmente. A imagem é sempre o fluxograma, mesmo com a lista na tela, e sai sem as notas dos cartões. O botão fica em "Exportando…" enquanto a imagem é gerada.
 4. **Disciplinas:** tabela filtrável (status, categoria, período, busca) com todas as entradas do histórico.
 5. **Planejamento:**
    - sugestões com motivo;
