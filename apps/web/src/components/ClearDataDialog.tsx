@@ -32,7 +32,7 @@ export function ClearDataDialog({ open, onOpenChange, onConfirm, openerRef }: Cl
         <AlertDialogHeader>
           <AlertDialogTitle>Limpar dados deste navegador?</AlertDialogTitle>
           <AlertDialogDescription>
-            O currículo, o histórico e as atividades complementares que você registrou serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.
+            O currículo, o histórico, as atividades complementares e o planejamento serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -88,7 +88,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
           </ErrorBoundary>
         )}
         {view === 'disciplinas' && <CoursesScreen data={dataset.data} />}
-        {view === 'planejamento' && <PlanningScreen data={dataset.data} analysis={analysis} />}
+        {view === 'planejamento' && <PlanningScreen data={dataset.data} analysis={analysis} savedAt={dataset.savedAt} />}
       </main>
     </div>
   );

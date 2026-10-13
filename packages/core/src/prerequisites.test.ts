@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { sampleCurriculum as c, sampleTranscript as t } from './__fixtures__/sample';
-import { courseStates, dependentClosure, isSatisfied, prerequisiteClosure, unlockCount } from './prerequisites';
+import { courseStates, dependentClosure, isSatisfied, missingPrerequisites, prerequisiteClosure, unlockCount } from './prerequisites';
+import type { Curriculum } from './schemas';
 
 describe('isSatisfied', () => {
   it('handles AND within a block and OR across blocks', () => {
@@ -47,5 +48,40 @@ describe('closures', () => {
   it('[RF-4] tolerates prerequisite codes missing from the curriculum', () => {
     const withGhost = { ...c, courses: [...c.courses, { ...c.courses[0]!, code: 'ICC999', prerequisites: [['ZZZ999']] }] };
     expect([...prerequisiteClosure(withGhost, 'ICC999')]).toEqual(['ZZZ999']);
+  });
+});
+
+describe('missingPrerequisites', () => {
+  const withPrereqs = (prerequisites: string[][]): Curriculum => ({
+    ...c,
+    courses: [
+      ...c.courses.filter((course) => course.code !== 'ICC418'),
+      { ...c.courses.find((course) => course.code === 'ICC418')!, prerequisites },
+    ],
+  });
+
+  it('returns nothing when the course has no prerequisites', () => {
+    expect(missingPrerequisites(withPrereqs([]), new Set(), 'ICC418')).toEqual([]);
+  });
+
+  it('lists every missing code of a single AND block', () => {
+    const curriculum = withPrereqs([['ICC431', 'ICC412']]);
+    expect(missingPrerequisites(curriculum, new Set(['ICC412']), 'ICC418')).toEqual([['ICC431']]);
+    expect(missingPrerequisites(curriculum, new Set(), 'ICC418')).toEqual([['ICC431', 'ICC412']]);
+  });
+
+  it('returns one unmet entry per OR block when no block is satisfied', () => {
+    const curriculum = withPrereqs([['ICC431', 'ICC412'], ['ICC500']]);
+    expect(missingPrerequisites(curriculum, new Set(['ICC412']), 'ICC418')).toEqual([['ICC431'], ['ICC500']]);
+  });
+
+  it('returns nothing as soon as one OR block is fully satisfied', () => {
+    const curriculum = withPrereqs([['ICC431', 'ICC412'], ['ICC500']]);
+    expect(missingPrerequisites(curriculum, new Set(['ICC500']), 'ICC418')).toEqual([]);
+    expect(missingPrerequisites(curriculum, new Set(['ICC431', 'ICC412']), 'ICC418')).toEqual([]);
+  });
+
+  it('returns nothing for an unknown course', () => {
+    expect(missingPrerequisites(c, new Set(), 'NOPE01')).toEqual([]);
   });
 });

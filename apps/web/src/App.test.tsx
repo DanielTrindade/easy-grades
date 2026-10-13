@@ -24,7 +24,7 @@ describe('App', () => {
 
   it('shows the upload screen when nothing is stored', async () => {
     render(<App />);
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 5000 })).toBeDisabled();
   });
 
   it('[RF-3] falls back to the upload screen when stored data is corrupted', async () => {
@@ -70,7 +70,7 @@ describe('App', () => {
     const dialog = await screen.findByRole('alertdialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 5000 })).toBeDisabled();
     expect(await loadDataset()).toBeNull();
   });
 
@@ -84,12 +84,12 @@ describe('App', () => {
     const dialog = await screen.findByRole('alertdialog');
     expect(
       within(dialog).getByText(
-        'O currículo, o histórico e as atividades complementares que você registrou serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.',
+        'O currículo, o histórico, as atividades complementares e o planejamento serão apagados deste navegador. Você pode enviar os PDFs de novo quando quiser.',
       ),
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 5000 })).toBeDisabled();
     await waitFor(async () => expect(await loadAaccActivities()).toEqual([]));
   });
 

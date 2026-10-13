@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { UploadScreen } from '@/features/upload/UploadScreen';
 import { clearAaccActivities } from '@/lib/aacc-storage';
+import { clearPlan } from '@/features/planning/plan-storage';
 import { clearDataset, loadDataset, markRevealed, saveDataset, type Dataset } from '@/lib/storage';
 
 // Charts and the dashboard load only after there is data to show; the upload screen stays light.
@@ -35,8 +36,8 @@ export default function App() {
   }
 
   async function handleClear() {
-    // Registered activities are per browser too, so "Limpar dados" removes them with the dataset.
-    await Promise.all([clearDataset(), clearAaccActivities()]);
+    // Registered activities and the saved plan are per browser too, so "Limpar dados" removes them with the dataset.
+    await Promise.all([clearDataset(), clearAaccActivities(), clearPlan()]);
     setState({ status: 'upload', previous: null });
   }
 
