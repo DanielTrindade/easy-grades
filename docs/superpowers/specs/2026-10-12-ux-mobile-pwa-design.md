@@ -1,7 +1,7 @@
 # UX, responsividade e PWA — Design Spec
 
 **Data:** 2026-10-12
-**Status:** aprovada (rebrand "Caderno" adicionado em 2026-10-12)
+**Status:** aprovada (identidade "Grafite" em 2026-10-12, substituindo "Caderno")
 **Branch:** `feat/ux-mobile-pwa`
 
 ## 1. Objetivo
@@ -31,60 +31,62 @@
 
 ## 3. Design
 
-### 3.0 Rebrand: "Caderno"
+### 3.0 Identidade "Grafite" (substitui "Caderno", decidido em 2026-10-12)
 
-**Por quê.** A identidade atual ("Encontro das Águas": fundo creme quente, serifa de alto contraste e acento de argila) cai no visual genérico de app gerado e não fala do assunto. O assunto é a **grade curricular**, e o material do estudante é o **caderno quadriculado**: caneta azul, marca-texto, caneta vermelha de correção e lápis. A marca nasce daí, e o trocadilho do nome (grade = currículo, grades = notas) vira imagem.
+**Por quê.** O "Caderno" (azul royal + amarelo) lembrava as cores do Boca Juniors, e a Bricolage virou fonte da moda. O aluno escolheu, entre três direções renderizadas, a **Grafite + esmeralda**: neutros frios de grafite e um único acento, o esmeralda, que já significa "aprovado".
 
-**Ícone / símbolo.** Um quadrado de cantos arredondados em tinta azul com uma grade 3×3 de células.
-- As células são preenchidas em marca-texto **por coluna**, como semestres concluídos: a coluna 1 inteira e 2 células da coluna 2. As outras 4 células ficam só com contorno (papel a 45%).
-- Fonte única em `apps/web/brand/icon.svg` (viewBox 512, raio 112). O favicon, os ícones do PWA (192, 512, 512 maskable com área segura de 80%) e o apple-touch-icon 180 são gerados dele por script.
-- **Wordmark:** símbolo seguido de "Easy Grades" em Bricolage Grotesque condensada, peso 800. Nenhuma palavra recebe destaque à parte.
-
-**Paleta** (tokens novos, que substituem negro/solimões/igapó/várzea/vitória/urucum/neblina):
+**Paleta** (tokens):
 
 | Token | Claro | Escuro | Papel |
 |---|---|---|---|
-| `--papel` | #F4F6FA | #0E1424 | Fundo: papel frio, nunca creme. O escuro é o caderno à noite, azul-marinho e não preto neutro. |
-| `--pauta` | #C9D3E6 | #26304A | Bordas, linhas e o quadriculado. |
-| `--tinta` | #1D3FA0 | #8FA8FF | Caneta azul: primária, links, foco e "em curso". Contraste de 8,5:1 sobre o papel. |
-| `--marca` | #F2E94E | #E8DD45 | Marca-texto: **só preenchimento**, nunca texto. O texto por cima é sempre `--tinta-escura` (#14275F). Indica "concluída" e o progresso. |
-| `--correcao` | #C4302B | #FF7A70 | Caneta vermelha: reprovação e ações destrutivas. |
-| `--grafite` | #5B6170 | #A4ABBA | Lápis: texto secundário, "bloqueada" e "restante". |
+| `--fundo` | #F4F4F2 | #141517 | Fundo da página. |
+| `--superficie` | #FFFFFF | #1C1D20 | Painéis e cartões elevados. |
+| `--texto` | #18191C | #ECEDEE | Texto principal. Também é o fundo de "em curso". |
+| `--suave` | #5D6068 | #9A9CA3 | Texto secundário. |
+| `--linha` | #E2E2DE | #2A2C30 | Divisórias e trilhos. |
+| `--campo` | #8E9198 | #474A51 | Borda de inputs (≥ 3:1). |
+| `--esmeralda` | #0F8F61 | #2FBF8A | Acento único: concluída, progresso, CR projetado e foco. |
+| `--esmeralda-texto` | #0B7651 | #4FD6A2 | Esmeralda usado como texto (≥ 4.5:1). |
+| `--esmeralda-fundo` | #DCF1E8 | #173A2E | Fundo suave do acento (por exemplo "No semestre"). |
+| `--erro` | #C23B3B | #F07070 | Reprovação e ações destrutivas. |
 
 - **Status** (sempre ícone + texto):
-  - concluída = fundo marca-texto, borda tinta de 1 px e texto tinta-escura;
-  - em curso = fundo tinta e texto papel;
-  - disponível = contorno tinta tracejado;
-  - bloqueada = grafite;
-  - reprovada = correção.
-- Elementos gráficos em marca-texto sobre o papel têm contraste baixo, então levam borda tinta de 1 px (WCAG 1.4.11).
+  - concluída = `--esmeralda-fundo` com texto `--esmeralda-texto`;
+  - em curso = `--texto` como fundo, com texto `--fundo`;
+  - disponível = contorno tracejado em `--texto`;
+  - bloqueada = `--suave`;
+  - reprovada = `--erro`.
+- Não existe segundo acento, gradiente nem brilho.
 
-**Tipografia.**
-- **Bricolage Grotesque** (variável, `@fontsource-variable/bricolage-grotesque`) para títulos e números grandes, condensada (`wdth` 75–80 se o eixo estiver disponível) e com peso de 700 a 800. Os *ink traps* lembram tinta de caneta.
-- **Hanken Grotesk** continua no texto e na interface, com `tabular-nums`.
-- Literata sai, e os tokens `text-display` (44 px) e `text-stat` (64 px) continuam.
+**Tipografia:** **Mona Sans** (variável, `@fontsource-variable/mona-sans`, eixos `wdth` 75–125 e `wght`), uma família só.
+- **Títulos e números grandes:** `font-stretch: 125%`, peso 800, `letter-spacing: -0.02em`.
+- **Texto e interface:** largura 100%, peso 400–600, `tabular-nums`.
+- **Códigos de disciplina:** Mona Sans a 87,5% de largura, em `--suave`. Sem fonte monoespaçada.
+- Saem Bricolage Grotesque e Hanken Grotesk.
 
-**Elemento-assinatura (onde a ousadia fica).**
-- A faixa de progresso da Visão geral vira uma **passada de marca-texto sobre papel quadriculado**:
-  - o trecho restante mostra o quadriculado (linhas `--pauta` a cada 8 px);
-  - o trecho concluído é marca-texto;
-  - as atividades registradas por você aparecem como hachura de marca-texto a 50%.
-- `WatersBand` passa a se chamar `MarkerBand`.
-- Fora dela e do upload, o resto fica quieto: papel liso, sem gradientes, sem sombras decorativas. O raio é de 6 px no geral e de 12 px só em sheets e diálogos.
-- O herói do upload ganha o quadriculado de fundo e o símbolo grande. A copy continua a mesma.
+**Forma:** raio de 8 px em controles, 14 px em painéis e sheets, e pílula só nos chips de filtro.
 
-**Movimento** (base: Emil Kowalski):
-- **Momento único:** a passada de marca-texto revela o trecho concluído uma vez por dataset (`clip-path` da esquerda para a direita, 700 ms, `--ease-snap`).
-- **Frequentes, sem animação de movimento:**
-  - abas, chips e o campo de nota mudam só de cor (150 ms, `ease`);
-  - nada se anima por atalho de teclado.
-- **Pressionar:** `scale(0.97)` vem do `Button`.
-- **"Adicionar" → "Adicionada":** troca do ícone com opacidade e `blur(2px)` em 200 ms.
-- **Sheet inferior:** `translateY(100%)` → 0 com `--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)`, 300 ms na entrada e 200 ms na saída. O overlay só muda a opacidade.
-- **Medidor de créditos:** `transform: scaleX()` com origem à esquerda, 200 ms e `--ease-snap` (sem animar `width`).
-- **Movimento reduzido:** sem transforms, sem clip e sem stagger; só fades de no máximo 150 ms.
+**Símbolo:** a mesma grade 3×3 de `apps/web/brand/icon.svg`, recolorida:
+- fundo grafite #18191C;
+- células concluídas em esmeralda #2FBF8A;
+- células restantes só com contorno #ECEDEE a 35%.
 
-**PWA:** `theme_color` #1D3FA0 (claro) e #0E1424 (escuro, via `<meta media>`); `background_color` #F4F6FA.
+O favicon, os ícones do PWA e o `BrandMark` são regenerados a partir dele.
+
+**Elemento-assinatura:** a faixa de progresso (`MarkerBand`) mantém a revelação única. A grade 3×3 do símbolo se repete:
+- no **medidor de créditos em células**, uma por crédito, com marca no mínimo;
+- nas disciplinas concluídas do fluxograma, com fundo `--esmeralda-fundo` e borda esquerda esmeralda.
+
+**Planejamento (topo e "Meu semestre")**, conforme a referência `.superpowers/sdd/ux-pwa/reference-grafite.html`:
+- **Topo:** o título e uma frase de no máximo 12 palavras à esquerda. À direita, o CR projetado grande em `--esmeralda-texto`, com "2027/1, CR projetado" acima e "hoje 8,161" abaixo.
+- **Painel:**
+  - créditos e CR projetado lado a lado;
+  - medidor em células (máximo do currículo; células preenchidas = créditos escolhidos; marca no mínimo);
+  - lista enxuta com `divide-y`, nome, código e créditos, stepper compacto (34 px no desktop, 44 px no toque) e remover como botão × discreto com `aria-label`;
+  - no rodapé, "Em curso agora (N)" recolhível e "Usar sugestão".
+- **Sem barra de rolagem interna:** o painel é sticky e cresce com a página.
+
+**PWA:** `theme_color` #18191C (claro e escuro) e `background_color` #F4F4F2.
 
 ### 3.1 Shell do app (mobile-first)
 
@@ -122,7 +124,7 @@
 **Meu semestre** (painel)
 - **≥ lg:** coluna lateral fixa ao rolar.
 - **< lg:** barra fixa embaixo, acima da barra de abas no mobile. Mostra "N disciplinas · X créditos · CR projetado" e abre um painel inferior (bottom sheet, `Sheet` do shadcn) com o conteúdo completo.
-- **Medidor de créditos:** barra com as marcas de mínimo e máximo do currículo. Abaixo do mínimo fica em aviso (tinta, com ícone e texto); acima do máximo fica em erro (correção, com ícone e texto). Adicionar continua permitido, mas o aviso explica o limite (prevenção de erros sem bloquear).
+- **Medidor de créditos:** barra com as marcas de mínimo e máximo do currículo. Abaixo do mínimo fica em aviso (texto suave, com ícone e texto); acima do máximo fica em erro (`--erro`, com ícone e texto). Adicionar continua permitido, mas o aviso explica o limite (prevenção de erros sem bloquear).
 - **Lista das escolhidas**, cada uma com:
   - **nota esperada** em campo numérico (0–10, passo 0,1, `inputMode="decimal"`, aceita vírgula), com botões − e + de 44 px e rótulo acessível "Nota esperada em <disciplina>";
   - botão **Remover**, que dispara um toast "Removida. Desfazer".
@@ -146,7 +148,7 @@
 - **Manifest (`manifest.webmanifest`):**
   - `name` "Easy Grades", `short_name` "Easy Grades", descrição PT-BR, `lang` pt-BR;
   - `start_url` "/", `scope` "/", `display` standalone, `orientation` any;
-  - `background_color` #F4F6FA, `theme_color` #1D3FA0;
+  - `background_color` #F4F4F2, `theme_color` #18191C;
   - ícones 192, 512 e 512 maskable, além do `apple-touch-icon` 180, todos gerados de `apps/web/brand/icon.svg` (seção 3.0) por um script versionado.
 - **`index.html`:**
   - `viewport-fit=cover`;
@@ -189,7 +191,7 @@
 
 ## 6. Tarefas (ordem de implementação)
 
-0. **Rebrand "Caderno":** tokens, fontes, símbolo e wordmark, `MarkerBand`, cores de status, React Flow e favicon.
+0. **Identidade "Grafite" (antes "Caderno"):** tokens, fontes, símbolo e wordmark, `MarkerBand`, cores de status, React Flow e favicon.
 1. **Shell mobile:** barra de abas inferior, menu "Mais opções", safe areas, alvos de toque e fluxograma em lista no mobile.
 2. **Disciplinas:** chips com contagem, agrupamento com cabeçalho fixo, tabela no desktop e cartões no mobile.
 3. **Planejamento:**
