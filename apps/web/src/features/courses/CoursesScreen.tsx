@@ -30,12 +30,19 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
       <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
         <div className="grid gap-1.5">
           <Label htmlFor="busca">Buscar</Label>
-          <Input id="busca" type="search" placeholder="Código ou nome" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <Input
+            id="busca"
+            type="search"
+            placeholder="Código ou nome"
+            className="max-md:h-11"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="filtro-situacao">Situação</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-            <SelectTrigger id="filtro-situacao" className="w-full sm:w-48">
+            <SelectTrigger id="filtro-situacao" className="w-full max-md:data-[size=default]:h-11 sm:w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -50,7 +57,7 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
         <div className="grid gap-1.5">
           <Label htmlFor="filtro-categoria">Categoria</Label>
           <Select value={category} onValueChange={(v) => setCategory(v as Category | 'todas')}>
-            <SelectTrigger id="filtro-categoria" className="w-full sm:w-56">
+            <SelectTrigger id="filtro-categoria" className="w-full max-md:data-[size=default]:h-11 sm:w-56">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

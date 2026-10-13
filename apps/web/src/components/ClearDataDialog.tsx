@@ -7,18 +7,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 
-export function ClearDataButton({ onConfirm }: { onConfirm: () => void }) {
+interface ClearDataDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}
+
+/** Confirmation for "Limpar dados". Controlled, so the desktop button and the options menu can both open it. */
+export function ClearDataDialog({ open, onOpenChange, onConfirm }: ClearDataDialogProps) {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-correcao hover:text-correcao">
-          Limpar dados
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Limpar dados deste navegador?</AlertDialogTitle>
@@ -27,8 +27,8 @@ export function ClearDataButton({ onConfirm }: { onConfirm: () => void }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-correcao text-correcao-foreground hover:bg-correcao/90">
+          <AlertDialogCancel className="max-md:h-11">Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-correcao text-correcao-foreground hover:bg-correcao/90 max-md:h-11">
             Limpar dados
           </AlertDialogAction>
         </AlertDialogFooter>
