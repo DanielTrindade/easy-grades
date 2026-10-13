@@ -10,12 +10,13 @@ import {
   type ParseResponse,
 } from '@easy-grades/core';
 import { ChevronUp } from 'lucide-react';
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { formatCr, formatHours, toTitleCase } from '@/lib/format';
+import { formatCr, formatHours, pluralize, toTitleCase } from '@/lib/format';
 import type { Analysis } from '@/lib/use-analysis';
+import { useMediaQuery } from '@/lib/use-media-query';
 import { CourseCatalog } from './CourseCatalog';
 import { MySemesterPanel, type ChosenCourse, type InProgressCourse } from './MySemesterPanel';
 import { buildCatalog, type CatalogItem } from './planning-catalog';
@@ -34,10 +35,21 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
   const [plan, dispatch] = useReducer(planningReducer, initial);
   const [announcement, setAnnouncement] = useState('');
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Side column at lg and up; below it the summary bar opens the same panel in a sheet.
+  const desktop = useMediaQuery('(min-width: 1024px)');
+  // Undo toasts still open when the board unmounts are dismissed, so an undo cannot fail silently.
+  const undoToastIds = useRef<(string | number)[]>([]);
   const { countInProgress } = plan;
   const defaultGrade = analysis.cr ?? 7;
   const maxCredits = curriculum.requirements.maxCreditsPerPeriod ?? 30;
   const minCredits = curriculum.requirements.minCreditsPerPeriod;
+
+  useEffect(() => {
+    const ids = undoToastIds.current;
+    return () => {
+      for (const id of ids) toast.dismiss(id);
+    };
+  }, []);
 
   useEffect(() => {
     void savePlan(savedAt, plan);
@@ -77,6 +89,10 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
     .filter((e) => (e.hours ?? 0) > 0)
     .map((e) => ({ code: e.code, name: e.name, grade: plan.current[e.code] ?? defaultGrade }));
 
+  function undoToast(message: string, onUndo: () => void) {
+    undoToastIds.current.push(toast(message, { action: { label: 'Desfazer', onClick: onUndo } }));
+  }
+
   function toggleCourse(item: CatalogItem) {
     if (selected.has(item.code)) {
       dispatch({ type: 'remove', code: item.code });
@@ -91,15 +107,15 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
     const grade = plan.next[code] ?? defaultGrade;
     dispatch({ type: 'remove', code });
     setAnnouncement('Removida do semestre');
-    toast('Removida.', { action: { label: 'Desfazer', onClick: () => dispatch({ type: 'add', code, grade }) } });
+    undoToast('Removida.', () => dispatch({ type: 'add', code, grade }));
   }
 
-  function useSuggestion() {
+  function applySuggestion() {
     const previous = plan;
     const replacement = initialPlanning(suggestions, [], defaultGrade, countInProgress).next;
     dispatch({ type: 'reset', state: { ...plan, next: replacement } });
     setAnnouncement('Sugestão aplicada');
-    toast('Sugestão aplicada.', { action: { label: 'Desfazer', onClick: () => dispatch({ type: 'reset', state: previous }) } });
+    undoToast('Sugestão aplicada.', () => dispatch({ type: 'reset', state: previous }));
   }
 
   const panel = (
@@ -116,9 +132,11 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
       projectedTerm={projectedTerm}
       onGradeChange={(group, code, grade) => dispatch({ type: 'setGrade', group, code, grade })}
       onRemove={removeCourse}
-      onUseSuggestion={useSuggestion}
+      onUseSuggestion={applySuggestion}
     />
   );
+
+  const summary = `${pluralize(chosen.length, 'disciplina', 'disciplinas')}, ${pluralize(credits, 'crédito', 'créditos')}`;
 
   return (
     <div className="grid gap-12 max-lg:pb-16">
@@ -139,15 +157,17 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
           onToggle={toggleCourse}
         />
 
-        <aside
-          aria-labelledby="meu-semestre"
-          className="hidden lg:sticky lg:top-6 lg:grid lg:max-h-[calc(100dvh-3rem)] lg:content-start lg:gap-6 lg:overflow-y-auto lg:pb-2"
-        >
-          <h2 id="meu-semestre" className="text-2xl">
-            Meu semestre
-          </h2>
-          {panel}
-        </aside>
+        {desktop && (
+          <aside
+            aria-labelledby="meu-semestre"
+            className="sticky top-6 grid max-h-[calc(100dvh-3rem)] content-start gap-6 overflow-y-auto pb-2"
+          >
+            <h2 id="meu-semestre" className="text-2xl">
+              Meu semestre
+            </h2>
+            {panel}
+          </aside>
+        )}
       </div>
 
       <section aria-labelledby="caminho" className="grid gap-3">
@@ -161,7 +181,8 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             {analysis.forecast.terms.map((term) => (
               <li key={term.term}>
                 <p className="font-medium">
-                  {formatTerm(term.term)} <span className="text-sm font-normal text-muted-foreground">{term.credits} créditos</span>
+                  {formatTerm(term.term)}{' '}
+                  <span className="text-sm font-normal text-muted-foreground">{pluralize(term.credits, 'crédito', 'créditos')}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">{term.courses.map((c) => toTitleCase(c.name)).join(', ')}</p>
               </li>
@@ -180,39 +201,47 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
         </p>
       </section>
 
-      {/* Below lg the summary is a fixed bar above the tab bar; the full panel opens in a bottom sheet. */}
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        onClick={() => setSheetOpen(true)}
-        className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex min-h-14 items-center justify-between gap-3 border-t border-border bg-background px-4 text-left text-sm lg:hidden"
-      >
-        <span className="tabular-nums">
-          {chosen.length} disciplinas · {credits} créditos · CR projetado {formatCr(projected)}
-        </span>
-        <span className="flex shrink-0 items-center gap-1 font-medium text-tinta">
-          Ver
-          <ChevronUp aria-hidden className="size-4" />
-        </span>
-      </button>
+      {!desktop && (
+        <>
+          {/* Below lg the summary is a fixed bar above the tab bar; the full panel opens in a bottom sheet. */}
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => setSheetOpen(true)}
+            className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex min-h-14 items-center justify-between gap-3 border-t border-border bg-background pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-left text-sm md:bottom-[env(safe-area-inset-bottom)]"
+          >
+            <span className="tabular-nums">
+              {summary}, CR projetado {formatCr(projected)}
+            </span>
+            <span className="flex shrink-0 items-center gap-1 font-medium text-tinta">
+              Ver
+              <ChevronUp aria-hidden className="size-4" />
+            </span>
+          </button>
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false} className="max-h-[85dvh] gap-6 overflow-y-auto rounded-t-[12px] p-5 shadow-none">
-          <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-pauta" />
-          <SheetHeader className="p-0">
-            <SheetTitle className="heading-ink text-2xl">Meu semestre</SheetTitle>
-            <SheetDescription>
-              {chosen.length} disciplinas · {credits} créditos · máximo {maxCredits}
-            </SheetDescription>
-          </SheetHeader>
-          {panel}
-          <SheetClose asChild>
-            <Button variant="outline" className="max-md:h-11">
-              Fechar
-            </Button>
-          </SheetClose>
-        </SheetContent>
-      </Sheet>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetContent
+              side="bottom"
+              showCloseButton={false}
+              className="max-h-[85dvh] gap-6 overflow-y-auto rounded-t-[12px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-none"
+            >
+              <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-pauta" />
+              <SheetHeader className="p-0">
+                <SheetTitle className="heading-ink text-2xl">Meu semestre</SheetTitle>
+                <SheetDescription>
+                  {summary}, máximo {maxCredits}
+                </SheetDescription>
+              </SheetHeader>
+              {panel}
+              <SheetClose asChild>
+                <Button variant="outline" className="max-md:h-11">
+                  Fechar
+                </Button>
+              </SheetClose>
+            </SheetContent>
+          </Sheet>
+        </>
+      )}
 
       <p className="sr-only" aria-live="polite">
         {announcement}
