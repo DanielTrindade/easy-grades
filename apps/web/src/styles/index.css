@@ -372,4 +372,10 @@
   [data-slot='sheet-content'][data-side='bottom'][data-state='closed'] {
     animation: sheet-fade-out 150ms ease both;
   }
+  [data-slot='sheet-overlay'][data-state='open'] {
+    animation: sheet-fade-in 150ms ease both;
+  }
+  [data-slot='sheet-overlay'][data-state='closed'] {
+    animation: sheet-fade-out 150ms ease both;
+  }
 }

@@ -1,8 +1,8 @@
 import type { TermCr } from '@easy-grades/core';
 import { Lock } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useId } from 'react';
 import { Button } from '@/components/ui/button';
-import { formatCr, toTitleCase } from '@/lib/format';
+import { formatCr, pluralize, toTitleCase } from '@/lib/format';
 import { CreditMeter } from './CreditMeter';
 import { GradeInput } from './GradeInput';
 
@@ -55,12 +55,14 @@ export function MySemesterPanel({
   onRemove,
   onUseSuggestion,
 }: MySemesterPanelProps) {
+  // Two copies of the panel must never share ids, so every id here is prefixed with this one.
+  const id = useId();
   return (
     <div className="grid gap-8">
       <CreditMeter credits={credits} min={minCredits} max={maxCredits} />
 
-      <section aria-labelledby="escolhidas" className="grid gap-3">
-        <h3 id="escolhidas" className="text-lg">
+      <section aria-labelledby={`${id}-escolhidas`} className="grid gap-3">
+        <h3 id={`${id}-escolhidas`} className="text-lg">
           Escolhidas <span className="text-base font-normal text-muted-foreground tabular-nums">({chosen.length})</span>
         </h3>
         {chosen.length === 0 ? (
@@ -75,7 +77,7 @@ export function MySemesterPanel({
                   <div className="grid min-w-0 gap-0.5">
                     <p className="font-medium">{toTitleCase(course.name)}</p>
                     <p className="text-sm text-muted-foreground tabular-nums">
-                      {course.code} · {course.credits} créditos
+                      {course.code}, {pluralize(course.credits, 'crédito', 'créditos')}
                     </p>
                     {course.pending && (
                       <p className="mt-1 flex items-center gap-1.5 text-sm text-foreground">
@@ -94,7 +96,7 @@ export function MySemesterPanel({
                   </Button>
                 </div>
                 <GradeInput
-                  id={`nota-${course.code}`}
+                  id={`${id}-nota-${course.code}`}
                   courseName={toTitleCase(course.name)}
                   value={course.grade}
                   onChange={(grade) => onGradeChange('next', course.code, grade)}
@@ -115,7 +117,7 @@ export function MySemesterPanel({
               <li key={course.code} className="grid gap-2">
                 <p className="text-sm">{toTitleCase(course.name)}</p>
                 <GradeInput
-                  id={`atual-${course.code}`}
+                  id={`${id}-atual-${course.code}`}
                   courseName={toTitleCase(course.name)}
                   value={course.grade}
                   onChange={(grade) => onGradeChange('current', course.code, grade)}
@@ -126,8 +128,8 @@ export function MySemesterPanel({
         </details>
       )}
 
-      <section aria-labelledby="projecao" className="grid gap-4">
-        <h3 id="projecao" className="text-lg">
+      <section aria-labelledby={`${id}-projecao`} className="grid gap-4">
+        <h3 id={`${id}-projecao`} className="text-lg">
           CR projetado
         </h3>
         <p className="heading-ink text-5xl leading-none tabular-nums">{formatCr(projected)}</p>

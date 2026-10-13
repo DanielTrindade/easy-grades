@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCr, formatHours, formatPercent, toTitleCase } from './format';
+import { formatCr, formatHours, formatPercent, pluralize, toTitleCase } from './format';
 import { viewFromHash } from './use-hash-view';
 
 describe('format', () => {
@@ -22,5 +22,13 @@ describe('viewFromHash', () => {
     expect(viewFromHash('#/fluxograma')).toBe('fluxograma');
     expect(viewFromHash('#/qualquer')).toBe('visao-geral');
     expect(viewFromHash('')).toBe('visao-geral');
+  });
+});
+
+describe('pluralize', () => {
+  it('uses the singular only for exactly one', () => {
+    expect(pluralize(1, 'crédito', 'créditos')).toBe('1 crédito');
+    expect(pluralize(0, 'disciplina', 'disciplinas')).toBe('0 disciplinas');
+    expect(pluralize(14, 'crédito', 'créditos')).toBe('14 créditos');
   });
 });

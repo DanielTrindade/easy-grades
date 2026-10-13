@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { formatHours, toTitleCase } from '@/lib/format';
+import { formatHours, pluralize, toTitleCase } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { CATALOG_FILTERS, filterCatalog, formatMissing, type CatalogFilter, type CatalogItem } from './planning-catalog';
 
@@ -24,6 +24,7 @@ interface CourseCatalogProps {
 
 function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boolean; onToggle: () => void }) {
   const blocked = item.missing.length > 0;
+  const name = toTitleCase(item.name);
   return (
     <li className="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
       <div className="grid min-w-0 flex-1 gap-1">
@@ -32,7 +33,8 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
         </p>
         <p className="text-sm text-muted-foreground">
           {CATEGORY_NAMES[item.category]}
-          {item.idealPeriod !== null && <>, período ideal {item.idealPeriod}</>}, {item.credits} créditos, {formatHours(item.hours)}
+          {item.idealPeriod !== null && <>, período ideal {item.idealPeriod}</>}, {pluralize(item.credits, 'crédito', 'créditos')},{' '}
+          {formatHours(item.hours)}
         </p>
         <p className="text-sm text-muted-foreground">{item.reason}</p>
         {blocked && (
@@ -45,6 +47,7 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
       <Button
         type="button"
         variant={added ? 'secondary' : 'outline'}
+        aria-label={added ? `Remover ${name} do semestre` : `Adicionar ${name} ao semestre`}
         className="max-md:h-11 shrink-0"
         disabled={blocked && !added}
         onClick={onToggle}

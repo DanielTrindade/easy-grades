@@ -23,12 +23,15 @@ export function CreditMeter({ credits, min, max }: CreditMeterProps) {
         <span className="text-muted-foreground">Créditos no semestre</span>
         <span className="font-medium tabular-nums">{credits}</span>
       </div>
-      <div className="relative h-3 rounded-full border border-pauta bg-background">
-        <div
-          aria-hidden
-          className="absolute inset-0 origin-left rounded-full border border-tinta bg-marca transition-transform duration-200 ease-snap motion-reduce:transition-none"
-          style={{ transform: `scaleX(${credits / scale})` }}
-        />
+      <div className="relative h-3">
+        <div className="absolute inset-0 overflow-hidden rounded-full border border-tinta bg-background">
+          <div
+            aria-hidden
+            className="absolute inset-0 origin-left bg-marca transition-transform duration-200 ease-snap motion-reduce:transition-none"
+            style={{ transform: `scaleX(${credits / scale})` }}
+          />
+        </div>
+        {/* The ticks sit outside the track, so its overflow-hidden does not clip them. */}
         <span aria-hidden className="absolute -top-1 -bottom-1 w-px bg-grafite" style={{ left: tick(min) }} />
         <span aria-hidden className="absolute -top-1 -bottom-1 w-px bg-grafite" style={{ left: tick(max) }} />
       </div>

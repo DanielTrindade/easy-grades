@@ -29,6 +29,8 @@ export interface CatalogItem {
   reason: string;
   /** Unmet prerequisite blocks (see `missingPrerequisites`). Empty when the course is released. */
   missing: string[][];
+  /** Folded code and name, so the search does not fold text on every keystroke. */
+  searchText: string;
 }
 
 const foldText = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -73,6 +75,7 @@ export function buildCatalog(c: Curriculum, t: Transcript, countInProgress: bool
         unlocks,
         reason,
         missing: missingPrerequisites(c, effective, course.code),
+        searchText: foldText(`${course.code} ${course.name}`),
       };
     })
     .sort(
@@ -102,6 +105,6 @@ export function filterCatalog(items: readonly CatalogItem[], { filter, query, su
           : filter === 'obrigatorias'
             ? item.category === 'obrigatoria'
             : item.category === 'eletiva';
-    return matchesFilter && (!q || foldText(`${item.code} ${item.name}`).includes(q));
+    return matchesFilter && (!q || item.searchText.includes(q));
   });
 }
