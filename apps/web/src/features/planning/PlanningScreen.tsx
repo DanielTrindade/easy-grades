@@ -52,6 +52,15 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
   }, []);
 
   useEffect(() => {
+    // The summary bar is fixed above the tab bar below lg. This flag lets the toaster clear it (see index.css).
+    if (desktop) return;
+    document.body.dataset.summaryBar = '';
+    return () => {
+      delete document.body.dataset.summaryBar;
+    };
+  }, [desktop]);
+
+  useEffect(() => {
     void savePlan(savedAt, plan);
   }, [plan, savedAt]);
 

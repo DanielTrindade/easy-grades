@@ -301,6 +301,22 @@
   }
 }
 
+/* Toasts clear the fixed bottom chrome. Sonner sets its offsets as inline custom properties, so bottom is set directly.
+   Below md the tab bar (56 px) is there; on Planejamento below lg the "Meu semestre" bar (56 px) sits above it. */
+@media (max-width: 767.98px) {
+  [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
+  body[data-summary-bar] [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(128px + env(safe-area-inset-bottom)) !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  body[data-summary-bar] [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* tw-animate's zoom and slide classes are transforms: neutralize them and keep the opacity fade. */
   * {

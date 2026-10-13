@@ -49,8 +49,7 @@ describe('AaccCard', () => {
     await register(user, 'Semana de tecnologia', '12');
     expect(screen.getByText('Registradas por você: 42 h (pendentes)')).toBeInTheDocument();
     expect(screen.getByLabelText('Descrição')).toHaveValue('');
-    // Two full registrations take longer than the default timeout when the whole suite runs in parallel.
-  }, 15_000);
+  });
 
   it('wraps a long activity description instead of cutting it off', async () => {
     const user = userEvent.setup({ delay: null });
@@ -61,8 +60,7 @@ describe('AaccCard', () => {
     const description = screen.getByText(long);
     expect(description).toHaveClass('break-words');
     expect(description).not.toHaveClass('truncate');
-    // Registering takes longer than the default timeout when the whole suite runs in parallel.
-  }, 15_000);
+  });
 
   it('removes an activity from the list and from the pending total', async () => {
     const user = userEvent.setup({ delay: null });

@@ -35,6 +35,11 @@ function renderScreen() {
   return screen.findByRole('heading', { name: 'Meu semestre', level: 2 }, { timeout: 10000 });
 }
 
+/** The catalog ("Próximo semestre"): its toggle buttons add and remove courses. */
+function catalog() {
+  return screen.getByRole('region', { name: 'Próximo semestre' });
+}
+
 /** Names of the grade inputs under "Escolhidas", in order. */
 function chosenNames() {
   const chosen = screen.getByRole('region', { name: /^Escolhidas/ });
@@ -43,8 +48,7 @@ function chosenNames() {
     .map((input) => input.getAttribute('aria-label'));
 }
 
-// Each test renders the whole screen and clicks through it: the default 5 s is too short when the suite runs in parallel.
-describe('PlanningScreen', { timeout: 15000 }, () => {
+describe('PlanningScreen', () => {
   beforeEach(() => {
     clearPlan();
     setDesktop(true);
@@ -97,11 +101,11 @@ describe('PlanningScreen', { timeout: 15000 }, () => {
     const user = userEvent.setup();
     await renderScreen();
     await user.click(screen.getByRole('radio', { name: 'Eletivas' }));
-    const add = screen.getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' });
+    const add = within(catalog()).getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' });
     expect(add).toHaveTextContent('Adicionar');
     await user.click(add);
     expect(
-      screen.getByRole('button', { name: 'Remover Programação para Web II do semestre' }),
+      within(catalog()).getByRole('button', { name: 'Remover Programação para Web II do semestre' }),
     ).toHaveTextContent('Adicionada');
   });
 
@@ -109,9 +113,9 @@ describe('PlanningScreen', { timeout: 15000 }, () => {
     const user = userEvent.setup();
     await renderScreen();
     await user.click(screen.getByRole('radio', { name: 'Eletivas' }));
-    await user.click(screen.getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' }));
+    await user.click(within(catalog()).getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' }));
     expect(screen.getByText('Adicionada ao semestre')).toHaveAttribute('aria-live', 'polite');
-    await user.click(screen.getByRole('button', { name: 'Remover Programação para Web II do semestre' }));
+    await user.click(within(catalog()).getByRole('button', { name: 'Remover Programação para Web II do semestre' }));
     expect(screen.getByText('Removida do semestre')).toHaveAttribute('aria-live', 'polite');
   });
 
@@ -119,7 +123,7 @@ describe('PlanningScreen', { timeout: 15000 }, () => {
     const user = userEvent.setup();
     await renderScreen();
     await user.click(screen.getByRole('radio', { name: 'Obrigatórias' }));
-    const addButton = screen.getByRole('button', { name: /^(Adicionar|Remover) Projetos Práticos/ });
+    const addButton = within(catalog()).getByRole('button', { name: /^(Adicionar|Remover) Projetos Práticos/ });
     if (addButton.textContent?.includes('Adicionar')) await user.click(addButton);
     const field = 'Nota esperada em Projetos Práticos em Engenharia de Software';
     expect(screen.getByRole('textbox', { name: field })).toBeInTheDocument();
@@ -150,7 +154,7 @@ describe('PlanningScreen', { timeout: 15000 }, () => {
     const chosen = screen.getByRole('heading', { name: /Escolhidas/ });
     const before = chosen.textContent;
     const item = screen.getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' }).closest('li')!;
-    await user.click(within(item).getByRole('button', { name: 'Remover' }));
+    await user.click(within(item).getByRole('button', { name: 'Remover Trabalho de Conclusão de Curso do semestre' }));
     expect(await screen.findByText('Removida.')).toBeInTheDocument();
     expect(chosen.textContent).not.toBe(before);
     await user.click(screen.getByRole('button', { name: 'Desfazer' }));
@@ -167,7 +171,7 @@ describe('PlanningScreen', { timeout: 15000 }, () => {
       </>,
     );
     const item = (await screen.findByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).closest('li')!;
-    await user.click(within(item).getByRole('button', { name: 'Remover' }));
+    await user.click(within(item).getByRole('button', { name: 'Remover Trabalho de Conclusão de Curso do semestre' }));
     expect(await screen.findByText('Removida.')).toBeInTheDocument();
 
     rerender(
@@ -190,5 +194,22 @@ describe('PlanningScreen', { timeout: 15000 }, () => {
     await user.click(summary);
     const dialog = await screen.findByRole('dialog', { name: 'Meu semestre' });
     expect(within(dialog).getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).toBeInTheDocument();
+  });
+
+  it('flags the body while the summary bar is shown, so toasts clear it', async () => {
+    setDesktop(false);
+    const { unmount } = render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    await screen.findByRole('button', { name: /CR projetado/ });
+    expect(document.body).toHaveAttribute('data-summary-bar');
+
+    unmount();
+    expect(document.body).not.toHaveAttribute('data-summary-bar');
+  });
+
+  it('does not flag the body at lg and up, where the summary bar is not shown', async () => {
+    setDesktop(true);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    await screen.findByRole('heading', { name: 'Meu semestre', level: 2 });
+    expect(document.body).not.toHaveAttribute('data-summary-bar');
   });
 });

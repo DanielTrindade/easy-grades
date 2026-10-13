@@ -90,6 +90,7 @@ export function MySemesterPanel({
                     type="button"
                     variant="ghost"
                     className="-mr-2 shrink-0 text-correcao hover:text-correcao max-md:h-11"
+                    aria-label={`Remover ${toTitleCase(course.name)} do semestre`}
                     onClick={() => onRemove(course.code)}
                   >
                     Remover
