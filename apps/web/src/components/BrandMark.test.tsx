@@ -30,6 +30,19 @@ describe('BrandMark', () => {
     expect(svg).toHaveAttribute('height', '32');
   });
 
+  it('keeps the full wordmark size unless compactOnMobile asks for a smaller one below md', () => {
+    render(<BrandMark />);
+    expect(screen.getByText('Easy Grades')).toHaveClass('text-xl');
+    expect(screen.getByText('Easy Grades')).not.toHaveClass('text-lg');
+  });
+
+  it('uses a smaller wordmark below md when compactOnMobile is set', () => {
+    render(<BrandMark compactOnMobile />);
+    const wordmark = screen.getByText('Easy Grades');
+    expect(wordmark).toHaveClass('text-lg', 'md:text-xl');
+    expect(wordmark).not.toHaveClass('text-xl');
+  });
+
   it('draws the same viewBox, rects and fills as brand/icon.svg, so the favicon and the app mark cannot drift', () => {
     const { container } = render(<BrandMark />);
     const drawn = container.querySelector('svg')!;

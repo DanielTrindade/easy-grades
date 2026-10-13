@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { BrandMark } from '@/components/BrandMark';
 import { ClearDataDialog } from '@/components/ClearDataDialog';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -30,12 +30,19 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
   const analysis = useAnalysis(dataset.data);
   const { curriculum } = dataset.data;
   const [clearOpen, setClearOpen] = useState(false);
+  // Whichever control opened the confirmation (desktop button or options menu trigger), so focus can return to it.
+  const clearOpenerRef = useRef<HTMLElement | null>(null);
+
+  function openClear(opener: HTMLElement) {
+    clearOpenerRef.current = opener;
+    setClearOpen(true);
+  }
 
   return (
     <div className="min-h-dvh pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <header className="border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 px-4 py-3">
-          <BrandMark />
+          <BrandMark compactOnMobile />
           <p className="hidden text-sm text-muted-foreground md:block">
             {curriculum.courseName}, currículo {curriculum.version}
           </p>
@@ -43,17 +50,28 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
             <Button variant="ghost" size="sm" onClick={onNewUpload}>
               Novo upload
             </Button>
-            <Button variant="ghost" size="sm" className="text-correcao hover:text-correcao" onClick={() => setClearOpen(true)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-correcao hover:text-correcao"
+              onClick={(event) => openClear(event.currentTarget)}
+            >
               Limpar dados
             </Button>
           </div>
-          <OptionsMenu className="ml-auto md:hidden" onNewUpload={onNewUpload} onClearData={() => setClearOpen(true)} />
+          <OptionsMenu className="ml-auto md:hidden" onNewUpload={onNewUpload} onClearData={openClear} />
           <SectionNav view={view} />
         </div>
       </header>
-      <ClearDataDialog open={clearOpen} onOpenChange={setClearOpen} onConfirm={onClear} />
+      <ClearDataDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        onConfirm={onClear}
+        openerRef={clearOpenerRef}
+      />
 
-      <main className="mx-auto max-w-6xl px-4 py-8 max-md:pb-[calc(6rem+env(safe-area-inset-bottom))] sm:py-12">
+      {/* Bottom padding clears the fixed tab bar below md. It is set once per breakpoint, so no sm: rule can override it. */}
+      <main className="mx-auto max-w-6xl px-4 pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pt-12 md:pb-12">
         {view === 'visao-geral' && (
           <OverviewScreen
             data={dataset.data}
