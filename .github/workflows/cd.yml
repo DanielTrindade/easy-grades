@@ -1,26 +1,39 @@
 name: CD
 
-# Publishes the image only after CI succeeded on main.
+# Publishes the image and deploys it to Cloud Run, only after CI succeeded on a push to main.
 on:
   workflow_run:
     workflows: [CI]
     types: [completed]
     branches: [main]
 
-permissions:
-  contents: read
-  packages: write
+# Every job asks for exactly what it needs.
+permissions: {}
+
+# One deploy at a time, never cancelled halfway; a newer merge waits for the running one.
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
 
 jobs:
   image:
     name: Build and push image to GHCR
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
       - uses: docker/setup-buildx-action@v4
       - uses: docker/login-action@v4
         with:
@@ -32,9 +45,10 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=sha,format=long
+            type=raw,value=sha-${{ github.event.workflow_run.head_sha }}
             type=raw,value=latest
-      - uses: docker/build-push-action@v7
+      - id: push
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -42,3 +56,65 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Cloud Run
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The environment only accepts main (branch policy), and the Google OIDC provider only trusts
+    # tokens from this repository, ref main and this environment. No long-lived key exists anywhere.
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      packages: read # pull the image just built from GHCR
+      id-token: write # OIDC token exchanged for a short-lived Google credential
+    env:
+      SOURCE_IMAGE: ghcr.io/${{ github.repository }}@${{ needs.image.outputs.digest }}
+      TARGET_IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/easy-grades/easy-grades:sha-${{ github.event.workflow_run.head_sha }}
+    steps:
+      - id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+          token_format: access_token
+          access_token_lifetime: 900s
+          create_credentials_file: false
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v4
+        with:
+          registry: ${{ vars.GCP_REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      # Deploy exactly the image CI's commit produced: pulled by digest, not by tag.
+      - name: Copy image to Artifact Registry
+        run: |
+          docker pull "$SOURCE_IMAGE"
+          docker tag "$SOURCE_IMAGE" "$TARGET_IMAGE"
+          docker push "$TARGET_IMAGE"
+      # Only the image changes. Service account, scaling (0–2), memory, env vars and public access
+      # stay as configured on the service (see CLAUDE.md, Deploy); the deployer cannot change IAM.
+      - id: deploy
+        name: Deploy
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+        run: |
+          gcloud run deploy easy-grades \
+            --image "$TARGET_IMAGE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --quiet
+          url=$(gcloud run services describe easy-grades --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Smoke test
+        env:
+          SERVICE_URL: ${{ steps.deploy.outputs.url }}
+        run: curl --fail --silent --show-error --retry 5 --retry-all-errors --max-time 20 "$SERVICE_URL/api/health"
