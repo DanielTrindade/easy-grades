@@ -107,9 +107,29 @@ describe('CoursesScreen', () => {
     ]);
   });
 
-  it('keeps an instruction in the empty state', async () => {
+  it('moves focus to the search box after "Limpar filtros", so focus is not lost', async () => {
+    render(<CoursesScreen data={data} />);
+    await userEvent.click(screen.getByRole('radio', { name: /Em curso/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+    expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: 'Buscar disciplina' }));
+  });
+
+  it('names each group region by its period alone, with the CR marked as an abbreviation', () => {
+    render(<CoursesScreen data={data} />);
+    const region = screen.getByRole('region', { name: '2024/1' });
+    expect(within(region).getByTitle('Coeficiente de rendimento').tagName).toBe('ABBR');
+  });
+
+  it('gives an instruction in the empty state when filters hide every entry', async () => {
     render(<CoursesScreen data={data} />);
     await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar disciplina' }), 'zzzz');
-    expect(screen.getByText(/Nenhuma disciplina com esses filtros/)).toBeInTheDocument();
+    expect(
+      screen.getByText('Nenhuma disciplina com esses filtros. Use Limpar filtros ou escolha outra situação ou categoria.'),
+    ).toBeInTheDocument();
+  });
+
+  it('says there is nothing in the history when the transcript has no entries', () => {
+    render(<CoursesScreen data={{ ...data, transcript: { ...data.transcript, entries: [] } }} />);
+    expect(screen.getByText('Nenhuma disciplina no histórico.')).toBeInTheDocument();
   });
 });

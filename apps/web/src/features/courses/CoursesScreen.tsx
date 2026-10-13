@@ -1,6 +1,6 @@
 import { crByTerm, type Category, type ParseResponse } from '@easy-grades/core';
 import { CircleHelp, List, type LucideIcon } from 'lucide-react';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { STATE_STYLE } from '@/components/state-style';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,7 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
   const [status, setStatus] = useState<StatusFilter>('todas');
   const [category, setCategory] = useState<Category | 'todas'>('todas');
   const [groupBy, setGroupBy] = useState<GroupBy>('period');
+  const searchRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query);
   const entries = useMemo(() => keyEntries(data.transcript.entries), [data.transcript.entries]);
   const counts = useMemo(() => statusCounts(data.transcript.entries), [data.transcript.entries]);
@@ -55,6 +56,8 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
     setQuery('');
     setStatus('todas');
     setCategory('todas');
+    // "Limpar filtros" unmounts as soon as the filters clear, so focus would otherwise fall back to the body.
+    searchRef.current?.focus();
   }
 
   return (
@@ -80,13 +83,14 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
           })}
           value={status}
           onValueChange={setStatus}
-          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-pauta px-3 text-sm text-foreground transition-colors duration-150 ease-snap aria-[checked=false]:hover:bg-muted aria-checked:border-tinta aria-checked:bg-tinta aria-checked:text-papel md:min-h-8"
+          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-pauta px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-tinta aria-checked:bg-tinta aria-checked:text-papel aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
         />
 
         <div className="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-end">
           <div className="grid gap-1.5">
             <Label htmlFor="busca">Buscar disciplina</Label>
             <Input
+              ref={searchRef}
               id="busca"
               type="search"
               placeholder="Código ou nome"
@@ -132,13 +136,15 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
           items={GROUP_OPTIONS}
           value={groupBy}
           onValueChange={setGroupBy}
-          itemClassName="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-foreground transition-colors duration-150 ease-snap aria-[checked=false]:hover:bg-muted aria-checked:bg-tinta aria-checked:text-papel md:min-h-8"
+          itemClassName="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:bg-tinta aria-checked:text-papel aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
         />
       </div>
 
       {groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-muted-foreground">
-          Nenhuma disciplina com esses filtros. Limpe a busca ou escolha outra situação.
+          {entries.length === 0
+            ? 'Nenhuma disciplina no histórico.'
+            : 'Nenhuma disciplina com esses filtros. Use Limpar filtros ou escolha outra situação ou categoria.'}
         </p>
       ) : (
         groups.map((group) => (

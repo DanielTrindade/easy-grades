@@ -14,21 +14,26 @@ interface CourseGroupProps {
  * table, below md they are cards. The table is a plain element, not the shadcn wrapper: its overflow would stop the sticky header.
  */
 export function CourseGroup({ group, cr }: CourseGroupProps) {
-  const headingId = useId();
+  const labelId = useId();
   return (
-    <section aria-labelledby={headingId} className="grid gap-3">
+    <section aria-labelledby={labelId} className="grid gap-3">
       <h2
-        id={headingId}
-        className="sticky top-0 z-20 -mx-4 flex h-12 items-center gap-3 border-b border-border bg-background px-4"
+        className="sticky top-[env(safe-area-inset-top)] z-20 -mx-4 flex h-12 items-center gap-3 border-b border-border bg-background px-4"
       >
-        <span className="heading-ink text-xl">{group.label}</span>
-        {cr !== undefined && <span className="text-sm text-muted-foreground">CR {formatCr(cr)}</span>}
+        <span id={labelId} className="heading-ink text-xl">
+          {group.label}
+        </span>
+        {cr !== undefined && (
+          <span className="text-sm text-muted-foreground">
+            <abbr title="Coeficiente de rendimento">CR</abbr> {formatCr(cr)}
+          </span>
+        )}
         <span className="ml-auto text-sm text-muted-foreground">{formatHours(group.hours)}</span>
       </h2>
 
       <table className="hidden w-full text-sm md:table">
         <caption className="sr-only">Disciplinas de {group.label}</caption>
-        <thead className="sticky top-12 z-10 text-left text-muted-foreground">
+        <thead className="sticky top-[calc(3rem+env(safe-area-inset-top))] z-10 text-left text-muted-foreground">
           <tr>
             <th scope="col" className="bg-background py-2 pr-4 font-medium">
               Disciplina
