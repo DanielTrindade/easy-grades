@@ -1,5 +1,5 @@
 import { Ellipsis } from 'lucide-react';
-import { useRef, type ReactNode } from 'react';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,7 +8,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { InstallKind } from '@/lib/use-install-app';
 import { cn } from '@/lib/utils';
+
+export interface InstallOption {
+  kind: InstallKind;
+  /** Gets the menu trigger as its opener. Only the iOS hint opens a dialog, so only that path needs it. */
+  onSelect: (opener: HTMLElement) => void;
+}
 
 interface OptionsMenuProps {
   onNewUpload: () => void;
@@ -17,12 +24,12 @@ interface OptionsMenuProps {
    * the trigger, so the dialog can return focus to it.
    */
   onClearData: (opener: HTMLElement) => void;
-  /** Slot for "Instalar app", filled by the PWA task. Rendered after "Novo upload". */
-  installItem?: ReactNode;
+  /** "Instalar app", shown when the app can be installed. Rendered after "Novo upload". */
+  install?: InstallOption;
   className?: string;
 }
 
-export function OptionsMenu({ onNewUpload, onClearData, installItem, className }: OptionsMenuProps) {
+export function OptionsMenu({ onNewUpload, onClearData, install, className }: OptionsMenuProps) {
   // Closing the menu would hand focus back to the trigger, over the dialog that "Limpar dados" just opened.
   const dialogRequested = useRef(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -51,7 +58,19 @@ export function OptionsMenu({ onNewUpload, onClearData, installItem, className }
         <DropdownMenuItem onSelect={onNewUpload} className="max-md:min-h-11">
           Novo upload
         </DropdownMenuItem>
-        {installItem}
+        {install && (
+          <DropdownMenuItem
+            onSelect={() => {
+              if (!triggerRef.current) return;
+              // Only the iOS hint opens a dialog; the native prompt is the browser's own UI.
+              dialogRequested.current = install.kind === 'ios';
+              install.onSelect(triggerRef.current);
+            }}
+            className="max-md:min-h-11"
+          >
+            Instalar app
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => {

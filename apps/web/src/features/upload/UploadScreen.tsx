@@ -1,8 +1,10 @@
 import { ERROR_MESSAGES, type ParseResponse } from '@easy-grades/core';
+import { WifiOff } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
 import { ApiError, uploadDocuments } from '@/lib/api';
+import { useOnline } from '@/lib/use-online';
 import { Dropzone } from './Dropzone';
 
 interface UploadScreenProps {
@@ -15,10 +17,11 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
   const [historico, setHistorico] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const online = useOnline();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!curriculo || !historico) return;
+    if (!curriculo || !historico || !online) return;
     setSending(true);
     setError(null);
     try {
@@ -64,13 +67,19 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           onFile={setHistorico}
           disabled={sending}
         />
+        {!online && (
+          <p role="status" className="flex items-start gap-2 rounded-lg border border-border bg-muted p-3 text-sm">
+            <WifiOff aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            Você está offline. Para ler novos PDFs, conecte-se. Seus dados já salvos continuam disponíveis.
+          </p>
+        )}
         {error && (
           <p role="alert" className="rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm text-correcao">
             {error}
           </p>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" size="lg" disabled={!curriculo || !historico || sending}>
+          <Button type="submit" size="lg" disabled={!curriculo || !historico || sending || !online}>
             {sending ? 'Lendo os PDFs…' : 'Ler meus PDFs'}
           </Button>
           {onCancel && (

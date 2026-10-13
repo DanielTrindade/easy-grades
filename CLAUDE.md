@@ -13,6 +13,7 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 - `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm build`
 - `pnpm react-doctor` (full react-doctor) · `pnpm react-doctor:changed` (only new issues vs main) · `pnpm react-doctor:gate` (score ≥ 90, 0 errors; same check as pre-push and CI). Not `pnpm doctor`: that name is pnpm's built-in environment check.
 - `docker build -t easy-grades . && docker run -p 8080:8080 easy-grades`
+- `pnpm --filter @easy-grades/web icons` regenerates `apps/web/public/icons/` from `apps/web/brand/icon.svg` (commit the PNGs).
 
 ## Domain rules (do not change without evidence)
 - **CR** = Σ(nota × CH) / Σ CH over statuses aprovado, disp_nota, transf_real, reprovado_nota, reprovado_freq; **truncated** to 3 decimals. `equivalencia`, `disp`, `disp_calend`, `matriculado`, `trancado` do NOT count.
@@ -64,6 +65,13 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 ## API parsing
 - PDF parsing runs in a terminable worker thread: `apps/api/src/parser-worker.ts`, started by `parser-worker-client.ts`. This is what lets the 10 s timeout actually stop pdfjs; a main-thread parse could not be interrupted.
 - tsup emits `dist/parser-worker.js` next to `dist/server.js`. The Docker image needs it, and it copies all of `dist/`.
+
+## PWA
+- Config in `apps/web/src/pwa/pwa-options.ts` (`vite-plugin-pwa` 2.x, `registerType: 'prompt'`, Workbox `generateSW`). Precache: js, css, html, woff2, svg, png.
+- **The SW never caches `/api` or PDFs**: both are NetworkOnly and excluded from the `navigateFallback` (`navigateFallbackDenylist`). `pwa-options.test.ts` pins this.
+- The API serves `sw.js`, `workbox-*.js`, `registerSW.js` and `manifest.webmanifest` with `Cache-Control: no-cache`; the manifest as `application/manifest+json`. The CSP sets `worker-src` and `manifest-src` to `'self'` explicitly (`apps/api/test/pwa-static.test.ts`).
+- Icons (192, 512, 512 maskable, apple-touch 180) are generated from `brand/icon.svg` by `scripts/generate-icons.mjs`. Never edit the PNGs by hand.
+- UX: `PwaUpdatePrompt` (toast "Nova versão disponível", stays until dismissed; `useRegisterSW`), `useInstallApp` (native prompt, or the iOS Safari steps dialog), `useOnline` (disables "Ler meus PDFs" offline). The `virtual:pwa-register/react` module is stubbed in `test-setup.ts`.
 
 ## Core fixture
 - `packages/core/src/__fixtures__/sample.ts` is FICTIONAL (`@easy-grades/core/fixtures`). Conference against real PDFs exists only in the local test `apps/api/test/real-pdfs.test.ts`, which is skipped unless `report.pdf` and `historico.pdf` sit at the repo root (or in `REAL_PDF_DIR`). Never commit those PDFs.

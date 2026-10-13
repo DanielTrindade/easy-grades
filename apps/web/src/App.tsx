@@ -1,6 +1,7 @@
 import type { ParseResponse } from '@easy-grades/core';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PwaUpdatePrompt } from '@/components/PwaUpdatePrompt';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { UploadScreen } from '@/features/upload/UploadScreen';
@@ -78,6 +79,7 @@ export default function App() {
           </Suspense>
         </ErrorBoundary>
       )}
+      <PwaUpdatePrompt />
       {/* Below 600 px Sonner uses mobileOffset: clear the 56 px tab bar and its safe area. */}
       <Toaster
         position="bottom-right"
