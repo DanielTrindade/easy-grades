@@ -9,7 +9,7 @@ import { IntegrationTable } from './IntegrationTable';
 import { PaceSection } from './PaceSection';
 import { PerformanceSection } from './PerformanceSection';
 import { usePendingAacc } from './use-pending-aacc';
-import { WatersBand } from './WatersBand';
+import { MarkerBand } from './MarkerBand';
 
 // Recharts is heavy: charts stream in after the numbers are on screen.
 const CrChart = lazy(() => import('./CrChart'));
@@ -33,14 +33,14 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
 
   return (
     <div className="grid gap-14">
-      <WatersBand progress={progress} pendingPercent={pendingPercent} reveal={reveal} onRevealed={onRevealed} />
+      <MarkerBand progress={progress} pendingPercent={pendingPercent} reveal={reveal} onRevealed={onRevealed} />
 
       <section aria-label="Resumo" className="grid min-w-0 gap-8 border-y border-border py-8 sm:grid-cols-3">
         <div>
           <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
             Coeficiente de rendimento
           </h2>
-          <p className="mt-1 font-heading text-display font-semibold leading-none">{formatCr(officialCr ?? cr)}</p>
+          <p className="mt-1 heading-ink text-display leading-none">{formatCr(officialCr ?? cr)}</p>
           {officialCr !== null && cr !== null && officialCr !== cr && (
             <p className="mt-2 text-sm text-muted-foreground">Pelas notas do histórico: {formatCr(cr)}.</p>
           )}
@@ -52,7 +52,7 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
           <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
             Previsão de formatura
           </h2>
-          <p className="mt-1 font-heading text-display font-semibold leading-none">{graduation}</p>
+          <p className="mt-1 heading-ink text-display leading-none">{graduation}</p>
           <p className="mt-2 text-sm text-muted-foreground">
             {forecast.remainingTerms === 0
               ? 'Sem obrigatórias pendentes além das que estão em curso.'
@@ -64,7 +64,7 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
           <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
             Fora das disciplinas
           </h2>
-          <p className="mt-1 font-heading text-display font-semibold leading-none">
+          <p className="mt-1 heading-ink text-display leading-none">
             {formatHours(forecast.pendingHours.aacc + forecast.pendingHours.extensao)}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -74,8 +74,8 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
       </section>
 
       {unknownStatuses.length > 0 && (
-        <p role="status" className="flex gap-2 rounded-lg border border-urucum/40 bg-urucum/10 p-3 text-sm">
-          <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-urucum" />
+        <p role="status" className="flex gap-2 rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm">
+          <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-correcao" />
           <span>
             {unknownStatuses.length === 1 ? 'Uma disciplina tem' : `${unknownStatuses.length} disciplinas têm`} situação que
             não reconhecemos ({[...new Set(unknownStatuses.map((e) => e.rawStatus || 'vazia'))].join(', ')}) e ficaram fora

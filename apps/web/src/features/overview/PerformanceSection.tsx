@@ -3,8 +3,8 @@ import { Minus, TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react';
 import { formatCr, formatHours, formatPercent, toTitleCase } from '@/lib/format';
 
 const TREND: Record<NonNullable<PerformanceInsights['trend']>, { icon: LucideIcon; verb: string; iconColor: string }> = {
-  subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-igapo' },
-  caindo: { icon: TrendingDown, verb: 'caiu', iconColor: 'text-urucum' },
+  subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-tinta' },
+  caindo: { icon: TrendingDown, verb: 'caiu', iconColor: 'text-correcao' },
   estavel: { icon: Minus, verb: 'ficou estável', iconColor: 'text-muted-foreground' },
 };
 
@@ -21,7 +21,7 @@ export function PerformanceSection({ performance }: PerformanceSectionProps) {
 
   return (
     <section aria-labelledby="desempenho" className="grid min-w-0 content-start gap-4">
-      <h2 id="desempenho" className="text-xl font-semibold">
+      <h2 id="desempenho" className="text-xl">
         Desempenho
       </h2>
 
@@ -30,7 +30,7 @@ export function PerformanceSection({ performance }: PerformanceSectionProps) {
         {passRate === null ? (
           <p className="mt-1">sem disciplinas cursadas ainda</p>
         ) : (
-          <p className="mt-1 font-heading text-3xl font-semibold">{formatPercent(passRate)}</p>
+          <p className="mt-1 heading-ink text-3xl">{formatPercent(passRate)}</p>
         )}
         <p className="mt-2 text-sm text-muted-foreground">
           Em um estudo com 1.124 formados em engenharia, metade reprovou em no máximo 13% das disciplinas.

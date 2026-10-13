@@ -6,8 +6,8 @@ import { crDomain, crTicks } from './chart-utils';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 
 const config = {
-  termCr: { label: 'CR do período', color: 'var(--solimoes)' },
-  cumulativeCr: { label: 'CR acumulado', color: 'var(--igapo)' },
+  termCr: { label: 'CR do período', color: 'var(--chart-4)' },
+  cumulativeCr: { label: 'CR acumulado', color: 'var(--tinta)' },
 } satisfies ChartConfig;
 
 export default function CrChart({ history }: { history: TermCr[] }) {
@@ -17,7 +17,7 @@ export default function CrChart({ history }: { history: TermCr[] }) {
   return (
     <figure>
       <figcaption>
-        <h2 className="text-xl font-semibold">Coeficiente por período</h2>
+        <h2 className="text-xl">Coeficiente por período</h2>
       </figcaption>
       <ChartContainer config={config} className="mt-4 aspect-auto h-64 w-full">
         <LineChart data={data} margin={{ left: 0, right: 12, top: 8 }} accessibilityLayer>

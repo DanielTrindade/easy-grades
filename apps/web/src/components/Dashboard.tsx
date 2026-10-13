@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { BrandMark } from '@/components/BrandMark';
 import { ClearDataButton } from '@/components/ClearDataButton';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
     <div className="min-h-dvh">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 px-4 pt-3 sm:py-3">
-          <p className="font-heading text-xl font-semibold">Easy Grades</p>
+          <BrandMark />
           <p className="hidden text-sm text-muted-foreground md:block">
             {curriculum.courseName}, currículo {curriculum.version}
           </p>
@@ -48,7 +49,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
                   <a
                     href={`#/${v}`}
                     aria-current={view === v ? 'page' : undefined}
-                    className="block whitespace-nowrap border-b-2 border-transparent py-3 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=page]:border-igapo aria-[current=page]:font-medium aria-[current=page]:text-foreground sm:py-1"
+                    className="block whitespace-nowrap border-b-2 border-transparent py-3 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=page]:border-tinta aria-[current=page]:font-medium aria-[current=page]:text-foreground sm:py-1"
                   >
                     {VIEW_LABELS[v]}
                   </a>

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/literata";
+@import "@fontsource-variable/bricolage-grotesque/wdth.css";
 @import "@fontsource-variable/hanken-grotesk";
 @import "@xyflow/react/dist/style.css";
 
@@ -16,24 +16,34 @@
   }
 }
 
+/* Headings and big numbers: Bricolage at weight 750 on the condensed axis (wdth 78), with tight ink-like spacing. */
+@utility heading-ink {
+  font-family: var(--font-heading);
+  font-weight: 750;
+  font-stretch: 78%;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+
 @theme inline {
   --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Literata Variable", ui-serif, Georgia, serif;
+  --font-heading: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
   /* Type scale steps from the visual direction (44 px and 64 px). */
   --text-display: 2.75rem;
   --text-stat: 4rem;
 
-  --color-negro: var(--negro);
-  --color-solimoes: var(--solimoes);
-  --color-solimoes-strong: var(--solimoes-strong);
-  --color-igapo: var(--igapo);
-  --color-varzea: var(--varzea);
-  --color-vitoria: var(--vitoria);
-  --color-urucum: var(--urucum);
-  --color-neblina: var(--neblina);
+  --color-papel: var(--papel);
+  --color-pauta: var(--pauta);
+  --color-tinta: var(--tinta);
+  --color-tinta-escura: var(--tinta-escura);
+  --color-marca: var(--marca);
+  --color-correcao: var(--correcao);
+  --color-grafite: var(--grafite);
 
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Bottom sheet: enters and leaves with a soft landing. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -73,80 +83,74 @@
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-/* Encontro das Águas palette: dark Rio Negro (done) meets clay Solimões (remaining). */
+/* Caderno palette: squared notebook paper, blue ink, yellow highlighter, red correction pen, pencil grey. */
 :root {
-  --negro: #2b2118;
-  --solimoes: #c7a15a;
-  --igapo: #2e5e4e;
-  --varzea: #eef1ec;
-  --vitoria: #8fb57f;
-  --urucum: #b4432a;
-  --neblina: #a3aba4;
-  --water-done: #2b2118;
-  --water-left: #c7a15a;
-  /* Registered-by-you stripes: between the done and the remaining tones. */
-  --water-pending: #5a4426;
-  /* Clay for icons and text on the light background (the plain Solimões is 2,1:1 there). */
-  --solimoes-strong: #8a6a2c;
+  --papel: #f4f6fa;
+  --pauta: #c9d3e6;
+  --tinta: #1d3fa0;
+  --tinta-escura: #14275f;
+  --marca: #f2e94e;
+  --correcao: #c4302b;
+  --grafite: #5b6170;
 
-  --background: var(--varzea);
-  --foreground: var(--negro);
-  --card: #f7f8f5;
-  --card-foreground: var(--negro);
-  --popover: #fbfbf9;
-  --popover-foreground: var(--negro);
-  --primary: var(--igapo);
-  --primary-foreground: #f4f7f3;
-  --secondary: #e2e7e0;
-  --secondary-foreground: var(--negro);
-  --muted: #e2e7e0;
-  --muted-foreground: #565d57;
-  --accent: #dde5d9;
-  --accent-foreground: var(--negro);
-  --destructive: var(--urucum);
-  --border: #d3d9d1;
-  --input: #c3cbc1;
-  --ring: var(--igapo);
-  --chart-1: var(--igapo);
-  --chart-2: var(--solimoes);
-  --chart-3: var(--negro);
-  --chart-4: var(--vitoria);
-  --chart-5: var(--urucum);
-  --radius: 0.5rem;
+  /* MarkerBand layers: done = highlighter, left = paper (the grid is drawn in CSS), pending = hatched highlighter. */
+  --band-done: var(--marca);
+  --band-left: var(--papel);
+  --band-pending: color-mix(in oklab, var(--marca) 50%, transparent);
+
+  --background: var(--papel);
+  --foreground: #14275f;
+  --card: #ffffff;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: var(--tinta);
+  --primary-foreground: var(--papel);
+  --secondary: #e6ebf5;
+  --secondary-foreground: var(--foreground);
+  --muted: #e6ebf5;
+  --muted-foreground: var(--grafite);
+  --accent: #dce4f3;
+  --accent-foreground: var(--foreground);
+  --destructive: var(--correcao);
+  --border: var(--pauta);
+  --input: #b4c1db;
+  --ring: var(--tinta);
+  --chart-1: var(--tinta);
+  --chart-2: var(--marca);
+  --chart-3: var(--grafite);
+  --chart-4: #5b8def;
+  --chart-5: var(--correcao);
+  --radius: 0.375rem;
   --sidebar: var(--card);
-  --sidebar-foreground: var(--negro);
-  --sidebar-primary: var(--igapo);
-  --sidebar-primary-foreground: #f4f7f3;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--tinta);
+  --sidebar-primary-foreground: var(--papel);
   --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--negro);
+  --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
-  --sidebar-ring: var(--igapo);
+  --sidebar-ring: var(--tinta);
 }
 
+/* Dark is the notebook at night: navy paper, not neutral black. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --negro: #ece4d8;
-    --solimoes: #d4b072;
-    --igapo: #6fa58f;
-    --varzea: #191511;
-    --vitoria: #9cc48c;
-    --urucum: #e07257;
-    --neblina: #5e655f;
-    --water-done: #6b4a2e;
-    --water-left: #d4b072;
-    --water-pending: #9a7440;
-    --solimoes-strong: var(--solimoes);
+    --papel: #0e1424;
+    --pauta: #26304a;
+    --tinta: #8fa8ff;
+    --marca: #e8dd45;
+    --correcao: #ff7a70;
+    --grafite: #a4abba;
 
-    --card: #221d18;
-    --popover: #27211b;
-    --primary-foreground: #10140f;
-    --secondary: #2c2620;
-    --muted: #2c2620;
-    --muted-foreground: #b3aa9c;
-    --accent: #332c25;
-    --border: #3a332b;
-    --input: #453d34;
-    --sidebar-primary-foreground: #10140f;
+    --foreground: #e6eaf3;
+    --card: #141b2e;
+    --primary-foreground: #0e1424;
+    --secondary: #1b2440;
+    --muted: #1b2440;
+    --accent: #222d4a;
+    --input: #34405f;
+    --chart-4: #b9c8ff;
+    --sidebar-primary-foreground: #0e1424;
   }
 }
 
@@ -165,9 +169,7 @@
   h1,
   h2,
   h3 {
-    font-family: var(--font-heading);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
+    @apply heading-ink;
   }
 }
 
@@ -179,8 +181,36 @@
   --tw-ease: var(--ease-snap);
 }
 
-/* WatersBand: one-time reveal when a dataset is first shown. */
-@keyframes waters-in {
+/* Squared notebook paper: the upload hero's background, faded out at the edges so it stays a whisper. */
+.grid-paper {
+  position: relative;
+  isolation: isolate;
+}
+.grid-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(var(--pauta) 1px, transparent 1px), linear-gradient(90deg, var(--pauta) 1px, transparent 1px);
+  background-size: 8px 8px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+}
+
+/* MarkerBand: a highlighter stroke over squared paper. The done part is a hard edge at --band-cut. */
+.marker-band {
+  background-color: var(--band-left);
+  background-image:
+    linear-gradient(90deg, var(--band-done) 0 var(--band-cut, 0%), transparent var(--band-cut, 0%)),
+    linear-gradient(var(--pauta) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pauta) 1px, transparent 1px);
+  background-size: 100% 100%, 8px 8px, 8px 8px;
+  border: 1px solid var(--tinta);
+  border-radius: var(--radius-lg);
+}
+/* One-time reveal when a dataset is first shown: the highlighter sweeps left to right. */
+@keyframes marker-in {
   from {
     clip-path: inset(0 100% 0 0);
   }
@@ -188,8 +218,8 @@
     clip-path: inset(0 0 0 0);
   }
 }
-.waters-band[data-reveal] {
-  animation: waters-in 900ms var(--ease-snap) both;
+.marker-band[data-reveal] {
+  animation: marker-in 700ms var(--ease-snap) both;
 }
 
 /* Flowchart: column-staggered entrance (40ms per column). */
@@ -230,7 +260,7 @@
 
 .react-flow {
   --xy-background-color: transparent;
-  --xy-node-boxshadow-selected: 0 0 0 2px var(--igapo);
+  --xy-node-boxshadow-selected: 0 0 0 2px var(--tinta);
   --xy-minimap-background-color: var(--card);
   --xy-controls-button-background-color: var(--card);
   --xy-controls-button-color: var(--foreground);
@@ -243,19 +273,21 @@
 }
 /* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
 .react-flow__minimap-node.mini-done {
-  fill: var(--igapo);
+  fill: var(--marca);
+  stroke: var(--tinta);
+  stroke-width: 1px;
 }
 .react-flow__minimap-node.mini-left {
-  fill: var(--solimoes);
+  fill: var(--pauta);
 }
 .react-flow__background {
-  --xy-background-pattern-dots-color-default: var(--border);
+  --xy-background-pattern-dots-color-default: var(--pauta);
 }
 .react-flow__minimap-mask {
   fill: color-mix(in oklch, var(--background) 70%, transparent);
 }
 .react-flow__node:focus-visible {
-  outline: 2px solid var(--igapo);
+  outline: 2px solid var(--tinta);
   outline-offset: 3px;
   border-radius: var(--radius);
 }
@@ -270,7 +302,7 @@
     --tw-exit-translate-x: 0;
     --tw-exit-translate-y: 0;
   }
-  .waters-band[data-reveal] {
+  .marker-band[data-reveal] {
     animation: none;
   }
   .course-node {

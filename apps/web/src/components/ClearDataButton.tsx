@@ -15,7 +15,7 @@ export function ClearDataButton({ onConfirm }: { onConfirm: () => void }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-urucum hover:text-urucum">
+        <Button variant="ghost" size="sm" className="text-correcao hover:text-correcao">
           Limpar dados
         </Button>
       </AlertDialogTrigger>
@@ -28,7 +28,7 @@ export function ClearDataButton({ onConfirm }: { onConfirm: () => void }) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-urucum text-white hover:bg-urucum/90">
+          <AlertDialogAction onClick={onConfirm} className="bg-correcao text-white hover:bg-correcao/90">
             Limpar dados
           </AlertDialogAction>
         </AlertDialogFooter>

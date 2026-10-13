@@ -41,11 +41,11 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('[reveal] plays the waters reveal once per dataset, not again after navigating back', async () => {
+  it('[reveal] plays the marker reveal once per dataset, not again after navigating back', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
     await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 5000 });
-    const band = document.querySelector('.waters-band');
+    const band = document.querySelector('.marker-band');
     expect(band).toHaveAttribute('data-reveal');
     fireEvent.animationEnd(band!);
 
@@ -57,8 +57,8 @@ describe('App', () => {
     await act(async () => {
       window.location.hash = '/visao-geral';
     });
-    await waitFor(() => expect(document.querySelector('.waters-band')).not.toBeNull());
-    expect(document.querySelector('.waters-band')).not.toHaveAttribute('data-reveal');
+    await waitFor(() => expect(document.querySelector('.marker-band')).not.toBeNull());
+    expect(document.querySelector('.marker-band')).not.toHaveAttribute('data-reveal');
   });
 
   it('[clear] confirming "Limpar dados" empties storage and returns to the upload screen', async () => {

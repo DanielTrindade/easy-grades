@@ -103,7 +103,7 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
   return (
     <div className="grid gap-12">
       <div>
-        <h1 className="text-3xl font-semibold sm:text-display">Planejamento</h1>
+        <h1 className="text-3xl sm:text-display">Planejamento</h1>
         <p className="mt-2 max-w-[60ch] text-muted-foreground">
           Escolha as disciplinas do próximo semestre e as notas que você espera. O CR projetado muda na hora.
         </p>
@@ -112,7 +112,7 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
       <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr]">
         <section aria-labelledby="sugestoes" className="grid content-start gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="sugestoes" className="text-2xl font-semibold">
+            <h2 id="sugestoes" className="text-2xl">
               Próximo semestre{projectedTerm && `, ${formatTerm(projectedTerm)}`}
             </h2>
             <div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
               </Label>
             </div>
           </div>
-          <p className={credits > maxCredits ? 'text-sm text-urucum' : 'text-sm text-muted-foreground'} aria-live="polite">
+          <p className={credits > maxCredits ? 'text-sm text-correcao' : 'text-sm text-muted-foreground'} aria-live="polite">
             <strong className="font-semibold text-foreground">{credits} créditos</strong> escolhidos. {creditNote}
           </p>
 
@@ -136,7 +136,7 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
                 const checked = c.code in plan.next;
                 const id = `escolha-${c.code}`;
                 return (
-                  <li key={c.code} className="rounded-lg border border-border bg-card p-3 has-[[data-state=checked]]:border-igapo">
+                  <li key={c.code} className="rounded-lg border border-border bg-card p-3 has-[[data-state=checked]]:border-tinta">
                     <div className="flex items-start gap-3">
                       <Checkbox
                         id={id}
@@ -183,10 +183,10 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
 
         <aside aria-labelledby="projecao" className="grid content-start gap-8">
           <section className="grid gap-4">
-            <h2 id="projecao" className="text-2xl font-semibold">
+            <h2 id="projecao" className="text-2xl">
               CR projetado
             </h2>
-            <p className="font-heading text-stat font-semibold leading-none">{formatCr(projected)}</p>
+            <p className="heading-ink text-stat leading-none">{formatCr(projected)}</p>
             <p className="text-sm text-muted-foreground">
               Hoje: {formatCr(analysis.cr)}. Com notas entre 5 e 10 nessas disciplinas, ficaria entre {formatCr(scenarios.worst)} e{' '}
               {formatCr(scenarios.best)}.
@@ -198,7 +198,7 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
 
           {inProgress.length > 0 && (
             <section aria-labelledby="em-curso" className="grid gap-4">
-              <h3 id="em-curso" className="text-lg font-semibold">
+              <h3 id="em-curso" className="text-lg">
                 Em curso agora
               </h3>
               {inProgress.map((e) =>
@@ -216,13 +216,13 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
           )}
 
           <section aria-labelledby="caminho" className="grid gap-3">
-            <h3 id="caminho" className="text-lg font-semibold">
+            <h3 id="caminho" className="text-lg">
               Caminho até a formatura
             </h3>
             {analysis.forecast.terms.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma obrigatória pendente além das que estão em curso.</p>
             ) : (
-              <ol className="grid gap-3 border-l-2 border-solimoes pl-4">
+              <ol className="grid gap-3 border-l-2 border-tinta pl-4">
                 {analysis.forecast.terms.map((term) => (
                   <li key={term.term}>
                     <p className="font-medium">
@@ -234,7 +234,7 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
               </ol>
             )}
             {analysis.forecast.unschedulable.length > 0 && (
-              <p className="text-sm text-urucum">
+              <p className="text-sm text-correcao">
                 Não conseguimos encaixar {analysis.forecast.unschedulable.join(', ')}: os pré-requisitos não aparecem no currículo.
               </p>
             )}

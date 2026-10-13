@@ -20,7 +20,7 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-3xl font-semibold sm:text-display">Disciplinas cursadas</h1>
+        <h1 className="text-3xl sm:text-display">Disciplinas cursadas</h1>
         <p className="mt-2 text-muted-foreground">
           {entries.length} {entries.length === 1 ? 'registro' : 'registros'} no histórico.{' '}
           {rows.length !== entries.length && `${rows.length} com os filtros atuais.`}

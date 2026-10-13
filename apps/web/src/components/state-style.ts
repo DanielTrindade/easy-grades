@@ -8,11 +8,14 @@ export interface StateStyle {
   iconColor: string;
 }
 
-/** Status is always color + icon + text, never color alone. */
+/**
+ * Status is always color + icon + text, never color alone. Icons sit on paper, where highlighter yellow is too
+ * faint, so the done icon uses the ink blue and the highlighter only fills the badge.
+ */
 export const STATE_STYLE: Record<CourseState, StateStyle> = {
-  concluida: { icon: CircleCheck, badge: 'bg-igapo text-primary-foreground border-igapo', accent: 'border-l-igapo', iconColor: 'text-igapo' },
-  em_curso: { icon: CircleDot, badge: 'bg-solimoes text-[#2b2118] border-solimoes', accent: 'border-l-solimoes', iconColor: 'text-solimoes' },
-  disponivel: { icon: CircleDashed, badge: 'bg-transparent text-foreground border-vitoria border-dashed', accent: 'border-l-vitoria', iconColor: 'text-vitoria' },
-  bloqueada: { icon: Lock, badge: 'bg-muted text-muted-foreground border-neblina', accent: 'border-l-neblina', iconColor: 'text-neblina' },
-  reprovada: { icon: CircleX, badge: 'bg-urucum text-white border-urucum', accent: 'border-l-urucum', iconColor: 'text-urucum' },
+  concluida: { icon: CircleCheck, badge: 'bg-marca text-tinta-escura border-tinta', accent: 'border-l-tinta', iconColor: 'text-tinta' },
+  em_curso: { icon: CircleDot, badge: 'bg-tinta text-papel border-tinta', accent: 'border-l-tinta', iconColor: 'text-tinta' },
+  disponivel: { icon: CircleDashed, badge: 'bg-transparent text-foreground border-tinta border-dashed', accent: 'border-l-tinta', iconColor: 'text-tinta' },
+  bloqueada: { icon: Lock, badge: 'bg-muted text-grafite border-pauta', accent: 'border-l-pauta', iconColor: 'text-grafite' },
+  reprovada: { icon: CircleX, badge: 'bg-correcao text-white border-correcao', accent: 'border-l-correcao', iconColor: 'text-correcao' },
 };

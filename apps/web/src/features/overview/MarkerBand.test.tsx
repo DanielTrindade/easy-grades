@@ -2,15 +2,15 @@ import { computeProgress } from '@easy-grades/core';
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { WatersBand } from './WatersBand';
+import { MarkerBand } from './MarkerBand';
 
 const progress = computeProgress(sampleCurriculum, sampleTranscript);
 
 function renderBand(pendingPercent?: number) {
-  return render(<WatersBand progress={progress} pendingPercent={pendingPercent} reveal={false} onRevealed={() => {}} />);
+  return render(<MarkerBand progress={progress} pendingPercent={pendingPercent} reveal={false} onRevealed={() => {}} />);
 }
 
-describe('WatersBand', () => {
+describe('MarkerBand', () => {
   it('keeps the official percentage as the headline and says nothing about pending activities without them', () => {
     renderBand();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('64,69%');
@@ -29,6 +29,12 @@ describe('WatersBand', () => {
     expect(
       screen.getByRole('img', { name: '64,69% concluído oficialmente, mais 10,00% em atividades registradas por você' }),
     ).toBeInTheDocument();
+  });
+
+  it('cuts the marker at the official percentage with a hard edge (no seam blur)', () => {
+    const { container } = renderBand();
+    const band = container.querySelector<HTMLElement>('.marker-band');
+    expect(band!.style.getPropertyValue('--band-cut')).toBe('64.69%');
   });
 
   it('ignores a zero pending percentage', () => {
