@@ -11,6 +11,19 @@ function matches(pattern: unknown, url: string): boolean {
   throw new Error(`expected a RegExp, got ${typeof pattern}`);
 }
 
+// Workbox calls a function urlPattern with the real URL and whether the request is same-origin.
+function routeMatches(urlPattern: unknown, path: string, sameOrigin = true): boolean {
+  if (typeof urlPattern !== 'function') throw new Error(`expected a function matcher, got ${typeof urlPattern}`);
+  return Boolean(urlPattern({ url: new URL(path, 'http://localhost'), sameOrigin }));
+}
+
+function handlerFor(path: string): string | undefined {
+  const rule = (workbox?.runtimeCaching ?? []).find(
+    (entry) => typeof entry.urlPattern === 'function' && routeMatches(entry.urlPattern, path),
+  );
+  return rule?.handler as string | undefined;
+}
+
 describe('PWA manifest', () => {
   it('names the app in Portuguese and opens at the root', () => {
     expect(manifest.name).toBe('Easy Grades');
@@ -65,17 +78,28 @@ describe('PWA service worker', () => {
     expect(denylist.some((pattern) => matches(pattern, '/visao-geral'))).toBe(false);
   });
 
-  it('serves /api from the network only', () => {
-    const rule = (workbox?.runtimeCaching ?? []).find(
-      (entry) => entry.urlPattern instanceof RegExp && entry.urlPattern.test('/api/parse'),
-    );
-    expect(rule?.handler).toBe('NetworkOnly');
+  it('matches /api by pathname, so the rule applies to real API URLs', () => {
+    const rules = (workbox?.runtimeCaching ?? []).filter((entry) => typeof entry.urlPattern === 'function');
+    expect(rules.length).toBeGreaterThan(0);
+    expect(routeMatches(rules[0]?.urlPattern, '/api/parse')).toBe(true);
+    expect(routeMatches(rules[0]?.urlPattern, '/api/parse?debug=1')).toBe(true);
+    expect(routeMatches(rules[0]?.urlPattern, '/apiary')).toBe(false);
+    expect(routeMatches(rules[0]?.urlPattern, '/visao-geral')).toBe(false);
+    expect(routeMatches(rules[0]?.urlPattern, '/api/parse', false)).toBe(false);
   });
 
-  it('serves uploaded PDFs from the network only', () => {
-    const rule = (workbox?.runtimeCaching ?? []).find(
-      (entry) => entry.urlPattern instanceof RegExp && entry.urlPattern.test('/relatorio.pdf'),
-    );
-    expect(rule?.handler).toBe('NetworkOnly');
+  it('serves /api from the network only', () => {
+    expect(handlerFor('/api/parse')).toBe('NetworkOnly');
+  });
+
+  it('serves uploaded PDFs from the network only, whatever the query string', () => {
+    expect(handlerFor('/relatorio.pdf')).toBe('NetworkOnly');
+    expect(handlerFor('/relatorio.PDF')).toBe('NetworkOnly');
+    expect(handlerFor('/relatorio.pdf?v=2')).toBe('NetworkOnly');
+  });
+
+  it('does not match app routes that only mention pdf or api', () => {
+    expect(handlerFor('/pdf-guide')).toBeUndefined();
+    expect(handlerFor('/docs/api-notes')).toBeUndefined();
   });
 });

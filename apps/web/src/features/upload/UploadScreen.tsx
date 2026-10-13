@@ -67,12 +67,18 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           onFile={setHistorico}
           disabled={sending}
         />
-        {!online && (
-          <p role="status" className="flex items-start gap-2 rounded-lg border border-border bg-muted p-3 text-sm">
-            <WifiOff aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-            Você está offline. Para ler novos PDFs, conecte-se. Seus dados já salvos continuam disponíveis.
-          </p>
-        )}
+        {/* Always mounted: screen readers announce text added to a live region, not a region inserted already filled. */}
+        <p
+          role="status"
+          className={online ? 'sr-only' : 'flex items-start gap-2 rounded-lg border border-border bg-muted p-3 text-sm'}
+        >
+          {!online && (
+            <>
+              <WifiOff aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+              Você está offline. Para ler novos PDFs, conecte-se. Seus dados já salvos continuam disponíveis.
+            </>
+          )}
+        </p>
         {error && (
           <p role="alert" className="rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm text-correcao">
             {error}

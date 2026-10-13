@@ -27,6 +27,20 @@ describe('UploadScreen offline', () => {
     expect(screen.queryByText(OFFLINE_MESSAGE)).not.toBeInTheDocument();
   });
 
+  it('keeps one live region in the DOM and fills it in, so screen readers announce the change', () => {
+    setOnLine(true);
+    render(<UploadScreen onParsed={vi.fn()} />);
+    const region = screen.getByRole('status');
+    expect(region).toBeEmptyDOMElement();
+
+    setOnLine(false);
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
+    expect(screen.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent(OFFLINE_MESSAGE);
+  });
+
   it('updates when the connection drops and returns', () => {
     setOnLine(true);
     render(<UploadScreen onParsed={vi.fn()} />);

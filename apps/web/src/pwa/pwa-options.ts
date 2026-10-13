@@ -27,9 +27,10 @@ export const pwaOptions = {
     navigateFallback: '/index.html',
     // The API and uploaded PDFs are never app routes, so they never fall back to index.html.
     navigateFallbackDenylist: [/^\/api\//, /\.pdf$/i],
+    // Workbox tests a RegExp urlPattern against the full href, so these match the pathname with a function instead.
     runtimeCaching: [
-      { urlPattern: /^\/api\//, handler: 'NetworkOnly' },
-      { urlPattern: /\.pdf$/i, handler: 'NetworkOnly' },
+      { urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/api/'), handler: 'NetworkOnly' },
+      { urlPattern: ({ url }) => url.pathname.toLowerCase().endsWith('.pdf'), handler: 'NetworkOnly' },
     ],
   },
 } satisfies Partial<VitePWAOptions>;
