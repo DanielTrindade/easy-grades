@@ -1,104 +1,159 @@
-import { formatTerm, type Category, type ParseResponse } from '@easy-grades/core';
-import { useDeferredValue, useMemo, useState } from 'react';
-import { EntryStatusBadge } from '@/components/StatusBadge';
+import { crByTerm, type Category, type ParseResponse } from '@easy-grades/core';
+import { CircleHelp, List, type LucideIcon } from 'lucide-react';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
+import { STATE_STYLE } from '@/components/state-style';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { formatGrade, toTitleCase } from '@/lib/format';
-import { CATEGORY_LABELS, filterEntries, keyEntries, STATUS_FILTERS, type StatusFilter } from './filter-entries';
+import { ChoiceGroup } from './ChoiceGroup';
+import { CourseGroup } from './CourseGroup';
+import {
+  CATEGORY_LABELS,
+  filterEntries,
+  groupEntries,
+  keyEntries,
+  STATUS_FILTERS,
+  statusCounts,
+  type GroupBy,
+  type StatusFilter,
+} from './filter-entries';
+
+const STATUS_ICONS: Record<StatusFilter, LucideIcon> = {
+  todas: List,
+  concluidas: STATE_STYLE.concluida.icon,
+  em_curso: STATE_STYLE.em_curso.icon,
+  reprovadas: STATE_STYLE.reprovada.icon,
+  outras: CircleHelp,
+};
+
+const STATUS_ORDER = Object.keys(STATUS_FILTERS) as StatusFilter[];
+
+const GROUP_OPTIONS: { value: GroupBy; content: string }[] = [
+  { value: 'period', content: 'Por período' },
+  { value: 'category', content: 'Por categoria' },
+];
+
+const plural = (count: number) => (count === 1 ? 'registro' : 'registros');
 
 export function CoursesScreen({ data }: { data: ParseResponse }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('todas');
   const [category, setCategory] = useState<Category | 'todas'>('todas');
+  const [groupBy, setGroupBy] = useState<GroupBy>('period');
+  const searchRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query);
   const entries = useMemo(() => keyEntries(data.transcript.entries), [data.transcript.entries]);
+  const counts = useMemo(() => statusCounts(data.transcript.entries), [data.transcript.entries]);
   const rows = useMemo(() => filterEntries(entries, deferredQuery, status, category), [entries, deferredQuery, status, category]);
+  const groups = useMemo(() => groupEntries(rows, groupBy), [rows, groupBy]);
+  // The period CR is the real one from the whole transcript, so a status or search filter never changes it.
+  const termCr = useMemo(() => new Map(crByTerm(data.transcript).map((t) => [t.term, t.termCr])), [data.transcript]);
   const categories = [...new Set(entries.map((e) => e.category))];
+  const filtersActive = query.trim() !== '' || status !== 'todas' || category !== 'todas';
+
+  function clearFilters() {
+    setQuery('');
+    setStatus('todas');
+    setCategory('todas');
+    // "Limpar filtros" unmounts as soon as the filters clear, so focus would otherwise fall back to the body.
+    searchRef.current?.focus();
+  }
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-3xl font-semibold sm:text-display">Disciplinas cursadas</h1>
-        <p className="mt-2 text-muted-foreground">
-          {entries.length} {entries.length === 1 ? 'registro' : 'registros'} no histórico.{' '}
-          {rows.length !== entries.length && `${rows.length} com os filtros atuais.`}
+      <h1 className="text-3xl sm:text-display">Disciplinas cursadas</h1>
+
+      <div className="grid gap-4">
+        <ChoiceGroup
+          label="Filtrar por situação"
+          className="flex flex-wrap gap-2"
+          items={STATUS_ORDER.map((key) => {
+            const Icon = STATUS_ICONS[key];
+            return {
+              value: key,
+              content: (
+                <>
+                  <Icon aria-hidden className="size-4" />
+                  <span>{STATUS_FILTERS[key].label}</span>
+                  <span className="tabular-nums opacity-80">{counts[key]}</span>
+                </>
+              ),
+            };
+          })}
+          value={status}
+          onValueChange={setStatus}
+          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-texto aria-checked:bg-texto aria-checked:text-fundo aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
+        />
+
+        <div className="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-end">
+          <div className="grid gap-1.5">
+            <Label htmlFor="busca">Buscar disciplina</Label>
+            <Input
+              ref={searchRef}
+              id="busca"
+              type="search"
+              placeholder="Código ou nome"
+              className="max-md:h-11"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="filtro-categoria">Categoria</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as Category | 'todas')}>
+              <SelectTrigger id="filtro-categoria" className="w-full max-md:data-[size=default]:h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {CATEGORY_LABELS[c]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {filtersActive && (
+          <Button variant="ghost" className="justify-self-start max-md:h-11" onClick={clearFilters}>
+            Limpar filtros
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p aria-live="polite" className="text-sm text-muted-foreground">
+          {filtersActive
+            ? `${rows.length} de ${entries.length} ${plural(entries.length)} com os filtros atuais.`
+            : `${entries.length} ${plural(entries.length)} no histórico.`}
         </p>
+        <ChoiceGroup
+          label="Agrupar por"
+          className="inline-flex rounded-lg border border-linha p-0.5"
+          items={GROUP_OPTIONS}
+          value={groupBy}
+          onValueChange={setGroupBy}
+          itemClassName="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:bg-texto aria-checked:text-fundo aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
+        />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <div className="grid gap-1.5">
-          <Label htmlFor="busca">Buscar</Label>
-          <Input id="busca" type="search" placeholder="Código ou nome" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="filtro-situacao">Situação</Label>
-          <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-            <SelectTrigger id="filtro-situacao" className="w-full sm:w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.keys(STATUS_FILTERS) as StatusFilter[]).map((key) => (
-                <SelectItem key={key} value={key}>
-                  {STATUS_FILTERS[key].label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="filtro-categoria">Categoria</Label>
-          <Select value={category} onValueChange={(v) => setCategory(v as Category | 'todas')}>
-            <SelectTrigger id="filtro-categoria" className="w-full sm:w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {CATEGORY_LABELS[c]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {rows.length === 0 ? (
+      {groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-muted-foreground">
-          Nenhuma disciplina com esses filtros. Limpe a busca ou escolha outra situação.
+          {entries.length === 0
+            ? 'Nenhuma disciplina no histórico.'
+            : 'Nenhuma disciplina com esses filtros. Use Limpar filtros ou escolha outra situação ou categoria.'}
         </p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Disciplina</TableHead>
-              <TableHead>Período</TableHead>
-              <TableHead className="hidden md:table-cell">Categoria</TableHead>
-              <TableHead className="text-right">CH</TableHead>
-              <TableHead className="text-right">Nota</TableHead>
-              <TableHead>Situação</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((e) => (
-              <TableRow key={e.key}>
-                <TableCell className="whitespace-normal">
-                  <span className="block text-xs text-muted-foreground">{e.code}</span>
-                  {toTitleCase(e.name)}
-                </TableCell>
-                <TableCell>{formatTerm(e.term)}</TableCell>
-                <TableCell className="hidden md:table-cell">{CATEGORY_LABELS[e.category]}</TableCell>
-                <TableCell className="text-right">{e.hours ?? '—'}</TableCell>
-                <TableCell className="text-right">{formatGrade(e.grade)}</TableCell>
-                <TableCell>
-                  <EntryStatusBadge status={e.status} rawStatus={e.rawStatus} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        groups.map((group) => (
+          <CourseGroup
+            key={`${groupBy}-${group.id}`}
+            group={group}
+            cr={groupBy === 'period' ? (termCr.get(group.id) ?? null) : undefined}
+          />
+        ))
       )}
     </div>
   );

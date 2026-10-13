@@ -21,6 +21,7 @@ import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH, CourseNode, type CourseNodeType 
 import { exportFrame } from './export-frame';
 import { FlowchartList } from './FlowchartList';
 import { FlowLegend } from './FlowLegend';
+import { type FlowView, pickFlowView, readStoredFlowView, writeFlowView } from './flow-view';
 import { HighlightContext } from './HighlightContext';
 import { highlightSet, nextPinned, visibleGraph } from './highlight';
 import { useHoverFocus } from './hoverFocus';
@@ -32,7 +33,9 @@ function Graph({ data }: { data: ParseResponse }) {
   const hover = useHoverFocus();
   const [pinned, setPinned] = useState<string | null>(null);
   const [onlyRemaining, setOnlyRemaining] = useState(false);
-  const [asList, setAsList] = useState(false);
+  // Narrow screens open as a list; the student's last choice (kept in localStorage) wins over that default.
+  const [flowView, setFlowView] = useState<FlowView>(() => pickFlowView(window.innerWidth, readStoredFlowView()));
+  const asList = flowView === 'lista';
   const [exporting, setExporting] = useState(false);
   const { fitView, setViewport } = useReactFlow();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -76,7 +79,7 @@ function Graph({ data }: { data: ParseResponse }) {
           target: edge.target,
           focusable: false,
           style: {
-            stroke: edge.satisfied ? 'var(--igapo)' : 'var(--neblina)',
+            stroke: edge.satisfied ? 'var(--texto)' : 'var(--suave)',
             strokeWidth: inChain ? 2.5 : 1.5,
             strokeDasharray: edge.alternative ? '5 4' : undefined,
             opacity: highlighted === null || inChain ? 1 : 0.15,
@@ -136,13 +139,13 @@ function Graph({ data }: { data: ParseResponse }) {
     <div className="grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold sm:text-display">Fluxograma do curso</h1>
+          <h1 className="text-3xl sm:text-display">Fluxograma do curso</h1>
           <p className="mt-2 max-w-[60ch] text-muted-foreground">
             Passe o mouse ou selecione uma disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
             percorrer os períodos.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={exportPng} disabled={asList || exporting}>
+        <Button variant="outline" size="sm" onClick={exportPng} disabled={asList || exporting} className="max-md:h-11">
           <Download aria-hidden />
           Exportar PNG
         </Button>
@@ -152,12 +155,25 @@ function Graph({ data }: { data: ParseResponse }) {
         <FlowLegend nodes={layout.nodes} />
         <div className="flex flex-wrap gap-5">
           <div className="flex items-center gap-2">
-            <Switch id="so-pendentes" checked={onlyRemaining} onCheckedChange={setOnlyRemaining} />
-            <Label htmlFor="so-pendentes">Mostrar só o que falta</Label>
+            <Switch id="so-pendentes" checked={onlyRemaining} onCheckedChange={setOnlyRemaining} className="max-md:after:-inset-y-3.5" />
+            <Label htmlFor="so-pendentes" className="max-md:min-h-11">
+              Mostrar só o que falta
+            </Label>
           </div>
           <div className="flex items-center gap-2">
-            <Switch id="como-lista" checked={asList} onCheckedChange={setAsList} />
-            <Label htmlFor="como-lista">Ver como lista</Label>
+            <Switch
+              id="como-lista"
+              checked={asList}
+              onCheckedChange={(checked) => {
+                const next: FlowView = checked ? 'lista' : 'grafo';
+                writeFlowView(next);
+                setFlowView(next);
+              }}
+              className="max-md:after:-inset-y-3.5"
+            />
+            <Label htmlFor="como-lista" className="max-md:min-h-11">
+              Ver como lista
+            </Label>
           </div>
         </div>
       </div>

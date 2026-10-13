@@ -46,7 +46,7 @@ export function IntegrationTable({ components }: IntegrationTableProps) {
 
   return (
     <section className="grid min-w-0 gap-4">
-      <h2 id="integralizacao" className="text-xl font-semibold">
+      <h2 id="integralizacao" className="text-xl">
         Integralização oficial
       </h2>
       {/* The region scrolls the table on narrow screens, so the page itself never does. */}

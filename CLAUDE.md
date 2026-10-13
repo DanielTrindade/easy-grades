@@ -13,6 +13,7 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 - `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm build`
 - `pnpm react-doctor` (full react-doctor) · `pnpm react-doctor:changed` (only new issues vs main) · `pnpm react-doctor:gate` (score ≥ 90, 0 errors; same check as pre-push and CI). Not `pnpm doctor`: that name is pnpm's built-in environment check.
 - `docker build -t easy-grades . && docker run -p 8080:8080 easy-grades`
+- `pnpm --filter @easy-grades/web icons` regenerates `apps/web/public/icons/` from `apps/web/brand/icon.svg` (commit the PNGs).
 
 ## Domain rules (do not change without evidence)
 - **CR** = Σ(nota × CH) / Σ CH over statuses aprovado, disp_nota, transf_real, reprovado_nota, reprovado_freq; **truncated** to 3 decimals. `equivalencia`, `disp`, `disp_calend`, `matriculado`, `trancado` do NOT count.
@@ -47,23 +48,35 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 - `pnpm doctor` is pnpm's built-in environment check and shadows any script with that name, so react-doctor runs as `pnpm react-doctor` / `pnpm react-doctor:changed`.
 
 ## Frontend conventions
-- Design: Encontro das Águas palette and tokens live in `apps/web/src/styles/index.css` (light + `prefers-color-scheme: dark`). Literata for headings and big numbers (`text-display` 44 px and `text-stat` 64 px tokens), Hanken Grotesk for UI. Copy in PT-BR, sentence case, no ALL-CAPS labels, no "→".
+- Design "Grafite" (spec 3.0, replaces "Caderno"): palette tokens (`--fundo`, `--superficie`, `--texto`, `--suave`, `--linha`, `--campo`, `--esmeralda`, `--esmeralda-texto`, `--esmeralda-fundo`, `--erro`, `--erro-foreground`; light + `prefers-color-scheme: dark`) live in `apps/web/src/styles/index.css`, with Tailwind aliases such as `bg-esmeralda` and `text-suave`. Esmeralda is the one accent (progress, approval, CR projetado, focus); buttons and `primary` are graphite (`--texto`). Esmeralda as text is `text-esmeralda-texto`, which is the only token that passes 4.5:1 on fundo. Field borders (`--campo`) must stay at 3:1 or more on fundo and superficie; the spec values (#8E9198 and #474A51) failed that on the page, so they were lightened to #7F848C and #6E727B. Headings and big numbers use the `heading-ink` utility (Mona Sans, weight 800, wdth 125); the text-display (44 px) and text-stat (64 px) steps are unchanged. Mona Sans is the only family (self-hosted from `@fontsource-variable/mona-sans/wdth.css`). Course codes use the `code-label` utility (87.5% width, `--suave`), with no monospace font. Radius: 8 px controls (`--radius`), 14 px panels and sheets (`rounded-xl`). Copy in PT-BR, sentence case, no ALL-CAPS labels, no "→". The brand symbol source is `apps/web/brand/icon.svg` (graphite #18191C background, esmeralda filled cells, outline cells at 35% opacity); the favicon is a copy, `BrandMark` inlines it, and `scripts/generate-icons.mjs` renders the PNGs from it.
 - Status is always icon + text (`components/state-style.ts`), never color alone. Flowchart nodes show the status word, and their accessible name ends with it.
-- Motion: `--ease-snap` / `--ease-glide` tokens, ≤250 ms UI transitions. Press feedback (scale 0.97) comes from `Button`; there is no `.press` class. Tooltips are 125 ms (set in `index.css`, read by tw-animate). Also: one-time WatersBand reveal and a 40 ms column stagger in the flowchart. Reduced motion removes transforms, clip reveals and the stagger, and keeps opacity fades at ≤150 ms.
+- Motion: `--ease-snap` / `--ease-glide` tokens, ≤250 ms UI transitions. Press feedback (scale 0.97) comes from `Button`; there is no `.press` class. Tooltips are 125 ms (set in `index.css`, read by tw-animate). Also: one-time MarkerBand reveal (highlighter sweep, 700 ms) and a 40 ms column stagger in the flowchart. Reduced motion removes transforms, clip reveals and the stagger, and keeps opacity fades at ≤150 ms.
 - Hover styles are gated to `(hover: hover) and (pointer: fine)` by the `hover` variant in `index.css`.
 - shadcn 4 (`radix-nova`): generated files in `src/components/ui/` are not hand-edited, except these documented patches:
   - `button.tsx`: motion patch (press scale, explicit transition list, `motion-reduce` override).
   - `slider.tsx`: forwards `aria-label` / `aria-labelledby` to the Thumb, because Radix reads the accessible name from the Thumb.
   - `switch.tsx`: explicit transition list instead of `transition-all`, and the thumb adds `motion-reduce:transition-none`.
+  - `sheet.tsx` is unpatched. Its motion is overridden in `index.css` (`[data-slot='sheet-content']` and `[data-slot='sheet-overlay']`, selected by `data-state`), so don't add motion classes to it.
   
   react-doctor ignores the folder via `apps/web/doctor.config.json`.
 - Heavy code is lazy: Dashboard (from App), FlowchartScreen, and every Recharts chart. The 3 chart files (`CrChart`, `HoursChart`, `ProjectionChart`) suppress `prefer-dynamic-import` with a `react-doctor-disable-next-line` comment directly above the recharts import, because they are only reached through `React.lazy`; keep the rule on and add the same comment for any new false positive.
 - React Flow colors that end up in SVG attributes (minimap nodes, background dots) must be set in CSS, not via props with `var(--x)`.
 - Vite `assetsInlineLimit: 0` keeps fonts out of `data:` URIs (CSP `font-src 'self'`).
 
+## Planejamento
+- The plan (chosen courses and grades) is stored in IndexedDB under `planning-plan` (`features/planning/plan-storage.ts`). It is tied to the dataset by `savedAt`, so a new upload starts with an empty plan. "Limpar dados" clears it with the dataset (`App.tsx`, `handleClear`).
+- Toasts: Sonner sets its offsets as inline custom properties, so `index.css` sets `bottom` with `!important`. Below md the tab bar is cleared. On Planejamento below lg, `PlanningBoard` sets `body[data-summary-bar]` while the "Meu semestre" bar is shown, and the toasts clear that bar too.
+
 ## API parsing
 - PDF parsing runs in a terminable worker thread: `apps/api/src/parser-worker.ts`, started by `parser-worker-client.ts`. This is what lets the 10 s timeout actually stop pdfjs; a main-thread parse could not be interrupted.
 - tsup emits `dist/parser-worker.js` next to `dist/server.js`. The Docker image needs it, and it copies all of `dist/`.
+
+## PWA
+- Config in `apps/web/src/pwa/pwa-options.ts` (`vite-plugin-pwa` 2.x, `registerType: 'prompt'`, Workbox `generateSW`). Precache: js, css, html, woff2, svg, png.
+- **The SW never caches `/api` or PDFs**: both are NetworkOnly and excluded from the `navigateFallback` (`navigateFallbackDenylist`). Workbox matches a RegExp `runtimeCaching.urlPattern` against the full href, so those rules are functions that test `url.pathname`. `pwa-options.test.ts` pins this by calling the matchers with real URLs.
+- The API serves `sw.js`, `workbox-*.js` and `manifest.webmanifest` (the files `vite-plugin-pwa` emits with `registerType: 'prompt'` and the virtual register module) with `Cache-Control: no-cache`; the manifest as `application/manifest+json`. The CSP sets `worker-src` and `manifest-src` to `'self'` explicitly (`apps/api/test/pwa-static.test.ts`).
+- Icons (192, 512, 512 maskable, apple-touch 180) are generated from `brand/icon.svg` by `scripts/generate-icons.mjs`. Never edit the PNGs by hand.
+- UX: `PwaUpdatePrompt` (toast "Nova versão disponível", stays until dismissed through its close button; `useRegisterSW`), `useInstallApp` (native prompt, or the iOS Safari steps dialog), `useOnline` (disables "Ler meus PDFs" offline). The `virtual:pwa-register/react` module is stubbed in `test-setup.ts`.
 
 ## Core fixture
 - `packages/core/src/__fixtures__/sample.ts` is FICTIONAL (`@easy-grades/core/fixtures`). Conference against real PDFs exists only in the local test `apps/api/test/real-pdfs.test.ts`, which is skipped unless `report.pdf` and `historico.pdf` sit at the repo root (or in `REAL_PDF_DIR`). Never commit those PDFs.

@@ -19,7 +19,7 @@ export function EnadeSection({ records }: EnadeSectionProps) {
 
   return (
     <section aria-labelledby="enade" className="grid min-w-0 gap-4">
-      <h2 id="enade" className="text-xl font-semibold">
+      <h2 id="enade" className="text-xl">
         ENADE
       </h2>
       <ul className="grid gap-2 text-sm">

@@ -1,7 +1,10 @@
 import { ERROR_MESSAGES, type ParseResponse } from '@easy-grades/core';
+import { WifiOff } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
 import { ApiError, uploadDocuments } from '@/lib/api';
+import { useOnline } from '@/lib/use-online';
 import { Dropzone } from './Dropzone';
 
 interface UploadScreenProps {
@@ -14,10 +17,11 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
   const [historico, setHistorico] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const online = useOnline();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!curriculo || !historico) return;
+    if (!curriculo || !historico || !online) return;
     setSending(true);
     setError(null);
     try {
@@ -30,9 +34,9 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
 
   return (
     <main className="mx-auto grid min-h-dvh max-w-6xl content-center gap-12 px-4 py-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-      <section>
-        <p className="font-heading text-lg font-semibold">Easy Grades</p>
-        <h1 className="mt-8 max-w-[18ch] text-4xl font-semibold sm:text-display">
+      <section className="grid-paper">
+        <BrandMark size={64} className="flex-col items-start gap-3" />
+        <h1 className="mt-8 max-w-[18ch] text-4xl sm:text-display">
           Veja onde você está no curso e o que cabe no próximo semestre.
         </h1>
         <p className="mt-5 max-w-[60ch] text-muted-foreground">
@@ -63,13 +67,25 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           onFile={setHistorico}
           disabled={sending}
         />
+        {/* Always mounted: screen readers announce text added to a live region, not a region inserted already filled. */}
+        <p
+          role="status"
+          className={online ? 'sr-only' : 'flex items-start gap-2 rounded-lg border border-border bg-muted p-3 text-sm'}
+        >
+          {!online && (
+            <>
+              <WifiOff aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+              Você está offline. Para ler novos PDFs, conecte-se. Seus dados já salvos continuam disponíveis.
+            </>
+          )}
+        </p>
         {error && (
-          <p role="alert" className="rounded-lg border border-urucum/40 bg-urucum/10 p-3 text-sm text-urucum">
+          <p role="alert" className="rounded-lg border border-erro/40 bg-erro/10 p-3 text-sm text-erro">
             {error}
           </p>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" size="lg" disabled={!curriculo || !historico || sending}>
+          <Button type="submit" size="lg" disabled={!curriculo || !historico || sending || !online}>
             {sending ? 'Lendo os PDFs…' : 'Ler meus PDFs'}
           </Button>
           {onCancel && (

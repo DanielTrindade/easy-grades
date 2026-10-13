@@ -11,13 +11,19 @@ describe('planning state', () => {
     expect(Object.keys(initial.next)).toEqual(['ICC150', 'ICC418', 'ICC004']);
     expect(Object.keys(initial.current).sort()).toEqual(['ICC006', 'ICC103', 'ICC330', 'ICC412', 'ICC600']);
     expect(initial.next.ICC150).toBe(7.8);
+    expect(initial.countInProgress).toBe(true);
   });
 
-  it('toggles courses in and out of the next term', () => {
-    const removed = planningReducer(initial, { type: 'toggle', code: 'ICC004', grade: 7 });
+  it('adds a course with a clamped grade and ignores courses already chosen', () => {
+    const added = planningReducer(initial, { type: 'add', code: 'ICC010', grade: 12 });
+    expect(added.next.ICC010).toBe(10);
+    expect(planningReducer(added, { type: 'add', code: 'ICC010', grade: 5 })).toBe(added);
+  });
+
+  it('removes a chosen course and ignores courses that are not chosen', () => {
+    const removed = planningReducer(initial, { type: 'remove', code: 'ICC004' });
     expect('ICC004' in removed.next).toBe(false);
-    const added = planningReducer(removed, { type: 'toggle', code: 'ICC010', grade: 7 });
-    expect(added.next.ICC010).toBe(7);
+    expect(planningReducer(removed, { type: 'remove', code: 'ICC004' })).toBe(removed);
   });
 
   it('clamps grades to 0..10 with one decimal and ignores unknown codes', () => {
@@ -26,6 +32,13 @@ describe('planning state', () => {
     expect(clampGrade(7.25)).toBe(7.3);
     const same = planningReducer(initial, { type: 'setGrade', group: 'next', code: 'NOPE01', grade: 5 });
     expect(same).toBe(initial);
+  });
+
+  it('changes the in-progress switch without dropping the selection', () => {
+    const switched = planningReducer(initial, { type: 'setCountInProgress', value: false });
+    expect(switched.countInProgress).toBe(false);
+    expect(switched.next).toEqual(initial.next);
+    expect(switched.current).toEqual(initial.current);
   });
 
   it('turns the plan into planned grades with hours', () => {

@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/literata";
-@import "@fontsource-variable/hanken-grotesk";
+@import "@fontsource-variable/mona-sans/wdth.css";
 @import "@xyflow/react/dist/style.css";
 
 /* Dark mode follows the operating system. */
@@ -15,25 +14,51 @@
     }
   }
 }
+/* Touch screens, whatever their width: a tablet with a finger still needs 44 px targets. */
+@custom-variant pointer-coarse {
+  @media (pointer: coarse) {
+    @slot;
+  }
+}
+
+/* Headings and big numbers: Mona Sans at weight 800 on the widest axis (wdth 125), with tight spacing. */
+@utility heading-ink {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* Course codes: the same family at 87.5% width, in the muted ink. No monospace font. */
+@utility code-label {
+  font-stretch: 87.5%;
+  color: var(--suave);
+}
 
 @theme inline {
-  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Literata Variable", ui-serif, Georgia, serif;
+  --font-sans: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
   /* Type scale steps from the visual direction (44 px and 64 px). */
   --text-display: 2.75rem;
   --text-stat: 4rem;
 
-  --color-negro: var(--negro);
-  --color-solimoes: var(--solimoes);
-  --color-solimoes-strong: var(--solimoes-strong);
-  --color-igapo: var(--igapo);
-  --color-varzea: var(--varzea);
-  --color-vitoria: var(--vitoria);
-  --color-urucum: var(--urucum);
-  --color-neblina: var(--neblina);
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-suave: var(--suave);
+  --color-linha: var(--linha);
+  --color-campo: var(--campo);
+  --color-esmeralda: var(--esmeralda);
+  --color-esmeralda-texto: var(--esmeralda-texto);
+  --color-esmeralda-fundo: var(--esmeralda-fundo);
+  --color-erro: var(--erro);
+  --color-erro-foreground: var(--erro-foreground);
 
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Bottom sheet: enters and leaves with a soft landing. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -69,84 +94,88 @@
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  /* Panels and sheets are 14 px; controls stay on --radius (8 px). */
+  --radius-xl: 0.875rem;
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-/* Encontro das Águas palette: dark Rio Negro (done) meets clay Solimões (remaining). */
+/* Palette: cool graphite neutrals and one accent, esmeralda, which means "approved" everywhere it appears. */
 :root {
-  --negro: #2b2118;
-  --solimoes: #c7a15a;
-  --igapo: #2e5e4e;
-  --varzea: #eef1ec;
-  --vitoria: #8fb57f;
-  --urucum: #b4432a;
-  --neblina: #a3aba4;
-  --water-done: #2b2118;
-  --water-left: #c7a15a;
-  /* Registered-by-you stripes: between the done and the remaining tones. */
-  --water-pending: #5a4426;
-  /* Clay for icons and text on the light background (the plain Solimões is 2,1:1 there). */
-  --solimoes-strong: #8a6a2c;
+  --fundo: #f4f4f2;
+  --superficie: #ffffff;
+  --texto: #18191c;
+  --suave: #5d6068;
+  --linha: #e2e2de;
+  /* Field borders: 3.4:1 on fundo and 3.8:1 on superficie (WCAG 1.4.11). The spec value #8E9198 gave 2.9:1 on fundo. */
+  --campo: #7f848c;
+  --esmeralda: #0f8f61;
+  /* Esmeralda as text on fundo and superficie: 4.5:1 or better. */
+  --esmeralda-texto: #0b7651;
+  --esmeralda-fundo: #dcf1e8;
+  --erro: #c23b3b;
+  /* Text on an --erro fill. */
+  --erro-foreground: #ffffff;
 
-  --background: var(--varzea);
-  --foreground: var(--negro);
-  --card: #f7f8f5;
-  --card-foreground: var(--negro);
-  --popover: #fbfbf9;
-  --popover-foreground: var(--negro);
-  --primary: var(--igapo);
-  --primary-foreground: #f4f7f3;
-  --secondary: #e2e7e0;
-  --secondary-foreground: var(--negro);
-  --muted: #e2e7e0;
-  --muted-foreground: #565d57;
-  --accent: #dde5d9;
-  --accent-foreground: var(--negro);
-  --destructive: var(--urucum);
-  --border: #d3d9d1;
-  --input: #c3cbc1;
-  --ring: var(--igapo);
-  --chart-1: var(--igapo);
-  --chart-2: var(--solimoes);
-  --chart-3: var(--negro);
-  --chart-4: var(--vitoria);
-  --chart-5: var(--urucum);
+  /* MarkerBand: the hatched esmeralda used for activities the student registered (the done fill is solid esmeralda). */
+  --band-pending: color-mix(in oklab, var(--esmeralda) 45%, transparent);
+
+  --background: var(--fundo);
+  --foreground: var(--texto);
+  --card: var(--superficie);
+  --card-foreground: var(--texto);
+  --popover: var(--superficie);
+  --popover-foreground: var(--texto);
+  /* Buttons are graphite, not green: esmeralda is reserved for progress, approval and focus. */
+  --primary: var(--texto);
+  --primary-foreground: var(--fundo);
+  --secondary: #ededea;
+  --secondary-foreground: var(--texto);
+  --muted: #ededea;
+  --muted-foreground: var(--suave);
+  --accent: #ededea;
+  --accent-foreground: var(--texto);
+  --destructive: var(--erro);
+  --border: var(--linha);
+  --input: var(--campo);
+  --ring: var(--esmeralda);
+  --chart-1: var(--esmeralda);
+  --chart-2: var(--texto);
+  --chart-3: var(--suave);
+  --chart-4: #1f6b4f;
+  --chart-5: var(--erro);
   --radius: 0.5rem;
-  --sidebar: var(--card);
-  --sidebar-foreground: var(--negro);
-  --sidebar-primary: var(--igapo);
-  --sidebar-primary-foreground: #f4f7f3;
+  --sidebar: var(--superficie);
+  --sidebar-foreground: var(--texto);
+  --sidebar-primary: var(--texto);
+  --sidebar-primary-foreground: var(--fundo);
   --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--negro);
+  --sidebar-accent-foreground: var(--texto);
   --sidebar-border: var(--border);
-  --sidebar-ring: var(--igapo);
+  --sidebar-ring: var(--esmeralda);
 }
 
+/* Dark is graphite at night: a cool near-black, not navy. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --negro: #ece4d8;
-    --solimoes: #d4b072;
-    --igapo: #6fa58f;
-    --varzea: #191511;
-    --vitoria: #9cc48c;
-    --urucum: #e07257;
-    --neblina: #5e655f;
-    --water-done: #6b4a2e;
-    --water-left: #d4b072;
-    --water-pending: #9a7440;
-    --solimoes-strong: var(--solimoes);
+    --fundo: #141517;
+    --superficie: #1c1d20;
+    --texto: #ecedee;
+    --suave: #9a9ca3;
+    --linha: #2a2c30;
+    /* Field borders: 3.8:1 on fundo and 3.5:1 on superficie (WCAG 1.4.11). The spec value #474A51 gave 1.9:1. */
+    --campo: #6e727b;
+    --esmeralda: #2fbf8a;
+    --esmeralda-texto: #4fd6a2;
+    --esmeralda-fundo: #173a2e;
+    --erro: #f07070;
+    /* Graphite ink on the coral fill keeps the same contrast as in light mode. */
+    --erro-foreground: #141517;
 
-    --card: #221d18;
-    --popover: #27211b;
-    --primary-foreground: #10140f;
-    --secondary: #2c2620;
-    --muted: #2c2620;
-    --muted-foreground: #b3aa9c;
-    --accent: #332c25;
-    --border: #3a332b;
-    --input: #453d34;
-    --sidebar-primary-foreground: #10140f;
+    --secondary: #232427;
+    --muted: #232427;
+    --accent: #232427;
+    --chart-4: #7fd1b0;
+    --sidebar-primary-foreground: var(--fundo);
   }
 }
 
@@ -165,9 +194,7 @@
   h1,
   h2,
   h3 {
-    font-family: var(--font-heading);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
+    @apply heading-ink;
   }
 }
 
@@ -179,8 +206,33 @@
   --tw-ease: var(--ease-snap);
 }
 
-/* WatersBand: one-time reveal when a dataset is first shown. */
-@keyframes waters-in {
+/* Squared grid: the upload hero's background, faded out at the edges so it stays a whisper. */
+.grid-paper {
+  position: relative;
+  isolation: isolate;
+}
+.grid-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(var(--linha) 1px, transparent 1px), linear-gradient(90deg, var(--linha) 1px, transparent 1px);
+  background-size: 8px 8px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+}
+
+/* MarkerBand: a surface with a grid of hairlines and a border. The fills are child spans in .marker-fills. */
+.marker-band {
+  background-color: var(--superficie);
+  background-image: linear-gradient(var(--linha) 1px, transparent 1px), linear-gradient(90deg, var(--linha) 1px, transparent 1px);
+  background-size: 8px 8px;
+  border: 1px solid var(--linha);
+  border-radius: var(--radius);
+}
+/* One-time reveal when a dataset is first shown: the progress fill sweeps left to right. Only the fills wrapper moves. */
+@keyframes marker-in {
   from {
     clip-path: inset(0 100% 0 0);
   }
@@ -188,8 +240,8 @@
     clip-path: inset(0 0 0 0);
   }
 }
-.waters-band[data-reveal] {
-  animation: waters-in 900ms var(--ease-snap) both;
+.marker-band[data-reveal] .marker-fills {
+  animation: marker-in 700ms var(--ease-snap) both;
 }
 
 /* Flowchart: column-staggered entrance (40ms per column). */
@@ -230,7 +282,7 @@
 
 .react-flow {
   --xy-background-color: transparent;
-  --xy-node-boxshadow-selected: 0 0 0 2px var(--igapo);
+  --xy-node-boxshadow-selected: 0 0 0 2px var(--esmeralda);
   --xy-minimap-background-color: var(--card);
   --xy-controls-button-background-color: var(--card);
   --xy-controls-button-color: var(--foreground);
@@ -243,21 +295,44 @@
 }
 /* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
 .react-flow__minimap-node.mini-done {
-  fill: var(--igapo);
+  fill: var(--esmeralda);
 }
 .react-flow__minimap-node.mini-left {
-  fill: var(--solimoes);
+  fill: var(--linha);
 }
 .react-flow__background {
-  --xy-background-pattern-dots-color-default: var(--border);
+  --xy-background-pattern-dots-color-default: var(--linha);
 }
 .react-flow__minimap-mask {
   fill: color-mix(in oklch, var(--background) 70%, transparent);
 }
 .react-flow__node:focus-visible {
-  outline: 2px solid var(--igapo);
+  outline: 2px solid var(--esmeralda);
   outline-offset: 3px;
   border-radius: var(--radius);
+}
+/* Touch targets: React Flow's zoom buttons are 26 px; below md they grow to 44 px. */
+@media (max-width: 767.98px) {
+  .react-flow__controls-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Toasts clear the fixed bottom chrome. Sonner sets its offsets as inline custom properties, so bottom is set directly.
+   Below md the tab bar (56 px) is there; on Planejamento below lg the "Meu semestre" bar (56 px) sits above it. */
+@media (max-width: 767.98px) {
+  [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
+  body[data-summary-bar] [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(128px + env(safe-area-inset-bottom)) !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  body[data-summary-bar] [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -270,11 +345,71 @@
     --tw-exit-translate-x: 0;
     --tw-exit-translate-y: 0;
   }
-  .waters-band[data-reveal] {
+  .marker-band[data-reveal] .marker-fills {
     animation: none;
   }
   .course-node {
     animation: node-fade 150ms var(--ease-snap) both;
     animation-delay: 0s;
+  }
+}
+
+/* Bottom sheet (Meu semestre). The content moves with transform only; the overlay only changes opacity. */
+@keyframes sheet-drawer-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-drawer-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+[data-slot='sheet-content'][data-side='bottom'][data-state='open'] {
+  animation: sheet-drawer-in 300ms var(--ease-drawer) both;
+}
+[data-slot='sheet-content'][data-side='bottom'][data-state='closed'] {
+  animation: sheet-drawer-out 200ms var(--ease-drawer) both;
+}
+[data-slot='sheet-overlay'][data-state='open'] {
+  animation: sheet-fade-in 200ms ease both;
+}
+[data-slot='sheet-overlay'][data-state='closed'] {
+  animation: sheet-fade-out 200ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='sheet-content'][data-side='bottom'][data-state='open'] {
+    animation: sheet-fade-in 150ms ease both;
+  }
+  [data-slot='sheet-content'][data-side='bottom'][data-state='closed'] {
+    animation: sheet-fade-out 150ms ease both;
+  }
+  [data-slot='sheet-overlay'][data-state='open'] {
+    animation: sheet-fade-in 150ms ease both;
+  }
+  [data-slot='sheet-overlay'][data-state='closed'] {
+    animation: sheet-fade-out 150ms ease both;
   }
 }

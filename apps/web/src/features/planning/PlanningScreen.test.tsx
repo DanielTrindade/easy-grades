@@ -1,25 +1,229 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { toast } from 'sonner';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Toaster } from '@/components/ui/sonner';
 import { analyze } from '@/lib/use-analysis';
+import { clearPlan } from './plan-storage';
 import { PlanningScreen } from './PlanningScreen';
 
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
+const savedAt = '2026-10-12T10:00:00.000Z';
 
-describe('PlanningScreen grade sliders', () => {
-  it('gives every grade slider a non-empty accessible name', () => {
-    render(<PlanningScreen data={data} analysis={analyze(data)} />);
-    const sliders = screen.getAllByRole('slider');
-    expect(sliders.length).toBeGreaterThan(0);
-    for (const slider of sliders) {
-      expect(slider).toHaveAccessibleName(/\S/);
+/** lg (1024px) and up gets the side column; below it the summary bar opens the panel in a sheet. */
+function setDesktop(desktop: boolean) {
+  vi.spyOn(window, 'matchMedia').mockImplementation(
+    (query: string) =>
+      ({
+        matches: desktop && query === '(min-width: 1024px)',
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }) as unknown as MediaQueryList,
+  );
+}
+
+function renderScreen() {
+  render(
+    <>
+      <PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />
+      <Toaster />
+    </>,
+  );
+  // The first render loads the lazy chart, which is slow when the whole workspace runs in parallel: the default 1 s is not enough.
+  return screen.findByRole('heading', { name: 'Meu semestre', level: 2 }, { timeout: 10000 });
+}
+
+/** The catalog ("Próximo semestre"): its toggle buttons add and remove courses. */
+function catalog() {
+  return screen.getByRole('region', { name: 'Próximo semestre' });
+}
+
+/** Names of the grade inputs under "Escolhidas", in order. */
+function chosenNames() {
+  const chosen = screen.getByRole('region', { name: /^Escolhidas/ });
+  return within(chosen)
+    .getAllByRole('textbox', { name: /Nota esperada em / })
+    .map((input) => input.getAttribute('aria-label'));
+}
+
+describe('PlanningScreen', () => {
+  beforeEach(() => {
+    clearPlan();
+    setDesktop(true);
+  });
+  afterEach(() => {
+    // Sonner keeps toasts in module state, so one test's undo toast would leak into the next.
+    toast.dismiss();
+    vi.restoreAllMocks();
+  });
+
+  it('gives every grade input a non-empty accessible name', async () => {
+    await renderScreen();
+    const inputs = screen.getAllByRole('textbox', { name: /Nota esperada em / });
+    expect(inputs.length).toBeGreaterThan(0);
+    for (const input of inputs) {
+      expect(input).toHaveAccessibleName(/\S/);
     }
   });
 
-  it('names the next-term slider with the discipline it belongs to', () => {
-    render(<PlanningScreen data={data} analysis={analyze(data)} />);
-    expect(screen.getByRole('slider', { name: /Trabalho de Conclusão de Curso/ })).toHaveAccessibleName(
-      'Nota esperada em Trabalho de Conclusão de Curso',
+  it('names the grade input of a chosen course with its discipline', async () => {
+    await renderScreen();
+    expect(
+      screen.getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows blocked courses with what is missing, and does not let them be added', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    await user.click(screen.getByRole('switch', { name: /Supor aprovação/ }));
+    await user.click(screen.getByRole('radio', { name: /^Bloqueadas,/ }));
+    const row = screen.getByText(/Falta: /).closest('li')!;
+    // The default plan had it chosen; once it is removed, the blocked course cannot be added again.
+    await user.click(within(row).getByRole('button', { name: /^Remover .* do semestre$/ }));
+    expect(within(row).getByRole('button', { name: /^Adicionar / })).toBeDisabled();
+  });
+
+  it('adds a course from the catalog and removes it again with the same button', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
+    const row = screen.getAllByRole('listitem').find((li) => within(li).queryByRole('button', { name: /Adicionar/ }))!;
+    await user.click(within(row).getByRole('button', { name: /^Adicionar / }));
+    expect(within(row).getByRole('button', { name: /^Remover .* do semestre$/ })).toBeInTheDocument();
+    await user.click(within(row).getByRole('button', { name: /^Remover .* do semestre$/ }));
+    expect(within(row).getByRole('button', { name: /^Adicionar / })).toBeInTheDocument();
+  });
+
+  it('names the catalog buttons after the course, and keeps the visible text', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
+    const add = within(catalog()).getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' });
+    expect(add).toHaveTextContent('Adicionar');
+    await user.click(add);
+    expect(
+      within(catalog()).getByRole('button', { name: 'Remover Programação para Web II do semestre' }),
+    ).toHaveTextContent('No semestre');
+  });
+
+  it('announces adding and removing a course to screen readers', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
+    await user.click(within(catalog()).getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' }));
+    expect(screen.getByText('Adicionada ao semestre')).toHaveAttribute('aria-live', 'polite');
+    await user.click(within(catalog()).getByRole('button', { name: 'Remover Programação para Web II do semestre' }));
+    expect(screen.getByText('Removida do semestre')).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('keeps a chosen course listed as "Pré-requisito pendente" when in-progress courses stop counting', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    await user.click(screen.getByRole('radio', { name: /^Obrigatórias,/ }));
+    const addButton = within(catalog()).getByRole('button', { name: /^(Adicionar|Remover) Projetos Práticos/ });
+    if (addButton.textContent?.includes('Adicionar')) await user.click(addButton);
+    const field = 'Nota esperada em Projetos Práticos em Engenharia de Software';
+    expect(screen.getByRole('textbox', { name: field })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('switch', { name: /Supor aprovação/ }));
+
+    const item = screen.getByRole('textbox', { name: field }).closest('li')!;
+    expect(within(item).getByText('Pré-requisito pendente')).toBeInTheDocument();
+  });
+
+  it('restores the previous selection when "Desfazer" follows "Usar sugestão"', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
+    await user.click(screen.getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' }));
+    const before = chosenNames();
+
+    await user.click(screen.getByRole('button', { name: 'Usar sugestão' }));
+    expect(chosenNames()).not.toEqual(before);
+
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    expect(chosenNames()).toEqual(before);
+  });
+
+  it('removes a chosen course with a toast that can undo it', async () => {
+    const user = userEvent.setup({ delay: null });
+    await renderScreen();
+    const chosen = screen.getByRole('heading', { name: /Escolhidas/ });
+    const before = chosen.textContent;
+    const item = screen.getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' }).closest('li')!;
+    await user.click(within(item).getByRole('button', { name: 'Remover Trabalho de Conclusão de Curso do semestre' }));
+    expect(await screen.findByText('Removida.')).toBeInTheDocument();
+    expect(chosen.textContent).not.toBe(before);
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    expect(chosen.textContent).toBe(before);
+  });
+
+  it('dismisses an undo toast when the board unmounts, so it cannot fail silently', async () => {
+    const user = userEvent.setup({ delay: null });
+    // The Toaster stays in the same slot, so it keeps its toasts while the board goes away.
+    const { rerender } = render(
+      <>
+        <Toaster />
+        <PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />
+      </>,
     );
+    const item = (await screen.findByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).closest('li')!;
+    await user.click(within(item).getByRole('button', { name: 'Remover Trabalho de Conclusão de Curso do semestre' }));
+    expect(await screen.findByText('Removida.')).toBeInTheDocument();
+
+    rerender(
+      <>
+        <Toaster />
+        {null}
+      </>,
+    );
+    await waitFor(() => expect(screen.queryByText('Removida.')).not.toBeInTheDocument());
+  });
+
+  it('names each catalog filter with its count, so a screen reader hears how many courses it holds', async () => {
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    expect(await screen.findByRole('radio', { name: /^Eletivas, \d+$/ })).toBeInTheDocument();
+  });
+
+  it('keeps the esmeralda text on "No semestre" when it is hovered', async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    await user.click(await screen.findByRole('radio', { name: /^Eletivas,/ }));
+    const added = screen.getAllByText('No semestre');
+    expect(added.length).toBeGreaterThan(0);
+    for (const label of added) expect(label.closest('button')).toHaveClass('hover:text-esmeralda-texto');
+  });
+
+  it('keeps the panel in a bottom sheet below lg, with one copy of it', async () => {
+    setDesktop(false);
+    const user = userEvent.setup({ delay: null });
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const summary = await screen.findByRole('button', { name: /CR projetado/ });
+    expect(summary).toHaveTextContent(/disciplinas?, \d+ créditos?, CR projetado/);
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+
+    await user.click(summary);
+    const dialog = await screen.findByRole('dialog', { name: 'Meu semestre' });
+    expect(within(dialog).getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).toBeInTheDocument();
+  });
+
+  it('flags the body while the summary bar is shown, so toasts clear it', async () => {
+    setDesktop(false);
+    const { unmount } = render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    await screen.findByRole('button', { name: /CR projetado/ });
+    expect(document.body).toHaveAttribute('data-summary-bar');
+
+    unmount();
+    expect(document.body).not.toHaveAttribute('data-summary-bar');
+  });
+
+  it('does not flag the body at lg and up, where the summary bar is not shown', async () => {
+    setDesktop(true);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    await screen.findByRole('heading', { name: 'Meu semestre', level: 2 });
+    expect(document.body).not.toHaveAttribute('data-summary-bar');
   });
 });

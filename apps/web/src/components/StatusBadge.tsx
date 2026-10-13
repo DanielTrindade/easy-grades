@@ -27,7 +27,7 @@ export function EntryStatusBadge({ status, rawStatus }: { status: Status; rawSta
   const state = stateForStatus(status);
   if (!state) {
     return (
-      <span className={cn(badgeBase, 'border-dashed border-urucum text-urucum')} title={`No histórico: ${rawStatus || 'vazio'}`}>
+      <span className={cn(badgeBase, 'border-dashed border-erro text-erro')} title={`No histórico: ${rawStatus || 'vazio'}`}>
         <CircleHelp aria-hidden className="size-3.5" />
         {status === 'trancado' ? STATUS_LABELS.trancado : STATUS_LABELS.desconhecido}
       </span>

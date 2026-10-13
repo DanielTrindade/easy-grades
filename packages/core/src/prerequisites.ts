@@ -22,6 +22,16 @@ export function isSatisfied(prereqs: readonly (readonly string[])[], done: Reado
   return prereqs.length === 0 || prereqs.some((block) => block.every((code) => done.has(code)));
 }
 
+/**
+ * Unmet prerequisites of one course, as one entry per block that is still open: the codes of that block not yet done.
+ * Returns `[]` when the course has no prerequisites or when any block is already satisfied (blocks are OR'd).
+ */
+export function missingPrerequisites(c: Curriculum, done: ReadonlySet<string>, code: string): string[][] {
+  const prereqs = c.courses.find((course) => course.code === code)?.prerequisites ?? [];
+  if (isSatisfied(prereqs, done)) return [];
+  return prereqs.map((block) => block.filter((prereq) => !done.has(prereq)));
+}
+
 export function courseStates(
   c: Curriculum,
   t: Transcript,

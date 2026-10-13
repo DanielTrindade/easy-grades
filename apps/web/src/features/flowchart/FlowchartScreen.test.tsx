@@ -26,6 +26,8 @@ const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
 
 beforeEach(() => {
   seen.nodes.length = 0;
+  // The view choice is remembered across visits, so each test starts from the width default.
+  localStorage.clear();
 });
 
 function nodeOf(code: string): HTMLElement {
@@ -99,7 +101,7 @@ describe('FlowchartScreen focus', () => {
   });
 
   it('pins a course with the keyboard (Enter) and releases it with Escape', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<FlowchartScreen data={data} />);
 
     nodeOf('ICC431').focus();
@@ -157,7 +159,7 @@ describe('FlowchartScreen focus', () => {
   });
 
   it('switches between the graph and the list with the keyboard', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { container } = render(<FlowchartScreen data={data} />);
     const exportButton = screen.getByRole('button', { name: 'Exportar PNG' });
     const toggle = screen.getByRole('switch', { name: 'Ver como lista' });

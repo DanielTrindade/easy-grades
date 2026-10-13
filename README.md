@@ -4,11 +4,11 @@ O Easy Grades ajuda o estudante da UFAM a acompanhar o curso a partir de dois PD
 
 ## O que você vê
 
-- **Progresso por carga horária:** percentual concluído do curso, em barra da paleta Encontro das Águas, com o avanço por categoria (obrigatórias, optativas, eletivas, atividades complementares e extensão).
+- **Progresso por carga horária:** percentual concluído do curso, em faixa esmeralda sobre uma grade de linhas finas (identidade Grafite), com o avanço por categoria (obrigatórias, optativas, eletivas, atividades complementares e extensão).
 - **CR e CR por período:** coeficiente de rendimento acumulado e por semestre, calculado a partir das disciplinas do histórico.
 - **Fluxograma interativo:** disciplinas obrigatórias em colunas por período ideal, com as ligações de pré-requisito. Cada disciplina mostra o status (concluída, em curso, reprovada, disponível ou bloqueada). Ao passar o cursor ou clicar, a cadeia de pré-requisitos é destacada. O fluxograma pode ser exportado em PNG.
-- **Disciplinas:** tudo o que consta no histórico, com filtros por status, categoria, período e busca.
-- **Planejamento:** sugestões para o próximo semestre, cada uma com o motivo, seleção com limite de créditos, notas esperadas e CR projetado com melhor e pior caso.
+- **Disciplinas:** tudo o que consta no histórico, com filtros por situação, categoria e busca, e agrupamento por período ou por categoria.
+- **Planejamento:** sugestões para o próximo semestre, cada uma com o motivo. O catálogo filtra por sugeridas, obrigatórias, eletivas ou bloqueadas, e "Meu semestre" mostra o limite de créditos, as notas esperadas e o CR projetado com melhor e pior caso. Disciplinas com pré-requisito pendente ficam de fora da projeção, e o plano fica salvo neste navegador até você limpar os dados. "Desfazer" reverte remoções e a sugestão aplicada.
 - **Previsão de formatura:** termo previsto de conclusão das obrigatórias e comparação com o máximo de períodos do curso.
 
 ## Privacidade
@@ -65,6 +65,7 @@ pnpm dev
 | `pnpm typecheck` | Checa os tipos de todos os pacotes. |
 | `pnpm lint` | Roda o ESLint no repositório. |
 | `pnpm build` | Gera o build do front e da API. |
+| `pnpm --filter @easy-grades/web icons` | Regenera os ícones do app (PNG) a partir de `apps/web/brand/icon.svg`. |
 | `pnpm react-doctor` | Analisa o front com react-doctor e falha em erros. |
 | `pnpm react-doctor:changed` | Mesma análise, mostrando só os problemas novos em relação à `main`. |
 
@@ -99,6 +100,15 @@ Monorepo pnpm com três partes:
 A extração usa `pdfjs-dist` e lê a posição de cada texto (x e y), não a ordem em que ele aparece no arquivo, porque a ordem de leitura desalinha códigos e nomes. O parse roda num worker thread com timeout de 10 s, que consegue interromper a extração de fato.
 
 A especificação e o plano ficam em `docs/superpowers/specs/2026-10-10-easy-grades-design.md` e `docs/superpowers/plans/2026-10-10-easy-grades.md`. As convenções de código, as regras de domínio e os detalhes de cada ferramenta estão em `CLAUDE.md`.
+
+## Aplicativo instalável (PWA)
+
+O Easy Grades pode ser instalado como app no celular e no computador, e o painel continua disponível sem conexão depois da primeira visita.
+
+- **Instalar:** no Chrome e no Edge, use "Instalar app" no menu ou no cabeçalho. No iPhone e no iPad, o Safari não tem essa opção automática; o app mostra o passo a passo: toque em Compartilhar e depois em Adicionar à Tela de Início.
+- **Offline:** o painel e os dados já salvos neste navegador funcionam sem conexão. Para ler PDFs novos é preciso estar online, porque a leitura acontece no servidor.
+- **Atualizações:** quando uma nova versão é publicada, o app avisa com "Nova versão disponível". Nada é recarregado sem o seu botão "Atualizar".
+- **Privacidade:** o service worker guarda só o próprio app (JavaScript, CSS, fontes e ícones). Respostas da API e PDFs nunca são guardados em cache.
 
 ## Testes e CI
 
