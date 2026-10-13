@@ -99,6 +99,7 @@ export function AaccCard({
           <Label htmlFor={descriptionId}>Descrição</Label>
           <Input
             id={descriptionId}
+            className="max-md:h-11"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             aria-invalid={errors.description ? true : undefined}
@@ -115,6 +116,7 @@ export function AaccCard({
           <Label htmlFor={hoursId}>Horas</Label>
           <Input
             id={hoursId}
+            className="max-md:h-11"
             type="number"
             inputMode="numeric"
             min={1}
@@ -135,7 +137,7 @@ export function AaccCard({
         <div className="grid gap-2">
           <Label htmlFor={typeId}>Tipo</Label>
           <Select value={type} onValueChange={(value) => setType(value as AaccType)}>
-            <SelectTrigger id={typeId} className="w-full">
+            <SelectTrigger id={typeId} className="w-full max-md:data-[size=default]:h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,7 +151,7 @@ export function AaccCard({
         </div>
 
         <div className="sm:col-span-3">
-          <Button type="submit" disabled={loading || full}>
+          <Button type="submit" disabled={loading || full} className="max-md:h-11">
             Registrar atividade
           </Button>
           {full && (
@@ -175,6 +177,7 @@ export function AaccCard({
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="max-md:h-11"
                   aria-label={`Remover ${activity.description}`}
                   onClick={() => onRemove(activity.id)}
                 >

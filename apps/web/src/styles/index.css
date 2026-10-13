@@ -293,6 +293,13 @@
   outline-offset: 3px;
   border-radius: var(--radius);
 }
+/* Touch targets: React Flow's zoom buttons are 26 px; below md they grow to 44 px. */
+@media (max-width: 767.98px) {
+  .react-flow__controls-button {
+    width: 44px;
+    height: 44px;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   /* tw-animate's zoom and slide classes are transforms: neutralize them and keep the opacity fade. */

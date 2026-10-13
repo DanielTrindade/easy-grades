@@ -7,8 +7,8 @@ describe('STATE_STYLE', () => {
     expect(STATE_STYLE.reprovada.badge).not.toContain('text-white');
   });
 
-  it('gives a concluída course a highlighter wash and a marca left accent', () => {
-    expect(STATE_STYLE.concluida.surface).toBe('bg-[color-mix(in_oklch,var(--marca)_20%,var(--card))]');
+  it('gives a concluída course a highlighter wash in light mode only, and a marca left accent', () => {
+    expect(STATE_STYLE.concluida.surface).toBe('bg-[color-mix(in_oklch,var(--marca)_20%,var(--card))] dark:bg-card');
     expect(STATE_STYLE.concluida.accent).toBe('border-l-marca');
   });
 

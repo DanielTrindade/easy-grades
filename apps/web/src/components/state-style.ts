@@ -4,7 +4,7 @@ import { CircleCheck, CircleDashed, CircleDot, CircleX, Lock, type LucideIcon } 
 export interface StateStyle {
   icon: LucideIcon;
   badge: string;
-  /** Card background. Concluída courses get a highlighter wash; the mix is 20% so grafite text stays at 4.5:1 in dark mode. */
+  /** Card background. Concluída courses get a highlighter wash in light mode only: in dark mode the mix turns muddy teal, so they keep bg-card and the marca accent. */
   surface: string;
   /** 4px left accent (plus dashed outline for disponível). */
   accent: string;
@@ -19,7 +19,7 @@ export const STATE_STYLE: Record<CourseState, StateStyle> = {
   concluida: {
     icon: CircleCheck,
     badge: 'bg-marca text-tinta-escura border-tinta',
-    surface: 'bg-[color-mix(in_oklch,var(--marca)_20%,var(--card))]',
+    surface: 'bg-[color-mix(in_oklch,var(--marca)_20%,var(--card))] dark:bg-card',
     accent: 'border-l-marca',
     iconColor: 'text-tinta',
   },

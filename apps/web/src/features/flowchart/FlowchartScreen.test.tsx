@@ -26,6 +26,8 @@ const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
 
 beforeEach(() => {
   seen.nodes.length = 0;
+  // The view choice is remembered across visits, so each test starts from the width default.
+  localStorage.clear();
 });
 
 function nodeOf(code: string): HTMLElement {

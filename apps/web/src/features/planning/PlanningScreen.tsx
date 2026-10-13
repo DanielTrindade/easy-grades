@@ -44,6 +44,7 @@ function GradeSlider({
       </div>
       <Slider
         id={id}
+        className="max-md:h-11"
         min={0}
         max={10}
         step={0.1}
@@ -116,8 +117,13 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
               Próximo semestre{projectedTerm && `, ${formatTerm(projectedTerm)}`}
             </h2>
             <div className="flex items-center gap-2">
-              <Switch id="contar-em-curso" checked={countInProgress} onCheckedChange={changeCountInProgress} />
-              <Label htmlFor="contar-em-curso" className="font-normal">
+              <Switch
+                id="contar-em-curso"
+                checked={countInProgress}
+                onCheckedChange={changeCountInProgress}
+                className="max-md:after:-inset-y-3.5"
+              />
+              <Label htmlFor="contar-em-curso" className="font-normal max-md:min-h-11">
                 Supor aprovação no que está em curso
               </Label>
             </div>
@@ -142,9 +148,9 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
                         id={id}
                         checked={checked}
                         onCheckedChange={() => dispatch({ type: 'toggle', code: c.code, grade: defaultGrade })}
-                        className="mt-1"
+                        className="mt-1 max-md:after:-inset-3.5"
                       />
-                      <Label htmlFor={id} className="grid flex-1 cursor-pointer gap-0.5 font-normal">
+                      <Label htmlFor={id} className="grid flex-1 cursor-pointer gap-0.5 font-normal max-md:min-h-11">
                         <span className="font-medium">
                           {toTitleCase(c.name)} <span className="text-sm font-normal text-muted-foreground">{c.code}</span>
                         </span>
@@ -170,12 +176,12 @@ export function PlanningScreen({ data, analysis }: { data: ParseResponse; analys
             </ul>
           )}
           {hiddenElectives > 0 && (
-            <Button variant="outline" className="justify-self-start" onClick={() => setShowAllElectives(true)}>
+            <Button variant="outline" className="justify-self-start max-md:h-11" onClick={() => setShowAllElectives(true)}>
               Ver mais {hiddenElectives} eletivas liberadas
             </Button>
           )}
           {showAllElectives && (
-            <Button variant="ghost" className="justify-self-start" onClick={() => setShowAllElectives(false)}>
+            <Button variant="ghost" className="justify-self-start max-md:h-11" onClick={() => setShowAllElectives(false)}>
               Mostrar só as escolhidas e obrigatórias
             </Button>
           )}
