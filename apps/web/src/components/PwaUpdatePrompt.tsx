@@ -12,6 +12,8 @@ export function PwaUpdatePrompt() {
         id: 'pwa-update',
         // Stays until dismissed; a timer could hide the only way to load the new version.
         duration: Infinity,
+        // Without a close button a keyboard user has no way to dismiss it.
+        closeButton: true,
         action: { label: 'Atualizar', onClick: () => void updateServiceWorker(true) },
       });
     },

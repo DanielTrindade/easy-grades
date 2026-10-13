@@ -68,10 +68,10 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 
 ## PWA
 - Config in `apps/web/src/pwa/pwa-options.ts` (`vite-plugin-pwa` 2.x, `registerType: 'prompt'`, Workbox `generateSW`). Precache: js, css, html, woff2, svg, png.
-- **The SW never caches `/api` or PDFs**: both are NetworkOnly and excluded from the `navigateFallback` (`navigateFallbackDenylist`). `pwa-options.test.ts` pins this.
-- The API serves `sw.js`, `workbox-*.js`, `registerSW.js` and `manifest.webmanifest` with `Cache-Control: no-cache`; the manifest as `application/manifest+json`. The CSP sets `worker-src` and `manifest-src` to `'self'` explicitly (`apps/api/test/pwa-static.test.ts`).
+- **The SW never caches `/api` or PDFs**: both are NetworkOnly and excluded from the `navigateFallback` (`navigateFallbackDenylist`). Workbox matches a RegExp `runtimeCaching.urlPattern` against the full href, so those rules are functions that test `url.pathname`. `pwa-options.test.ts` pins this by calling the matchers with real URLs.
+- The API serves `sw.js`, `workbox-*.js` and `manifest.webmanifest` (the files `vite-plugin-pwa` emits with `registerType: 'prompt'` and the virtual register module) with `Cache-Control: no-cache`; the manifest as `application/manifest+json`. The CSP sets `worker-src` and `manifest-src` to `'self'` explicitly (`apps/api/test/pwa-static.test.ts`).
 - Icons (192, 512, 512 maskable, apple-touch 180) are generated from `brand/icon.svg` by `scripts/generate-icons.mjs`. Never edit the PNGs by hand.
-- UX: `PwaUpdatePrompt` (toast "Nova versão disponível", stays until dismissed; `useRegisterSW`), `useInstallApp` (native prompt, or the iOS Safari steps dialog), `useOnline` (disables "Ler meus PDFs" offline). The `virtual:pwa-register/react` module is stubbed in `test-setup.ts`.
+- UX: `PwaUpdatePrompt` (toast "Nova versão disponível", stays until dismissed through its close button; `useRegisterSW`), `useInstallApp` (native prompt, or the iOS Safari steps dialog), `useOnline` (disables "Ler meus PDFs" offline). The `virtual:pwa-register/react` module is stubbed in `test-setup.ts`.
 
 ## Core fixture
 - `packages/core/src/__fixtures__/sample.ts` is FICTIONAL (`@easy-grades/core/fixtures`). Conference against real PDFs exists only in the local test `apps/api/test/real-pdfs.test.ts`, which is skipped unless `report.pdf` and `historico.pdf` sit at the repo root (or in `REAL_PDF_DIR`). Never commit those PDFs.

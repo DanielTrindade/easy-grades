@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
-import { pwaOptions } from './src/pwa/pwa-options.ts';
+import { pwaOptions } from './src/pwa/pwa-options.js';
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), VitePWA(pwaOptions)],

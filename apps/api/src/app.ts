@@ -27,7 +27,7 @@ const MULTIPART_ERRORS: Record<string, ErrorCode> = {
 
 // The service worker, its Workbox runtime and the manifest must be revalidated on every load, or a stale worker
 // keeps serving an old build after a deploy.
-const NO_CACHE_FILE = /^(sw\.js|workbox-[\w-]+\.js|registerSW\.js|manifest\.webmanifest)$/;
+const NO_CACHE_FILE = /^(sw\.js|workbox-[\w-]+\.js|manifest\.webmanifest)$/;
 
 function setStaticHeaders(reply: FastifyReply, filePath: string): void {
   const name = basename(filePath);

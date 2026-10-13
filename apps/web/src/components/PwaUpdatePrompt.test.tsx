@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
@@ -35,6 +35,25 @@ describe('PwaUpdatePrompt', () => {
       pwa.options?.onNeedRefresh?.();
     });
     expect(await screen.findByText('Nova versão disponível')).toBeInTheDocument();
+  });
+
+  it('can be dismissed from the keyboard with its close button', async () => {
+    render(
+      <>
+        <PwaUpdatePrompt />
+        <Toaster />
+      </>,
+    );
+    act(() => {
+      pwa.options?.onNeedRefresh?.();
+    });
+    const close = await screen.findByRole('button', { name: 'Close toast' });
+    act(() => {
+      close.focus();
+    });
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(screen.queryByText('Nova versão disponível')).not.toBeInTheDocument());
+    expect(pwa.updateServiceWorker).not.toHaveBeenCalled();
   });
 
   it('activates the waiting worker only when the user presses Atualizar', async () => {

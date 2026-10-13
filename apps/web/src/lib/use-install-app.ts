@@ -21,7 +21,7 @@ export interface InstallApp {
 // iPadOS 13+ reports itself as a Mac, so a Mac user agent with touch points is an iPad.
 export function isIosSafari(userAgent: string, maxTouchPoints: number): boolean {
   const isIos = /iPad|iPhone|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && maxTouchPoints > 1);
-  // Only Safari can add a web app to the Home Screen; Chrome, Firefox and Edge on iOS have their own UA tokens.
+  // The iOS steps we show are Safari's Share sheet. Chrome, Firefox and Edge on iOS have their own UA tokens and menus, so they get no steps.
   const otherIosBrowser = /CriOS|FxiOS|EdgiOS|OPiOS|OPT\//.test(userAgent);
   return isIos && /Safari/.test(userAgent) && !otherIosBrowser;
 }
