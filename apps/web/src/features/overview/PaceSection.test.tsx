@@ -27,10 +27,10 @@ describe('PaceSection', () => {
     expect(screen.getByText('No prazo máximo: 1.130 h por período')).toBeInTheDocument();
   });
 
-  it('marks the behind-pace status with the strong graphite tone, so the icon passes 3:1 on paper', () => {
+  it('marks the behind-pace status with the correction red, so it reads as a risk and not as neutral', () => {
     renderWith({ ...sampleCurriculum, requirements: { ...sampleCurriculum.requirements, minPeriods: 5 } });
     const status = screen.getByText('Abaixo do ritmo do prazo ideal');
-    expect(status.querySelector('svg')).toHaveClass('text-grafite');
+    expect(status.querySelector('svg')).toHaveClass('text-correcao');
   });
 
   it('says the ideal deadline is over when no ideal period is left', () => {
