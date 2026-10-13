@@ -59,8 +59,7 @@ describe('App', () => {
     });
     await waitFor(() => expect(document.querySelector('.marker-band')).not.toBeNull());
     expect(document.querySelector('.marker-band')).not.toHaveAttribute('data-reveal');
-    // Alone it takes ~1.5 s; under the parallel suite it runs past the default 5 s timeout.
-  }, 15_000);
+  });
 
   it('[clear] confirming "Limpar dados" empties storage and returns to the upload screen', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });

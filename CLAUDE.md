@@ -56,11 +56,16 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
   - `button.tsx`: motion patch (press scale, explicit transition list, `motion-reduce` override).
   - `slider.tsx`: forwards `aria-label` / `aria-labelledby` to the Thumb, because Radix reads the accessible name from the Thumb.
   - `switch.tsx`: explicit transition list instead of `transition-all`, and the thumb adds `motion-reduce:transition-none`.
+  - `sheet.tsx` is unpatched. Its motion is overridden in `index.css` (`[data-slot='sheet-content']` and `[data-slot='sheet-overlay']`, selected by `data-state`), so don't add motion classes to it.
   
   react-doctor ignores the folder via `apps/web/doctor.config.json`.
 - Heavy code is lazy: Dashboard (from App), FlowchartScreen, and every Recharts chart. The 3 chart files (`CrChart`, `HoursChart`, `ProjectionChart`) suppress `prefer-dynamic-import` with a `react-doctor-disable-next-line` comment directly above the recharts import, because they are only reached through `React.lazy`; keep the rule on and add the same comment for any new false positive.
 - React Flow colors that end up in SVG attributes (minimap nodes, background dots) must be set in CSS, not via props with `var(--x)`.
 - Vite `assetsInlineLimit: 0` keeps fonts out of `data:` URIs (CSP `font-src 'self'`).
+
+## Planejamento
+- The plan (chosen courses and grades) is stored in IndexedDB under `planning-plan` (`features/planning/plan-storage.ts`). It is tied to the dataset by `savedAt`, so a new upload starts with an empty plan. "Limpar dados" clears it with the dataset (`App.tsx`, `handleClear`).
+- Toasts: Sonner sets its offsets as inline custom properties, so `index.css` sets `bottom` with `!important`. Below md the tab bar is cleared. On Planejamento below lg, `PlanningBoard` sets `body[data-summary-bar]` while the "Meu semestre" bar is shown, and the toasts clear that bar too.
 
 ## API parsing
 - PDF parsing runs in a terminable worker thread: `apps/api/src/parser-worker.ts`, started by `parser-worker-client.ts`. This is what lets the 10 s timeout actually stop pdfjs; a main-thread parse could not be interrupted.

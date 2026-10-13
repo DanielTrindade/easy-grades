@@ -80,11 +80,8 @@ export default function App() {
         </ErrorBoundary>
       )}
       <PwaUpdatePrompt />
-      {/* Below 600 px Sonner uses mobileOffset: clear the 56 px tab bar and its safe area. */}
-      <Toaster
-        position="bottom-right"
-        mobileOffset={{ bottom: 'calc(72px + env(safe-area-inset-bottom))' }}
-      />
+      {/* Bottom clearance for the tab bar and the Planejamento summary bar is set in index.css. */}
+      <Toaster position="bottom-right" />
     </TooltipProvider>
   );
 }

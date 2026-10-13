@@ -16,5 +16,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // Whole-workspace runs in parallel make the heavier screen tests (lazy charts, full flows) slower than 5 s.
+    testTimeout: 15000,
   },
 });
