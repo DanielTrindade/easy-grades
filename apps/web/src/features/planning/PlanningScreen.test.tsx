@@ -106,7 +106,7 @@ describe('PlanningScreen', () => {
     await user.click(add);
     expect(
       within(catalog()).getByRole('button', { name: 'Remover Programação para Web II do semestre' }),
-    ).toHaveTextContent('Adicionada');
+    ).toHaveTextContent('No semestre');
   });
 
   it('announces adding and removing a course to screen readers', async () => {

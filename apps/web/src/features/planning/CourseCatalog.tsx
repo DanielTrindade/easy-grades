@@ -26,29 +26,27 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
   const blocked = item.missing.length > 0;
   const name = toTitleCase(item.name);
   return (
-    <li className="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+    <li className="flex items-start gap-4 py-4">
       <div className="grid min-w-0 flex-1 gap-1">
-        <p className="font-medium">
-          {toTitleCase(item.name)} <span className="text-sm font-normal text-muted-foreground tabular-nums">{item.code}</span>
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {CATEGORY_NAMES[item.category]}
+        <p className="font-semibold">{name}</p>
+        <p className="text-sm text-suave tabular-nums">
+          <span className="code-label">{item.code}</span>, {CATEGORY_NAMES[item.category]}
           {item.idealPeriod !== null && <>, período ideal {item.idealPeriod}</>}, {pluralize(item.credits, 'crédito', 'créditos')},{' '}
           {formatHours(item.hours)}
         </p>
-        <p className="text-sm text-muted-foreground">{item.reason}</p>
+        <p className="text-sm text-suave">{item.reason}</p>
         {blocked && (
-          <p className="flex items-start gap-1.5 text-sm text-foreground">
-            <Lock aria-hidden className="mt-0.5 size-4 shrink-0 text-grafite" />
+          <p className="flex items-start gap-1.5 text-sm text-texto">
+            <Lock aria-hidden className="mt-0.5 size-4 shrink-0 text-suave" />
             <span>Falta: {formatMissing(item.missing)}</span>
           </p>
         )}
       </div>
       <Button
         type="button"
-        variant={added ? 'secondary' : 'outline'}
+        variant={added ? 'ghost' : 'outline'}
         aria-label={added ? `Remover ${name} do semestre` : `Adicionar ${name} ao semestre`}
-        className="max-md:h-11 shrink-0"
+        className={cn('max-md:h-11 shrink-0', added && 'bg-esmeralda-fundo text-esmeralda-texto hover:bg-esmeralda-fundo/80')}
         disabled={blocked && !added}
         onClick={onToggle}
       >
@@ -66,7 +64,7 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
             )}
           />
         </span>
-        {added ? 'Adicionada' : 'Adicionar'}
+        {added ? 'No semestre' : 'Adicionar'}
       </Button>
     </li>
   );
@@ -86,28 +84,16 @@ export function CourseCatalog({
     () => filterCatalog(items, { filter, query, suggested, selected }),
     [items, filter, query, suggested, selected],
   );
+  // Each chip shows how many courses it holds, ignoring the search, so the counts describe the whole catalog.
+  const counts = useMemo(
+    () => new Map(CATALOG_FILTERS.map((f) => [f.value, filterCatalog(items, { filter: f.value, query: '', suggested, selected }).length])),
+    [items, suggested, selected],
+  );
 
   return (
-    <section aria-labelledby="catalogo" className="grid content-start gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="catalogo" className="text-2xl">
-          Próximo semestre
-        </h2>
-        <div className="flex items-center gap-2">
-          <Switch
-            id="contar-em-curso"
-            checked={countInProgress}
-            onCheckedChange={onCountInProgressChange}
-            className="max-md:after:-inset-y-3.5"
-          />
-          <Label htmlFor="contar-em-curso" className="font-normal max-md:min-h-11">
-            Supor aprovação no que está em curso
-          </Label>
-        </div>
-      </div>
-
+    <section aria-label="Próximo semestre" className="grid content-start gap-4">
       <div className="grid gap-3">
-        <Label htmlFor="busca-disciplinas" className="font-normal">
+        <Label htmlFor="busca-disciplinas" className="font-normal text-suave">
           Buscar por código ou nome
         </Label>
         <Input
@@ -118,22 +104,44 @@ export function CourseCatalog({
           placeholder="Ex.: ICC412 ou Cálculo"
           className="h-11 md:h-9"
         />
-        <ChoiceGroup<CatalogFilter>
-          label="Filtrar disciplinas"
-          items={CATALOG_FILTERS.map((f) => ({ value: f.value, content: f.label }))}
-          value={filter}
-          onValueChange={setFilter}
-          className="flex flex-wrap gap-2"
-          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-pauta px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-tinta aria-checked:bg-tinta aria-checked:text-papel md:min-h-8"
-        />
+        <div className="flex items-center gap-2">
+          <Switch
+            id="contar-em-curso"
+            checked={countInProgress}
+            onCheckedChange={onCountInProgressChange}
+            className="max-md:after:-inset-y-3.5"
+          />
+          <Label htmlFor="contar-em-curso" className="font-normal text-suave max-md:min-h-11">
+            Supor aprovação no que está em curso
+          </Label>
+        </div>
       </div>
 
+      <ChoiceGroup<CatalogFilter>
+        label="Filtrar disciplinas"
+        items={CATALOG_FILTERS.map((f) => ({
+          value: f.value,
+          content: (
+            <>
+              {f.label}
+              <span aria-hidden className="tabular-nums opacity-70">
+                {counts.get(f.value) ?? 0}
+              </span>
+            </>
+          ),
+        }))}
+        value={filter}
+        onValueChange={setFilter}
+        className="flex flex-wrap gap-2"
+        itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-texto aria-checked:bg-texto aria-checked:text-fundo md:min-h-8"
+      />
+
       {visible.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-border p-6 text-muted-foreground">
+        <p className="rounded-lg border border-dashed border-linha p-6 text-suave">
           Nenhuma disciplina nesse filtro. Tente outra busca ou outro filtro.
         </p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="divide-y divide-linha border-t border-linha">
           {visible.map((item) => (
             <CatalogRow key={item.code} item={item} added={selected.has(item.code)} onToggle={() => onToggle(item)} />
           ))}

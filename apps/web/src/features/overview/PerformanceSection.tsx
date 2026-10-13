@@ -3,8 +3,8 @@ import { Minus, TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react';
 import { formatCr, formatHours, formatPercent, toTitleCase } from '@/lib/format';
 
 const TREND: Record<NonNullable<PerformanceInsights['trend']>, { icon: LucideIcon; verb: string; iconColor: string }> = {
-  subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-tinta' },
-  caindo: { icon: TrendingDown, verb: 'caiu', iconColor: 'text-correcao' },
+  subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-esmeralda-texto' },
+  caindo: { icon: TrendingDown, verb: 'caiu', iconColor: 'text-erro' },
   estavel: { icon: Minus, verb: 'ficou estável', iconColor: 'text-muted-foreground' },
 };
 

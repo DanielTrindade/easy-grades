@@ -7,7 +7,7 @@ import { Resvg } from '@resvg/resvg-js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = resolve(root, 'public/icons');
-const BRAND_BLUE = '#1D3FA0';
+const BRAND_GRAPHITE = '#18191C';
 
 const source = readFileSync(resolve(root, 'brand/icon.svg'), 'utf8');
 // Everything between the outer <svg> tags, so the symbol can be placed inside another canvas.
@@ -23,11 +23,11 @@ function render(svg, size) {
 
 // Maskable icons are cropped to a circle of 80% of the canvas, so the symbol sits inside that safe zone.
 const maskableSvg = svgCanvas(
-  `<rect width="512" height="512" fill="${BRAND_BLUE}"/><g transform="translate(51.2 51.2) scale(0.8)">${symbol}</g>`,
+  `<rect width="512" height="512" fill="${BRAND_GRAPHITE}"/><g transform="translate(51.2 51.2) scale(0.8)">${symbol}</g>`,
 );
 
 // Apple crops the corners itself, so the touch icon is a full-bleed square with no transparent pixels.
-const appleSvg = svgCanvas(`<rect width="512" height="512" fill="${BRAND_BLUE}"/>${symbol}`);
+const appleSvg = svgCanvas(`<rect width="512" height="512" fill="${BRAND_GRAPHITE}"/>${symbol}`);
 
 const outputs = {
   'icon-192.png': render(source, 192),

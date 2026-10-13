@@ -80,7 +80,7 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           )}
         </p>
         {error && (
-          <p role="alert" className="rounded-lg border border-correcao/40 bg-correcao/10 p-3 text-sm text-correcao">
+          <p role="alert" className="rounded-lg border border-erro/40 bg-erro/10 p-3 text-sm text-erro">
             {error}
           </p>
         )}

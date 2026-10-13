@@ -1,8 +1,8 @@
 import type { TermCr } from '@easy-grades/core';
-import { Lock } from 'lucide-react';
+import { ChevronDown, Lock, X } from 'lucide-react';
 import { lazy, Suspense, useId } from 'react';
 import { Button } from '@/components/ui/button';
-import { formatCr, pluralize, toTitleCase } from '@/lib/format';
+import { formatCr, toTitleCase } from '@/lib/format';
 import { CreditMeter } from './CreditMeter';
 import { GradeInput } from './GradeInput';
 
@@ -39,7 +39,10 @@ export interface MySemesterPanelProps {
   onUseSuggestion: () => void;
 }
 
-/** The content of "Meu semestre". It renders in the side column on large screens and inside the bottom sheet below lg. */
+/**
+ * The content of "Meu semestre". It renders in the side column on large screens and inside the bottom sheet below lg.
+ * No inner scroll: the panel grows with the page.
+ */
 export function MySemesterPanel({
   chosen,
   credits,
@@ -58,43 +61,43 @@ export function MySemesterPanel({
   // Two copies of the panel must never share ids, so every id here is prefixed with this one.
   const id = useId();
   return (
-    <div className="grid gap-8">
+    <div className="grid gap-5">
+      <div className="grid grid-cols-2 gap-[2px]">
+        <div className="rounded-lg bg-fundo p-3.5">
+          <p className="text-sm text-suave">Créditos</p>
+          <p className="heading-ink mt-1 text-[1.75rem] tabular-nums">{credits}</p>
+        </div>
+        <div className="rounded-lg bg-fundo p-3.5">
+          <p className="text-sm text-suave">CR projetado</p>
+          <p className="heading-ink mt-1 text-[1.75rem] tabular-nums text-esmeralda-texto">{formatCr(projected)}</p>
+        </div>
+      </div>
+
       <CreditMeter credits={credits} min={minCredits} max={maxCredits} />
 
-      <section aria-labelledby={`${id}-escolhidas`} className="grid gap-3">
-        <h3 id={`${id}-escolhidas`} className="text-lg">
-          Escolhidas <span className="text-base font-normal text-muted-foreground tabular-nums">({chosen.length})</span>
+      <section aria-labelledby={`${id}-escolhidas`} className="grid gap-2">
+        <h3 id={`${id}-escolhidas`} className="text-base">
+          Escolhidas <span className="font-normal text-suave tabular-nums">({chosen.length})</span>
         </h3>
         {chosen.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-linha p-4 text-sm text-suave">
             Nenhuma disciplina escolhida. Adicione pelo catálogo.
           </p>
         ) : (
-          <ul className="grid gap-2">
+          <ul className="divide-y divide-linha border-t border-linha">
             {chosen.map((course) => (
-              <li key={course.code} className="grid gap-3 rounded-lg border border-border bg-card p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="grid min-w-0 gap-0.5">
-                    <p className="font-medium">{toTitleCase(course.name)}</p>
-                    <p className="text-sm text-muted-foreground tabular-nums">
-                      {course.code}, {pluralize(course.credits, 'crédito', 'créditos')}
+              <li key={course.code} className="flex items-center gap-3 py-3">
+                <div className="grid min-w-0 flex-1 gap-0.5">
+                  <p className="line-clamp-2 text-sm leading-snug font-semibold">{toTitleCase(course.name)}</p>
+                  <p className="text-xs text-suave tabular-nums">
+                    <span className="code-label">{course.code}</span>, {course.credits} cr
+                  </p>
+                  {course.pending && (
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-texto">
+                      <Lock aria-hidden className="size-3.5 shrink-0 text-suave" />
+                      Pré-requisito pendente
                     </p>
-                    {course.pending && (
-                      <p className="mt-1 flex items-center gap-1.5 text-sm text-foreground">
-                        <Lock aria-hidden className="size-4 shrink-0 text-grafite" />
-                        Pré-requisito pendente
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="-mr-2 shrink-0 text-correcao hover:text-correcao max-md:h-11"
-                    aria-label={`Remover ${toTitleCase(course.name)} do semestre`}
-                    onClick={() => onRemove(course.code)}
-                  >
-                    Remover
-                  </Button>
+                  )}
                 </div>
                 <GradeInput
                   id={`${id}-nota-${course.code}`}
@@ -102,49 +105,67 @@ export function MySemesterPanel({
                   value={course.grade}
                   onChange={(grade) => onGradeChange('next', course.code, grade)}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="-mr-2 size-11 shrink-0 text-suave"
+                  aria-label={`Remover ${toTitleCase(course.name)} do semestre`}
+                  onClick={() => onRemove(course.code)}
+                >
+                  <X aria-hidden />
+                </Button>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      {inProgress.length > 0 && (
-        <details className="group rounded-lg border border-border">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 font-medium select-none">
-            Em curso agora <span className="text-sm font-normal text-muted-foreground tabular-nums">({inProgress.length})</span>
-          </summary>
-          <ul className="grid gap-3 border-t border-border p-3">
-            {inProgress.map((course) => (
-              <li key={course.code} className="grid gap-2">
-                <p className="text-sm">{toTitleCase(course.name)}</p>
-                <GradeInput
-                  id={`${id}-atual-${course.code}`}
-                  courseName={toTitleCase(course.name)}
-                  value={course.grade}
-                  onChange={(grade) => onGradeChange('current', course.code, grade)}
-                />
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
+      <div className="grid gap-3 border-t border-linha pt-4">
+        {inProgress.length > 0 && (
+          <details className="group">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold select-none">
+              Em curso agora <span className="font-normal text-suave tabular-nums">({inProgress.length})</span>
+              <ChevronDown aria-hidden className="size-4 shrink-0 text-suave transition-transform duration-200 ease-snap group-open:rotate-180 motion-reduce:transition-none" />
+            </summary>
+            <ul className="mt-1 divide-y divide-linha border-t border-linha">
+              {inProgress.map((course) => (
+                <li key={course.code} className="flex items-center gap-3 py-3">
+                  <p className="min-w-0 flex-1 text-sm leading-snug">{toTitleCase(course.name)}</p>
+                  <GradeInput
+                    id={`${id}-atual-${course.code}`}
+                    courseName={toTitleCase(course.name)}
+                    value={course.grade}
+                    onChange={(grade) => onGradeChange('current', course.code, grade)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
 
-      <section aria-labelledby={`${id}-projecao`} className="grid gap-4">
-        <h3 id={`${id}-projecao`} className="text-lg">
-          CR projetado
-        </h3>
-        <p className="heading-ink text-5xl leading-none tabular-nums">{formatCr(projected)}</p>
-        <p className="text-sm text-muted-foreground">
-          Hoje: {formatCr(currentCr)}. Com notas entre 5 e 10 nessas disciplinas, ficaria entre {formatCr(scenarios.worst)} e{' '}
-          {formatCr(scenarios.best)}. Disciplinas com pré-requisito pendente ficam de fora.
-        </p>
-        <Suspense fallback={<div aria-hidden className="h-56 rounded-lg bg-muted/60" />}>
-          <ProjectionChart history={history} projected={projected} projectedTerm={projectedTerm} />
-        </Suspense>
-        <Button type="button" variant="outline" className="justify-self-start max-md:h-11" onClick={onUseSuggestion}>
-          Usar sugestão
-        </Button>
-      </section>
+        <div className="flex justify-end">
+          <Button type="button" variant="ghost" onClick={onUseSuggestion}>
+            Usar sugestão
+          </Button>
+        </div>
+      </div>
+
+      <details className="group border-t border-linha pt-3">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold select-none">
+          Ver projeção
+          <ChevronDown aria-hidden className="size-4 shrink-0 text-suave transition-transform duration-200 ease-snap group-open:rotate-180 motion-reduce:transition-none" />
+        </summary>
+        <div className="mt-2 grid gap-4">
+          <p className="text-sm text-suave">
+            Hoje: {formatCr(currentCr)}. Com notas entre 5 e 10 nessas disciplinas, ficaria entre {formatCr(scenarios.worst)} e{' '}
+            {formatCr(scenarios.best)}. Disciplinas com pré-requisito pendente ficam de fora.
+          </p>
+          <Suspense fallback={<div aria-hidden className="h-56 rounded-lg bg-muted/60" />}>
+            <ProjectionChart history={history} projected={projected} projectedTerm={projectedTerm} />
+          </Suspense>
+        </div>
+      </details>
     </div>
   );
 }

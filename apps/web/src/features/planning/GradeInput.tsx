@@ -13,7 +13,8 @@ interface GradeInputProps {
 }
 
 /**
- * Expected grade: a decimal text field (accepts a comma) with 44 px step buttons.
+ * Expected grade as a compact stepper: − | value | +. It is 44 px tall below md and 34 px from md, with 44 px step
+ * buttons on touch. A decimal text field (accepts a comma) sits in the middle.
  * While the field has focus it holds the student's text; the grade is committed on blur or Enter, and invalid text reverts.
  */
 export function GradeInput({ id, courseName, value, onChange }: GradeInputProps) {
@@ -41,11 +42,11 @@ export function GradeInput({ id, courseName, value, onChange }: GradeInputProps)
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-lg border border-campo focus-within:ring-3 focus-within:ring-ring/50 md:h-[34px]">
       <Button
         type="button"
-        variant="outline"
-        className="size-11 shrink-0"
+        variant="ghost"
+        className="h-full w-11 rounded-none px-0 text-suave md:w-8"
         aria-label={`Diminuir nota em ${courseName}`}
         onClick={() => onChange(stepGrade(value, -0.1))}
       >
@@ -60,12 +61,12 @@ export function GradeInput({ id, courseName, value, onChange }: GradeInputProps)
         onChange={(event) => setDraft(event.target.value)}
         onBlur={(event) => commit(event.target.value)}
         onKeyDown={onKeyDown}
-        className="h-11 w-20 text-center text-base tabular-nums md:h-8 md:text-sm"
+        className="h-full w-12 rounded-none border-x border-y-0 border-linha bg-transparent text-center text-base tabular-nums shadow-none focus-visible:ring-0 md:w-11 md:text-sm dark:bg-transparent"
       />
       <Button
         type="button"
-        variant="outline"
-        className="size-11 shrink-0"
+        variant="ghost"
+        className="h-full w-11 rounded-none px-0 text-suave md:w-8"
         aria-label={`Aumentar nota em ${courseName}`}
         onClick={() => onChange(stepGrade(value, 0.1))}
       >

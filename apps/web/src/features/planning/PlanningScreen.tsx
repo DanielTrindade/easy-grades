@@ -149,11 +149,16 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
 
   return (
     <div className="grid gap-12 max-lg:pb-16">
-      <div>
-        <h1 className="text-3xl sm:text-display">Planejamento</h1>
-        <p className="mt-2 max-w-[60ch] text-muted-foreground">
-          Escolha as disciplinas do próximo semestre e as notas que você espera. O CR projetado muda na hora.
-        </p>
+      <div className="grid gap-6 border-b border-linha pb-8 md:grid-cols-2 md:items-end">
+        <div>
+          <h1 className="text-3xl sm:text-display">Planejamento</h1>
+          <p className="mt-2 max-w-[40ch] text-suave">Monte o próximo semestre e veja o CR mudar enquanto escolhe.</p>
+        </div>
+        <div className="md:text-right">
+          <p className="text-sm text-suave">{projectedTerm ? `${formatTerm(projectedTerm)}, CR projetado` : 'CR projetado'}</p>
+          <p className="heading-ink mt-1 text-stat leading-none tabular-nums text-esmeralda-texto">{formatCr(projected)}</p>
+          <p className="mt-2 text-sm text-suave tabular-nums">hoje {formatCr(analysis.cr)}</p>
+        </div>
       </div>
 
       <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:items-start">
@@ -169,9 +174,9 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
         {desktop && (
           <aside
             aria-labelledby="meu-semestre"
-            className="sticky top-6 grid max-h-[calc(100dvh-3rem)] content-start gap-6 overflow-y-auto pb-2"
+            className="sticky top-6 grid content-start gap-5 rounded-xl border border-linha bg-superficie p-[22px]"
           >
-            <h2 id="meu-semestre" className="text-2xl">
+            <h2 id="meu-semestre" className="text-xl">
               Meu semestre
             </h2>
             {panel}
@@ -186,7 +191,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
         {analysis.forecast.terms.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma obrigatória pendente além das que estão em curso.</p>
         ) : (
-          <ol className="grid gap-3 border-l-2 border-tinta pl-4">
+          <ol className="grid gap-3 border-l-2 border-texto pl-4">
             {analysis.forecast.terms.map((term) => (
               <li key={term.term}>
                 <p className="font-medium">
@@ -199,7 +204,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
           </ol>
         )}
         {analysis.forecast.unschedulable.length > 0 && (
-          <p className="text-sm text-correcao">
+          <p className="text-sm text-erro">
             Não conseguimos encaixar {analysis.forecast.unschedulable.join(', ')}: os pré-requisitos não aparecem no currículo.
           </p>
         )}
@@ -217,12 +222,13 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             type="button"
             aria-haspopup="dialog"
             onClick={() => setSheetOpen(true)}
-            className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex min-h-14 items-center justify-between gap-3 border-t border-border bg-background pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-left text-sm md:bottom-[env(safe-area-inset-bottom)]"
+            className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex min-h-14 items-center justify-between gap-3 border-t border-linha bg-fundo pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-left text-sm md:bottom-[env(safe-area-inset-bottom)]"
           >
             <span className="tabular-nums">
-              {summary}, CR projetado {formatCr(projected)}
+              {summary}, CR projetado{' '}
+              <span className="font-semibold text-esmeralda-texto">{formatCr(projected)}</span>
             </span>
-            <span className="flex shrink-0 items-center gap-1 font-medium text-tinta">
+            <span className="flex shrink-0 items-center gap-1 font-medium text-texto">
               Ver
               <ChevronUp aria-hidden className="size-4" />
             </span>
@@ -232,9 +238,9 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             <SheetContent
               side="bottom"
               showCloseButton={false}
-              className="max-h-[85dvh] gap-6 overflow-y-auto rounded-t-[12px] p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-none"
+              className="max-h-[85dvh] gap-6 overflow-y-auto rounded-t-xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-none"
             >
-              <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-pauta" />
+              <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-linha" />
               <SheetHeader className="p-0">
                 <SheetTitle className="heading-ink text-2xl">Meu semestre</SheetTitle>
                 <SheetDescription>

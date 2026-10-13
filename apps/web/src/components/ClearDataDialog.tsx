@@ -37,7 +37,7 @@ export function ClearDataDialog({ open, onOpenChange, onConfirm, openerRef }: Cl
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="max-md:h-11">Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-correcao text-correcao-foreground hover:bg-correcao/90 max-md:h-11">
+          <AlertDialogAction onClick={onConfirm} className="bg-erro text-erro-foreground hover:bg-erro/90 max-md:h-11">
             Limpar dados
           </AlertDialogAction>
         </AlertDialogFooter>
