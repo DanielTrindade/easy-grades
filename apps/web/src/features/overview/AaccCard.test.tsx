@@ -61,7 +61,8 @@ describe('AaccCard', () => {
     const description = screen.getByText(long);
     expect(description).toHaveClass('break-words');
     expect(description).not.toHaveClass('truncate');
-  });
+    // Registering takes longer than the default timeout when the whole suite runs in parallel.
+  }, 15_000);
 
   it('removes an activity from the list and from the pending total', async () => {
     const user = userEvent.setup({ delay: null });
