@@ -122,7 +122,7 @@
 **Meu semestre** (painel)
 - **≥ lg:** coluna lateral fixa ao rolar.
 - **< lg:** barra fixa embaixo, acima da barra de abas no mobile. Mostra "N disciplinas · X créditos · CR projetado" e abre um painel inferior (bottom sheet, `Sheet` do shadcn) com o conteúdo completo.
-- **Medidor de créditos:** barra com as marcas de mínimo e máximo do currículo. Abaixo do mínimo fica em aviso (solimões, com ícone e texto); acima do máximo fica em erro (urucum, com ícone e texto). Adicionar continua permitido, mas o aviso explica o limite (prevenção de erros sem bloquear).
+- **Medidor de créditos:** barra com as marcas de mínimo e máximo do currículo. Abaixo do mínimo fica em aviso (tinta, com ícone e texto); acima do máximo fica em erro (correção, com ícone e texto). Adicionar continua permitido, mas o aviso explica o limite (prevenção de erros sem bloquear).
 - **Lista das escolhidas**, cada uma com:
   - **nota esperada** em campo numérico (0–10, passo 0,1, `inputMode="decimal"`, aceita vírgula), com botões − e + de 44 px e rótulo acessível "Nota esperada em <disciplina>";
   - botão **Remover**, que dispara um toast "Removida. Desfazer".
