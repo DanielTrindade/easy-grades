@@ -77,7 +77,11 @@ export default function App() {
           </Suspense>
         </ErrorBoundary>
       )}
-      <Toaster position="bottom-right" />
+      {/* Below 600 px Sonner uses mobileOffset: clear the 56 px tab bar and its safe area. */}
+      <Toaster
+        position="bottom-right"
+        mobileOffset={{ bottom: 'calc(72px + env(safe-area-inset-bottom))' }}
+      />
     </TooltipProvider>
   );
 }

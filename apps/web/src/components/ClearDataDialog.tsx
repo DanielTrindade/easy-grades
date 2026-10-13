@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,13 +14,21 @@ interface ClearDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  /** The control that opened the dialog. Focus goes back to it on close, since the dialog has no trigger of its own. */
+  openerRef: RefObject<HTMLElement | null>;
 }
 
 /** Confirmation for "Limpar dados". Controlled, so the desktop button and the options menu can both open it. */
-export function ClearDataDialog({ open, onOpenChange, onConfirm }: ClearDataDialogProps) {
+export function ClearDataDialog({ open, onOpenChange, onConfirm, openerRef }: ClearDataDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent
+        onCloseAutoFocus={(event) => {
+          if (!openerRef.current) return;
+          event.preventDefault();
+          openerRef.current.focus();
+        }}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Limpar dados deste navegador?</AlertDialogTitle>
           <AlertDialogDescription>

@@ -12,8 +12,11 @@ import { cn } from '@/lib/utils';
 
 interface OptionsMenuProps {
   onNewUpload: () => void;
-  /** Opens the confirmation. The dialog lives in the dashboard, so it stays mounted after this menu closes. */
-  onClearData: () => void;
+  /**
+   * Opens the confirmation. The dialog lives in the dashboard, so it stays mounted after this menu closes. Receives
+   * the trigger, so the dialog can return focus to it.
+   */
+  onClearData: (opener: HTMLElement) => void;
   /** Slot for "Instalar app", filled by the PWA task. Rendered after "Novo upload". */
   installItem?: ReactNode;
   className?: string;
@@ -22,11 +25,18 @@ interface OptionsMenuProps {
 export function OptionsMenu({ onNewUpload, onClearData, installItem, className }: OptionsMenuProps) {
   // Closing the menu would hand focus back to the trigger, over the dialog that "Limpar dados" just opened.
   const dialogRequested = useRef(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Mais opções" className={cn('max-md:size-11', className)}>
+        <Button
+          ref={triggerRef}
+          variant="ghost"
+          size="icon"
+          aria-label="Mais opções"
+          className={cn('max-md:size-11', className)}
+        >
           <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
@@ -45,8 +55,9 @@ export function OptionsMenu({ onNewUpload, onClearData, installItem, className }
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => {
+            if (!triggerRef.current) return;
             dialogRequested.current = true;
-            onClearData();
+            onClearData(triggerRef.current);
           }}
           className="text-correcao focus:text-correcao max-md:min-h-11"
         >
