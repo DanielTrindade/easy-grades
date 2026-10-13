@@ -1,5 +1,4 @@
 import type { Progress } from '@easy-grades/core';
-import type { CSSProperties } from 'react';
 import { formatHours, formatPercent } from '@/lib/format';
 
 interface MarkerBandProps {
@@ -22,7 +21,6 @@ export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }:
   const room = Number((100 - percent).toFixed(2));
   const pendingWidth = Math.min(pendingPercent, room);
   const totalWithPending = Math.min(100, Number((percent + pendingPercent).toFixed(2)));
-  const bandStyle = { '--band-cut': `${percent}%` } as CSSProperties;
   const label = hasPending
     ? `${formatPercent(percent)} concluído oficialmente, mais ${formatPercent(pendingPercent)} em atividades registradas por você`
     : `${formatPercent(percent)} do curso concluído`;
@@ -44,21 +42,25 @@ export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }:
         role="img"
         aria-label={label}
         className="marker-band relative mt-6 h-14 overflow-hidden"
-        style={bandStyle}
         data-reveal={reveal || undefined}
         onAnimationEnd={reveal ? onRevealed : undefined}
       >
-        {hasPending && (
-          <span
-            aria-hidden
-            className="absolute inset-y-0"
-            style={{
-              left: `${percent}%`,
-              width: `${pendingWidth}%`,
-              backgroundImage: 'repeating-linear-gradient(-45deg, var(--band-pending) 0 6px, transparent 6px 12px)',
-            }}
-          />
-        )}
+        {/* Only the fills animate: the border and the grid paper stay visible while the highlighter sweeps in. */}
+        <div className="marker-fills absolute inset-0">
+          <span aria-hidden data-segment="done" className="absolute inset-y-0 left-0 bg-marca" style={{ width: `${percent}%` }} />
+          {hasPending && (
+            <span
+              aria-hidden
+              data-segment="pending"
+              className="absolute inset-y-0"
+              style={{
+                left: `${percent}%`,
+                width: `${pendingWidth}%`,
+                backgroundImage: 'repeating-linear-gradient(-45deg, var(--band-pending) 0 6px, transparent 6px 12px)',
+              }}
+            />
+          )}
+        </div>
       </div>
       {progress.divergent && progress.officialPercent !== null && (
         <p className="mt-3 text-sm text-muted-foreground">

@@ -23,7 +23,8 @@ function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
       data-dimmed={dimmed || undefined}
       style={{ '--col': course.column, width: COURSE_NODE_WIDTH, height: COURSE_NODE_HEIGHT } as CSSProperties}
       className={cn(
-        'course-node rounded-lg border border-l-4 bg-card px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
+        'course-node rounded-lg border border-l-4 px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
+        style.surface,
         style.accent,
       )}
     >

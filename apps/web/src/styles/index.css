@@ -38,6 +38,7 @@
   --color-tinta-escura: var(--tinta-escura);
   --color-marca: var(--marca);
   --color-correcao: var(--correcao);
+  --color-correcao-foreground: var(--correcao-foreground);
   --color-grafite: var(--grafite);
 
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
@@ -91,11 +92,11 @@
   --tinta-escura: #14275f;
   --marca: #f2e94e;
   --correcao: #c4302b;
+  /* Text on a --correcao fill: white is 5.5:1 here. */
+  --correcao-foreground: #ffffff;
   --grafite: #5b6170;
 
-  /* MarkerBand layers: done = highlighter, left = paper (the grid is drawn in CSS), pending = hatched highlighter. */
-  --band-done: var(--marca);
-  --band-left: var(--papel);
+  /* MarkerBand: the hatched highlighter used for activities the student registered (the done fill is --marca). */
   --band-pending: color-mix(in oklab, var(--marca) 50%, transparent);
 
   --background: var(--papel);
@@ -114,7 +115,8 @@
   --accent-foreground: var(--foreground);
   --destructive: var(--correcao);
   --border: var(--pauta);
-  --input: #b4c1db;
+  /* Field borders: 3.3:1 on the white card (WCAG 1.4.11). */
+  --input: #7f8dae;
   --ring: var(--tinta);
   --chart-1: var(--tinta);
   --chart-2: var(--marca);
@@ -140,6 +142,8 @@
     --tinta: #8fa8ff;
     --marca: #e8dd45;
     --correcao: #ff7a70;
+    /* Navy ink on the coral fill: 7.2:1. White here was 2.5:1. */
+    --correcao-foreground: #0e1424;
     --grafite: #a4abba;
 
     --foreground: #e6eaf3;
@@ -148,7 +152,8 @@
     --secondary: #1b2440;
     --muted: #1b2440;
     --accent: #222d4a;
-    --input: #34405f;
+    /* Field borders: 3.4:1 on the navy card (WCAG 1.4.11). */
+    --input: #5f6f97;
     --chart-4: #b9c8ff;
     --sidebar-primary-foreground: #0e1424;
   }
@@ -198,18 +203,15 @@
   mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
 }
 
-/* MarkerBand: a highlighter stroke over squared paper. The done part is a hard edge at --band-cut. */
+/* MarkerBand: squared notebook paper with a border. The highlighter fills are child spans in .marker-fills. */
 .marker-band {
-  background-color: var(--band-left);
-  background-image:
-    linear-gradient(90deg, var(--band-done) 0 var(--band-cut, 0%), transparent var(--band-cut, 0%)),
-    linear-gradient(var(--pauta) 1px, transparent 1px),
-    linear-gradient(90deg, var(--pauta) 1px, transparent 1px);
-  background-size: 100% 100%, 8px 8px, 8px 8px;
+  background-color: var(--papel);
+  background-image: linear-gradient(var(--pauta) 1px, transparent 1px), linear-gradient(90deg, var(--pauta) 1px, transparent 1px);
+  background-size: 8px 8px;
   border: 1px solid var(--tinta);
   border-radius: var(--radius-lg);
 }
-/* One-time reveal when a dataset is first shown: the highlighter sweeps left to right. */
+/* One-time reveal when a dataset is first shown: the highlighter sweeps left to right. Only the fills wrapper moves. */
 @keyframes marker-in {
   from {
     clip-path: inset(0 100% 0 0);
@@ -218,7 +220,7 @@
     clip-path: inset(0 0 0 0);
   }
 }
-.marker-band[data-reveal] {
+.marker-band[data-reveal] .marker-fills {
   animation: marker-in 700ms var(--ease-snap) both;
 }
 
@@ -302,7 +304,7 @@
     --tw-exit-translate-x: 0;
     --tw-exit-translate-y: 0;
   }
-  .marker-band[data-reveal] {
+  .marker-band[data-reveal] .marker-fills {
     animation: none;
   }
   .course-node {

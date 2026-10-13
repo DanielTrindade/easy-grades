@@ -28,7 +28,7 @@ export function ClearDataButton({ onConfirm }: { onConfirm: () => void }) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-correcao text-white hover:bg-correcao/90">
+          <AlertDialogAction onClick={onConfirm} className="bg-correcao text-correcao-foreground hover:bg-correcao/90">
             Limpar dados
           </AlertDialogAction>
         </AlertDialogFooter>
