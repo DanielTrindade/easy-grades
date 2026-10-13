@@ -25,11 +25,19 @@ export function CreditMeter({ credits, min, max }: CreditMeterProps) {
   const cells = limitCells + overflowCells;
   // The cell that holds the last credit of the minimum.
   const minCell = min > 0 ? Math.ceil(min / unit) - 1 : -1;
+  const above = status === 'above';
 
   return (
     <div className="grid gap-2">
-      {/* The native meter carries the value for assistive tech; the visible cells are a picture of it. */}
-      <meter className="sr-only" min={0} max={max} value={credits} aria-label="Créditos no semestre">
+      {/* The native meter clamps the value to the maximum, so aria-valuetext carries the real count; the cells are a picture. */}
+      <meter
+        className="sr-only"
+        min={0}
+        max={max}
+        value={credits}
+        aria-label="Créditos no semestre"
+        aria-valuetext={above ? `${credits} créditos, acima do máximo de ${max}` : `${credits} créditos`}
+      >
         {`${credits} créditos`}
       </meter>
       <div aria-hidden className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${cells}, minmax(0, 1fr))` }}>
@@ -56,13 +64,13 @@ export function CreditMeter({ credits, min, max }: CreditMeterProps) {
       </div>
       <div className="flex items-center justify-between gap-3 text-sm tabular-nums text-suave">
         <span>mínimo {min}</span>
-        <span>máximo {max}</span>
+        <span className={cn('inline-flex items-center gap-1', above && 'font-medium text-erro')}>
+          {above && <OctagonAlert aria-hidden className="size-3.5 shrink-0" />}
+          máximo {max}
+        </span>
       </div>
-      <p
-        className={cn('flex items-start gap-1.5 text-sm', status === 'above' ? 'text-erro' : 'text-suave')}
-        aria-live="polite"
-      >
-        {status === 'above' && <OctagonAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
+      <p className={cn('flex items-start gap-1.5 text-sm', above ? 'text-erro' : 'text-suave')} aria-live="polite">
+        {above && <OctagonAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
         {status === 'below' && <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
         <span>
           {status === 'above' && `Passa do máximo de ${max} créditos por período.`}

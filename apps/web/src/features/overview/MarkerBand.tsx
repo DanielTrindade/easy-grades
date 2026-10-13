@@ -11,9 +11,9 @@ interface MarkerBandProps {
 }
 
 /**
- * Signature element: a highlighter stroke over squared notebook paper. Completed hours are solid highlighter up to
- * the percentage, with a hard edge; the rest is paper with a grid. Activities the student registered are a hatched
- * highlighter right after the done part.
+ * Signature element: a progress band over a grid track. Completed hours are a solid esmeralda fill up to the
+ * percentage, with a hard edge; the rest is the empty track. Activities the student registered are a hatched fill
+ * right after the done part.
  */
 export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }: MarkerBandProps) {
   const percent = progress.officialPercent ?? progress.percent;
@@ -45,7 +45,7 @@ export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }:
         data-reveal={reveal || undefined}
         onAnimationEnd={reveal ? onRevealed : undefined}
       >
-        {/* Only the fills animate: the border and the grid paper stay visible while the highlighter sweeps in. */}
+        {/* Only the fills animate: the border and the grid track stay visible while the fill sweeps in. */}
         <div className="marker-fills absolute inset-0">
           <span aria-hidden data-segment="done" className="absolute inset-y-0 left-0 bg-esmeralda" style={{ width: `${percent}%` }} />
           {hasPending && (

@@ -145,7 +145,7 @@ export function MySemesterPanel({
         )}
 
         <div className="flex justify-end">
-          <Button type="button" variant="ghost" onClick={onUseSuggestion}>
+          <Button type="button" variant="ghost" className="max-md:h-11" onClick={onUseSuggestion}>
             Usar sugestão
           </Button>
         </div>

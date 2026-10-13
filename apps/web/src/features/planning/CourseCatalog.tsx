@@ -46,7 +46,11 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
         type="button"
         variant={added ? 'ghost' : 'outline'}
         aria-label={added ? `Remover ${name} do semestre` : `Adicionar ${name} ao semestre`}
-        className={cn('max-md:h-11 shrink-0', added && 'bg-esmeralda-fundo text-esmeralda-texto hover:bg-esmeralda-fundo/80')}
+        className={cn(
+          'max-md:h-11 shrink-0',
+          added &&
+            'bg-esmeralda-fundo text-esmeralda-texto hover:bg-esmeralda-fundo/80 hover:text-esmeralda-texto dark:hover:bg-esmeralda-fundo/80',
+        )}
         disabled={blocked && !added}
         onClick={onToggle}
       >
@@ -102,7 +106,7 @@ export function CourseCatalog({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Ex.: ICC412 ou Cálculo"
-          className="h-11 md:h-9"
+          className="h-11 md:h-9 md:pointer-coarse:h-11"
         />
         <div className="flex items-center gap-2">
           <Switch
@@ -119,21 +123,28 @@ export function CourseCatalog({
 
       <ChoiceGroup<CatalogFilter>
         label="Filtrar disciplinas"
-        items={CATALOG_FILTERS.map((f) => ({
-          value: f.value,
-          content: (
-            <>
-              {f.label}
-              <span aria-hidden className="tabular-nums opacity-70">
-                {counts.get(f.value) ?? 0}
-              </span>
-            </>
-          ),
-        }))}
+        items={CATALOG_FILTERS.map((f) => {
+          const count = counts.get(f.value) ?? 0;
+          return {
+            value: f.value,
+            // The visible label and count are hidden from the name; the screen-reader text reads "Eletivas, 97" once.
+            content: (
+              <>
+                <span aria-hidden>{f.label}</span>
+                <span aria-hidden className="tabular-nums opacity-70">
+                  {count}
+                </span>
+                <span className="sr-only">
+                  {f.label}, {count}
+                </span>
+              </>
+            ),
+          };
+        })}
         value={filter}
         onValueChange={setFilter}
         className="flex flex-wrap gap-2"
-        itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-texto aria-checked:bg-texto aria-checked:text-fundo md:min-h-8"
+        itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-texto aria-checked:bg-texto aria-checked:text-fundo md:min-h-8 md:pointer-coarse:min-h-11"
       />
 
       {visible.length === 0 ? (

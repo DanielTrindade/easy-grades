@@ -42,7 +42,7 @@ function MenuHarness() {
 
 describe('ClearDataDialog focus', () => {
   it('returns focus to the desktop button that opened it when it is cancelled', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<DesktopHarness />);
     const opener = screen.getByRole('button', { name: 'Limpar dados' });
     await user.click(opener);
@@ -51,7 +51,7 @@ describe('ClearDataDialog focus', () => {
   });
 
   it('returns focus to the "Mais opções" trigger when it was opened from the options menu', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<MenuHarness />);
     await user.click(screen.getByRole('button', { name: 'Mais opções' }));
     const menu = await screen.findByRole('menu');

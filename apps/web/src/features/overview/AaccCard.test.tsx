@@ -26,7 +26,9 @@ function Harness({ officialHours = 0 }: { officialHours?: number }) {
 }
 
 async function register(user: ReturnType<typeof userEvent.setup>, description: string, hours: string) {
-  await user.type(screen.getByLabelText('Descrição'), description);
+  // One paste, not one keystroke per character: a long description would otherwise take seconds of event dispatch.
+  await user.click(screen.getByLabelText('Descrição'));
+  await user.paste(description);
   await user.clear(screen.getByLabelText('Horas'));
   await user.type(screen.getByLabelText('Horas'), hours);
   await user.click(screen.getByRole('button', { name: 'Registrar atividade' }));

@@ -61,11 +61,10 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
   return (
     <div className="min-h-dvh pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <header className="border-b border-border pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 px-4 py-3">
-          <BrandMark compactOnMobile />
-          <p className="hidden text-sm text-muted-foreground md:block">
-            {curriculum.courseName}, currículo {curriculum.version}
-          </p>
+        {/* One line from lg up: brand, sections, then actions. The course label sits in the page (see below), not here. */}
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 px-4 py-3 lg:flex-nowrap">
+          <BrandMark compactOnMobile className="shrink-0" />
+          <SectionNav view={view} />
           <div className="ml-auto hidden gap-2 md:flex">
             <Button variant="ghost" size="sm" onClick={onNewUpload}>
               Novo upload
@@ -86,7 +85,6 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
             onClearData={openClear}
             install={installOption}
           />
-          <SectionNav view={view} />
         </div>
       </header>
       <ClearDataDialog
@@ -99,6 +97,9 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
 
       {/* Bottom padding clears the fixed tab bar below md. It is set once per breakpoint, so no sm: rule can override it. */}
       <main className="mx-auto max-w-6xl px-4 pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pt-12 md:pb-12">
+        <p className="mb-6 hidden text-sm text-muted-foreground md:block">
+          {curriculum.courseName}, currículo {curriculum.version}
+        </p>
         {view === 'visao-geral' && (
           <OverviewScreen
             data={dataset.data}

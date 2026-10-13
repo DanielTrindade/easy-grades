@@ -31,7 +31,7 @@ describe('MarkerBand', () => {
     ).toBeInTheDocument();
   });
 
-  it('fills the official part with a solid highlighter span, so the grid and border stay on the band', () => {
+  it('fills the official part with a solid span, so the grid and border stay on the band', () => {
     const { container } = renderBand();
     const band = container.querySelector<HTMLElement>('.marker-band');
     const done = container.querySelector<HTMLElement>('[data-segment="done"]');

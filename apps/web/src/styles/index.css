@@ -14,6 +14,12 @@
     }
   }
 }
+/* Touch screens, whatever their width: a tablet with a finger still needs 44 px targets. */
+@custom-variant pointer-coarse {
+  @media (pointer: coarse) {
+    @slot;
+  }
+}
 
 /* Headings and big numbers: Mona Sans at weight 800 on the widest axis (wdth 125), with tight spacing. */
 @utility heading-ink {
@@ -225,7 +231,7 @@
   border: 1px solid var(--linha);
   border-radius: var(--radius);
 }
-/* One-time reveal when a dataset is first shown: the highlighter sweeps left to right. Only the fills wrapper moves. */
+/* One-time reveal when a dataset is first shown: the progress fill sweeps left to right. Only the fills wrapper moves. */
 @keyframes marker-in {
   from {
     clip-path: inset(0 100% 0 0);

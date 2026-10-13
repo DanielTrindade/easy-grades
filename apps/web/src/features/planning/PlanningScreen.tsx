@@ -16,7 +16,9 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { formatCr, formatHours, pluralize, toTitleCase } from '@/lib/format';
 import type { Analysis } from '@/lib/use-analysis';
+import { useFitsViewport } from '@/lib/use-fits-viewport';
 import { useMediaQuery } from '@/lib/use-media-query';
+import { cn } from '@/lib/utils';
 import { CourseCatalog } from './CourseCatalog';
 import { MySemesterPanel, type ChosenCourse, type InProgressCourse } from './MySemesterPanel';
 import { buildCatalog, type CatalogItem } from './planning-catalog';
@@ -37,6 +39,9 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
   const [sheetOpen, setSheetOpen] = useState(false);
   // Side column at lg and up; below it the summary bar opens the same panel in a sheet.
   const desktop = useMediaQuery('(min-width: 1024px)');
+  // The side panel is sticky only while it fits the window; a taller one scrolls with the page, so its bottom stays reachable.
+  const asideRef = useRef<HTMLElement>(null);
+  const asideFits = useFitsViewport(asideRef, 48, desktop);
   // Undo toasts still open when the board unmounts are dismissed, so an undo cannot fail silently.
   const undoToastIds = useRef<(string | number)[]>([]);
   const { countInProgress } = plan;
@@ -173,8 +178,12 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
 
         {desktop && (
           <aside
+            ref={asideRef}
             aria-labelledby="meu-semestre"
-            className="sticky top-6 grid content-start gap-5 rounded-xl border border-linha bg-superficie p-[22px]"
+            className={cn(
+              'grid content-start gap-5 rounded-xl border border-linha bg-superficie p-[22px]',
+              asideFits && 'lg:sticky lg:top-6',
+            )}
           >
             <h2 id="meu-semestre" className="text-xl">
               Meu semestre
