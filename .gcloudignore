@@ -1,0 +1,14 @@
+# Files never uploaded to Cloud Build (mirrors .dockerignore).
+# Real PDFs must never leave the machine.
+**/*.pdf
+*.pdf
+.git
+.gitignore
+.github
+**/node_modules
+**/dist
+**/coverage
+.env*
+docs
+.superpowers
+.opencode
