@@ -7,24 +7,18 @@ afterEach(() => {
 });
 
 describe('pickFlowView', () => {
-  it('opens as a list below md (768 px) when nothing is stored', () => {
-    expect(pickFlowView(390, null)).toBe('lista');
-    expect(pickFlowView(767, null)).toBe('lista');
+  // The graph is the screen's identity; on a phone it is still reachable and exportable, so it opens everywhere.
+  it('opens as the graph when nothing is stored, whatever the width', () => {
+    expect(pickFlowView(null)).toBe('grafo');
   });
 
-  it('opens as the graph from md up when nothing is stored', () => {
-    expect(pickFlowView(768, null)).toBe('grafo');
-    expect(pickFlowView(1440, null)).toBe('grafo');
+  it('keeps the stored choice', () => {
+    expect(pickFlowView('grafo')).toBe('grafo');
+    expect(pickFlowView('lista')).toBe('lista');
   });
 
-  it('keeps the stored choice at any width', () => {
-    expect(pickFlowView(390, 'grafo')).toBe('grafo');
-    expect(pickFlowView(1440, 'lista')).toBe('lista');
-  });
-
-  it('ignores an unknown stored value and falls back to the width default', () => {
-    expect(pickFlowView(390, 'xyz')).toBe('lista');
-    expect(pickFlowView(1440, 'xyz')).toBe('grafo');
+  it('ignores an unknown stored value and falls back to the graph', () => {
+    expect(pickFlowView('xyz')).toBe('grafo');
   });
 });
 
