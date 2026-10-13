@@ -76,10 +76,10 @@ describe('PlanningScreen', () => {
   });
 
   it('shows blocked courses with what is missing, and does not let them be added', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
     await user.click(screen.getByRole('switch', { name: /Supor aprovação/ }));
-    await user.click(screen.getByRole('radio', { name: 'Bloqueadas' }));
+    await user.click(screen.getByRole('radio', { name: /^Bloqueadas,/ }));
     const row = screen.getByText(/Falta: /).closest('li')!;
     // The default plan had it chosen; once it is removed, the blocked course cannot be added again.
     await user.click(within(row).getByRole('button', { name: /^Remover .* do semestre$/ }));
@@ -87,9 +87,9 @@ describe('PlanningScreen', () => {
   });
 
   it('adds a course from the catalog and removes it again with the same button', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
-    await user.click(screen.getByRole('radio', { name: 'Eletivas' }));
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
     const row = screen.getAllByRole('listitem').find((li) => within(li).queryByRole('button', { name: /Adicionar/ }))!;
     await user.click(within(row).getByRole('button', { name: /^Adicionar / }));
     expect(within(row).getByRole('button', { name: /^Remover .* do semestre$/ })).toBeInTheDocument();
@@ -98,9 +98,9 @@ describe('PlanningScreen', () => {
   });
 
   it('names the catalog buttons after the course, and keeps the visible text', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
-    await user.click(screen.getByRole('radio', { name: 'Eletivas' }));
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
     const add = within(catalog()).getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' });
     expect(add).toHaveTextContent('Adicionar');
     await user.click(add);
@@ -110,9 +110,9 @@ describe('PlanningScreen', () => {
   });
 
   it('announces adding and removing a course to screen readers', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
-    await user.click(screen.getByRole('radio', { name: 'Eletivas' }));
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
     await user.click(within(catalog()).getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' }));
     expect(screen.getByText('Adicionada ao semestre')).toHaveAttribute('aria-live', 'polite');
     await user.click(within(catalog()).getByRole('button', { name: 'Remover Programação para Web II do semestre' }));
@@ -120,9 +120,9 @@ describe('PlanningScreen', () => {
   });
 
   it('keeps a chosen course listed as "Pré-requisito pendente" when in-progress courses stop counting', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
-    await user.click(screen.getByRole('radio', { name: 'Obrigatórias' }));
+    await user.click(screen.getByRole('radio', { name: /^Obrigatórias,/ }));
     const addButton = within(catalog()).getByRole('button', { name: /^(Adicionar|Remover) Projetos Práticos/ });
     if (addButton.textContent?.includes('Adicionar')) await user.click(addButton);
     const field = 'Nota esperada em Projetos Práticos em Engenharia de Software';
@@ -135,9 +135,9 @@ describe('PlanningScreen', () => {
   });
 
   it('restores the previous selection when "Desfazer" follows "Usar sugestão"', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
-    await user.click(screen.getByRole('radio', { name: 'Eletivas' }));
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
     await user.click(screen.getByRole('button', { name: 'Adicionar Programação para Web II ao semestre' }));
     const before = chosenNames();
 
@@ -149,7 +149,7 @@ describe('PlanningScreen', () => {
   });
 
   it('removes a chosen course with a toast that can undo it', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     await renderScreen();
     const chosen = screen.getByRole('heading', { name: /Escolhidas/ });
     const before = chosen.textContent;
@@ -162,7 +162,7 @@ describe('PlanningScreen', () => {
   });
 
   it('dismisses an undo toast when the board unmounts, so it cannot fail silently', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     // The Toaster stays in the same slot, so it keeps its toasts while the board goes away.
     const { rerender } = render(
       <>
@@ -183,9 +183,23 @@ describe('PlanningScreen', () => {
     await waitFor(() => expect(screen.queryByText('Removida.')).not.toBeInTheDocument());
   });
 
+  it('names each catalog filter with its count, so a screen reader hears how many courses it holds', async () => {
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    expect(await screen.findByRole('radio', { name: /^Eletivas, \d+$/ })).toBeInTheDocument();
+  });
+
+  it('keeps the esmeralda text on "No semestre" when it is hovered', async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    await user.click(await screen.findByRole('radio', { name: /^Eletivas,/ }));
+    const added = screen.getAllByText('No semestre');
+    expect(added.length).toBeGreaterThan(0);
+    for (const label of added) expect(label.closest('button')).toHaveClass('hover:text-esmeralda-texto');
+  });
+
   it('keeps the panel in a bottom sheet below lg, with one copy of it', async () => {
     setDesktop(false);
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
     const summary = await screen.findByRole('button', { name: /CR projetado/ });
     expect(summary).toHaveTextContent(/disciplinas?, \d+ créditos?, CR projetado/);

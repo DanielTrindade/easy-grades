@@ -36,8 +36,13 @@ describe('MySemesterPanel', () => {
     expect(screen.getByRole('button', { name: 'Remover Banco de Dados do semestre' })).toBeInTheDocument();
   });
 
+  it('keeps "Usar sugestão" at 44 px below md, like the other touch targets of the panel', () => {
+    renderPanel();
+    expect(screen.getByRole('button', { name: 'Usar sugestão' })).toHaveClass('max-md:h-11');
+  });
+
   it('removes the course whose Remover button was pressed', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onRemove } = renderPanel();
     await user.click(screen.getByRole('button', { name: 'Remover Banco de Dados do semestre' }));
     expect(onRemove).toHaveBeenCalledWith('DCC102');

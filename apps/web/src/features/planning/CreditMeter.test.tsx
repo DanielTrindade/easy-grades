@@ -30,6 +30,27 @@ describe('CreditMeter', () => {
     expect(meter).toHaveAttribute('max', '30');
   });
 
+  it('tells a screen reader the real count above the maximum, not the clamped one', () => {
+    render(<CreditMeter credits={34} min={12} max={30} />);
+    expect(screen.getByRole('meter', { name: 'Créditos no semestre' })).toHaveAttribute(
+      'aria-valuetext',
+      '34 créditos, acima do máximo de 30',
+    );
+  });
+
+  it('marks the maximum caption as an error above the maximum, with an icon and text', () => {
+    const { container } = render(<CreditMeter credits={34} min={12} max={30} />);
+    const caption = screen.getByText('máximo 30');
+    expect(caption).toHaveClass('text-erro');
+    expect(caption.querySelector('svg')).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-cell="over"]')).toHaveLength(4);
+  });
+
+  it('keeps the maximum caption neutral within the limits', () => {
+    render(<CreditMeter credits={18} min={12} max={30} />);
+    expect(screen.getByText('máximo 30')).not.toHaveClass('text-erro');
+  });
+
   it('draws one cell per credit of the maximum, filling the chosen ones', () => {
     const { container } = render(<CreditMeter credits={18} min={12} max={30} />);
     const cells = cellsOf(container);

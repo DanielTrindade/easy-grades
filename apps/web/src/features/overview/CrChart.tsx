@@ -6,7 +6,7 @@ import { crDomain, crTicks } from './chart-utils';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 
 const config = {
-  termCr: { label: 'CR do período', color: 'var(--chart-4)' },
+  termCr: { label: 'CR do período', color: 'var(--suave)' },
   cumulativeCr: { label: 'CR acumulado', color: 'var(--esmeralda)' },
 } satisfies ChartConfig;
 
@@ -26,7 +26,7 @@ export default function CrChart({ history }: { history: TermCr[] }) {
           <YAxis domain={domain} ticks={crTicks(domain)} tickLine={false} axisLine={false} width={32} />
           <ChartTooltip content={<ChartTooltipContent className="min-w-44" />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Line dataKey="termCr" type="monotone" stroke="var(--color-termCr)" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+          <Line dataKey="termCr" type="monotone" stroke="var(--color-termCr)" strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} isAnimationActive={false} />
           <Line dataKey="cumulativeCr" type="monotone" stroke="var(--color-cumulativeCr)" strokeWidth={3} dot={false} isAnimationActive={false} />
         </LineChart>
       </ChartContainer>

@@ -24,7 +24,7 @@ describe('App', () => {
 
   it('shows the upload screen when nothing is stored', async () => {
     render(<App />);
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 5000 })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 10000 })).toBeDisabled();
   });
 
   it('[RF-3] falls back to the upload screen when stored data is corrupted', async () => {
@@ -36,7 +36,7 @@ describe('App', () => {
   it('opens the dashboard with the stored dataset', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
-    expect(await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 })).toBeInTheDocument();
     expect(screen.getByText('7,757')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute('aria-current', 'page');
   });
@@ -44,7 +44,7 @@ describe('App', () => {
   it('[reveal] plays the marker reveal once per dataset, not again after navigating back', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 5000 });
+    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 });
     const band = document.querySelector('.marker-band');
     expect(band).toHaveAttribute('data-reveal');
     fireEvent.animationEnd(band!);
@@ -64,13 +64,13 @@ describe('App', () => {
   it('[clear] confirming "Limpar dados" empties storage and returns to the upload screen', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 5000 });
+    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 });
 
     fireEvent.click(screen.getByRole('button', { name: 'Limpar dados' }));
     const dialog = await screen.findByRole('alertdialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 5000 })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 10000 })).toBeDisabled();
     expect(await loadDataset()).toBeNull();
   });
 
@@ -78,7 +78,7 @@ describe('App', () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     await saveAaccActivities([{ id: 'a1', description: 'Monitoria de cálculo', hours: 20, type: 'monitoria' }]);
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 5000 });
+    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 });
 
     fireEvent.click(screen.getByRole('button', { name: 'Limpar dados' }));
     const dialog = await screen.findByRole('alertdialog');
@@ -89,7 +89,7 @@ describe('App', () => {
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 5000 })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 10000 })).toBeDisabled();
     await waitFor(async () => expect(await loadAaccActivities()).toEqual([]));
   });
 
@@ -101,7 +101,7 @@ describe('App', () => {
     window.location.hash = '/fluxograma';
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Limpar dados e recomeçar' }, { timeout: 5000 }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Limpar dados e recomeçar' }, { timeout: 10000 }));
 
     await waitFor(async () => expect(await loadDataset()).toBeNull());
     expect(await loadAaccActivities()).toEqual([

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { OptionsMenu } from './OptionsMenu';
 
 async function openMenu() {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   await user.click(screen.getByRole('button', { name: 'Mais opções' }));
   return { user, menu: await screen.findByRole('menu') };
 }

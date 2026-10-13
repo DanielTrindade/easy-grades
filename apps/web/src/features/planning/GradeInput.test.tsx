@@ -17,7 +17,7 @@ describe('GradeInput', () => {
   });
 
   it('commits a typed grade on blur, accepting a comma', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { input, onChange } = setup(7.5);
     await user.clear(input);
     await user.type(input, '8,4');
@@ -26,7 +26,7 @@ describe('GradeInput', () => {
   });
 
   it('clamps a typed grade above 10 and below 0', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { input, onChange } = setup(7.5);
     await user.clear(input);
     await user.type(input, '12');
@@ -35,7 +35,7 @@ describe('GradeInput', () => {
   });
 
   it('reverts text that is not a number instead of committing it', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { input, onChange } = setup(7.5);
     await user.clear(input);
     await user.type(input, 'abc');
@@ -44,8 +44,14 @@ describe('GradeInput', () => {
     expect(input).toHaveValue('7,5');
   });
 
+  it('gives the field little side padding, so "10,0" is not clipped', () => {
+    const { input } = setup(10);
+    expect(input).toHaveValue('10,0');
+    expect(input).toHaveClass('px-1');
+  });
+
   it('steps with the 44 px − and + buttons', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onChange } = setup(7.5);
     await user.click(screen.getByRole('button', { name: 'Aumentar nota em Algoritmos' }));
     expect(onChange).toHaveBeenLastCalledWith(7.6);

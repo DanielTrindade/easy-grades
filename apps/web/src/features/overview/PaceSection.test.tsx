@@ -27,7 +27,7 @@ describe('PaceSection', () => {
     expect(screen.getByText('No prazo máximo: 1.130 h por período')).toBeInTheDocument();
   });
 
-  it('marks the behind-pace status with the correction red, so it reads as a risk and not as neutral', () => {
+  it('marks the behind-pace status with the error colour, so it reads as a risk and not as neutral', () => {
     renderWith({ ...sampleCurriculum, requirements: { ...sampleCurriculum.requirements, minPeriods: 5 } });
     const status = screen.getByText('Abaixo do ritmo do prazo ideal');
     expect(status.querySelector('svg')).toHaveClass('text-erro');
