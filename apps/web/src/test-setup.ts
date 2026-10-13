@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom/vitest';
 import 'fake-indexeddb/auto';
+import { vi } from 'vitest';
+
+// The service worker virtual module only exists in the built app; tests get an inert update hook.
+vi.mock('virtual:pwa-register/react', () => ({
+  useRegisterSW: () => ({
+    needRefresh: [false, () => {}],
+    offlineReady: [false, () => {}],
+    updateServiceWorker: () => Promise.resolve(),
+  }),
+}));
 
 // jsdom lacks AnimationEvent; without it React maps onAnimationEnd to the wrong DOM event name.
 globalThis.AnimationEvent ??= Event as unknown as typeof AnimationEvent;

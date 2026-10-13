@@ -27,10 +27,24 @@ describe('OptionsMenu', () => {
     expect(onNewUpload).not.toHaveBeenCalled();
   });
 
-  it('places the install slot above the separator', async () => {
-    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} installItem={<button role="menuitem">Instalar app</button>} />);
+  it('places Instalar app between Novo upload and the separator when the app can be installed', async () => {
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} install={{ kind: 'native', onSelect: vi.fn() }} />);
     const { menu } = await openMenu();
     const items = within(menu).getAllByRole('menuitem').map((item) => item.textContent);
     expect(items).toEqual(['Novo upload', 'Instalar app', 'Limpar dados']);
+  });
+
+  it('hides Instalar app when there is nothing to install', async () => {
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} />);
+    const { menu } = await openMenu();
+    expect(within(menu).queryByRole('menuitem', { name: 'Instalar app' })).not.toBeInTheDocument();
+  });
+
+  it('passes the trigger to the install handler', async () => {
+    const onSelect = vi.fn();
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} install={{ kind: 'ios', onSelect }} />);
+    const { user, menu } = await openMenu();
+    await user.click(within(menu).getByRole('menuitem', { name: 'Instalar app' }));
+    expect(onSelect).toHaveBeenCalledWith(screen.getByRole('button', { name: 'Mais opções' }));
   });
 });
