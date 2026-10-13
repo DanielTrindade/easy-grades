@@ -3,11 +3,11 @@ import { CircleCheck, Clock, OctagonAlert, TriangleAlert, type LucideIcon } from
 import { formatHours } from '@/lib/format';
 
 const PACE_STATUS: Record<PaceInsights['status'], { icon: LucideIcon; label: string; iconColor: string }> = {
-  concluido: { icon: CircleCheck, label: 'Carga horária concluída', iconColor: 'text-igapo' },
+  concluido: { icon: CircleCheck, label: 'Carga horária concluída', iconColor: 'text-esmeralda-texto' },
   inicio: { icon: Clock, label: 'Ainda sem período concluído para medir o ritmo', iconColor: 'text-muted-foreground' },
-  no_ritmo: { icon: CircleCheck, label: 'No ritmo para o prazo ideal', iconColor: 'text-igapo' },
-  atrasado: { icon: TriangleAlert, label: 'Abaixo do ritmo do prazo ideal', iconColor: 'text-solimoes-strong' },
-  risco_prazo_maximo: { icon: OctagonAlert, label: 'Risco de ultrapassar o prazo máximo', iconColor: 'text-urucum' },
+  no_ritmo: { icon: CircleCheck, label: 'No ritmo para o prazo ideal', iconColor: 'text-esmeralda-texto' },
+  atrasado: { icon: TriangleAlert, label: 'Abaixo do ritmo do prazo ideal', iconColor: 'text-erro' },
+  risco_prazo_maximo: { icon: OctagonAlert, label: 'Risco de ultrapassar o prazo máximo', iconColor: 'text-erro' },
 };
 
 interface PaceSectionProps {
@@ -23,7 +23,7 @@ export function PaceSection({ pace, minPeriods, maxPeriods }: PaceSectionProps) 
 
   return (
     <section aria-labelledby="ritmo" className="grid min-w-0 content-start gap-4">
-      <h2 id="ritmo" className="text-xl font-semibold">
+      <h2 id="ritmo" className="text-xl">
         Ritmo e prazo
       </h2>
       <p className="flex items-center gap-2 font-medium">

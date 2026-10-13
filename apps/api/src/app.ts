@@ -4,6 +4,7 @@ import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError, type FastifyInstance, type FastifyReply } from 'fastify';
+import { basename } from 'node:path';
 import { ERROR_STATUS, ParseError } from './errors';
 import { MAX_FILE_BYTES, parseRoute } from './routes/parse';
 
@@ -23,6 +24,17 @@ const MULTIPART_ERRORS: Record<string, ErrorCode> = {
   FST_INVALID_MULTIPART_CONTENT_TYPE: 'INVALID_UPLOAD',
   FST_PROTO_VIOLATION: 'INVALID_UPLOAD',
 };
+
+// The service worker, its Workbox runtime and the manifest must be revalidated on every load, or a stale worker
+// keeps serving an old build after a deploy.
+const NO_CACHE_FILE = /^(sw\.js|workbox-[\w-]+\.js|manifest\.webmanifest)$/;
+
+function setStaticHeaders(reply: FastifyReply, filePath: string): void {
+  const name = basename(filePath);
+  if (!NO_CACHE_FILE.test(name)) return;
+  reply.header('cache-control', 'no-cache');
+  if (name.endsWith('.webmanifest')) reply.header('content-type', 'application/manifest+json');
+}
 
 const SAFE_ROUTE_IDS: Record<string, string> = {
   '/api/health': 'api.health',
@@ -62,6 +74,9 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
         imgSrc: ["'self'", 'data:', 'blob:'],
         fontSrc: ["'self'"],
         connectSrc: ["'self'"],
+        // Explicit so the PWA's worker and manifest do not depend on how helmet inherits default-src.
+        workerSrc: ["'self'"],
+        manifestSrc: ["'self'"],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"],
         baseUri: ["'self'"],
@@ -94,7 +109,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
   await app.register(parseRoute, { rateLimitMax: opts.rateLimitMax ?? 10, parseTimeoutMs: opts.parseTimeoutMs ?? 10_000 });
 
   if (opts.staticDir) {
-    await app.register(fastifyStatic, { root: opts.staticDir, wildcard: false });
+    await app.register(fastifyStatic, { root: opts.staticDir, wildcard: false, setHeaders: setStaticHeaders });
     app.setNotFoundHandler((request, reply) => {
       if (request.method !== 'GET' || request.url.startsWith('/api/')) return sendError(reply, 'NOT_FOUND');
       return reply.sendFile('index.html');

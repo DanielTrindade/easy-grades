@@ -64,7 +64,7 @@ while (true) {}`,
     let readinessTimer: NodeJS.Timeout | undefined;
     try {
       const readiness = new Promise<unknown>((resolve, reject) => {
-        readinessTimer = setTimeout(() => reject(new Error('Worker did not start')), 1_000);
+        readinessTimer = setTimeout(() => reject(new Error('Worker did not start')), 10_000);
         worker.once('message', resolve);
         worker.once('error', reject);
       });

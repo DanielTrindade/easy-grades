@@ -10,7 +10,7 @@ export function FlowchartList({ nodes, curriculum }: { nodes: FlowNode[]; curric
     <div className="grid gap-8">
       {periods.map((period) => (
         <section key={period} aria-labelledby={`periodo-${period}`}>
-          <h2 id={`periodo-${period}`} className="text-lg font-semibold">
+          <h2 id={`periodo-${period}`} className="text-lg">
             {period}º período
           </h2>
           <ul className="mt-3 grid gap-2">

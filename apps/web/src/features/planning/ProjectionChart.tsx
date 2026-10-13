@@ -6,8 +6,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { crDomain, crTicks, projectionData } from '@/features/overview/chart-utils';
 
 const config = {
-  cumulativeCr: { label: 'CR acumulado', color: 'var(--igapo)' },
-  projected: { label: 'CR projetado', color: 'var(--solimoes)' },
+  cumulativeCr: { label: 'CR acumulado', color: 'var(--esmeralda)' },
+  projected: { label: 'CR projetado', color: 'var(--chart-4)' },
 } satisfies ChartConfig;
 
 export default function ProjectionChart({ history, projected, projectedTerm }: { history: TermCr[]; projected: number | null; projectedTerm: string | null }) {

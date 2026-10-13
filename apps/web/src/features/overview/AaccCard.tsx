@@ -70,7 +70,7 @@ export function AaccCard({
   return (
     <section aria-labelledby="atividades-complementares" className="grid min-w-0 gap-6">
       <div className="grid gap-2">
-        <h2 id="atividades-complementares" className="text-xl font-semibold">
+        <h2 id="atividades-complementares" className="text-xl">
           Atividades complementares
         </h2>
         <p className="max-w-[60ch] text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ export function AaccCard({
       </div>
 
       {officialHours > 0 && activities.length > 0 && (
-        <p role="status" className="rounded-lg border border-urucum/40 bg-urucum/10 p-3 text-sm">
+        <p role="status" className="rounded-lg border border-erro/40 bg-erro/10 p-3 text-sm">
           {`O histórico já tem ${formatHours(officialHours)} lançadas. Confira se alguma atividade registrada aqui já foi lançada e remova-a para não contar duas vezes.`}
         </p>
       )}
@@ -99,13 +99,14 @@ export function AaccCard({
           <Label htmlFor={descriptionId}>Descrição</Label>
           <Input
             id={descriptionId}
+            className="max-md:h-11"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             aria-invalid={errors.description ? true : undefined}
             aria-describedby={errors.description ? `${descriptionId}-erro` : undefined}
           />
           {errors.description && (
-            <p id={`${descriptionId}-erro`} role="alert" className="text-sm text-urucum">
+            <p id={`${descriptionId}-erro`} role="alert" className="text-sm text-erro">
               {errors.description}
             </p>
           )}
@@ -115,6 +116,7 @@ export function AaccCard({
           <Label htmlFor={hoursId}>Horas</Label>
           <Input
             id={hoursId}
+            className="max-md:h-11"
             type="number"
             inputMode="numeric"
             min={1}
@@ -126,7 +128,7 @@ export function AaccCard({
             aria-describedby={errors.hours ? `${hoursId}-erro` : undefined}
           />
           {errors.hours && (
-            <p id={`${hoursId}-erro`} role="alert" className="text-sm text-urucum">
+            <p id={`${hoursId}-erro`} role="alert" className="text-sm text-erro">
               {errors.hours}
             </p>
           )}
@@ -135,7 +137,7 @@ export function AaccCard({
         <div className="grid gap-2">
           <Label htmlFor={typeId}>Tipo</Label>
           <Select value={type} onValueChange={(value) => setType(value as AaccType)}>
-            <SelectTrigger id={typeId} className="w-full">
+            <SelectTrigger id={typeId} className="w-full max-md:data-[size=default]:h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,7 +151,7 @@ export function AaccCard({
         </div>
 
         <div className="sm:col-span-3">
-          <Button type="submit" disabled={loading || full}>
+          <Button type="submit" disabled={loading || full} className="max-md:h-11">
             Registrar atividade
           </Button>
           {full && (
@@ -175,6 +177,7 @@ export function AaccCard({
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="max-md:h-11"
                   aria-label={`Remover ${activity.description}`}
                   onClick={() => onRemove(activity.id)}
                 >

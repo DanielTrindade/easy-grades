@@ -7,6 +7,9 @@ export const formatPercent = (value: number): string => `${decimals(2).format(va
 export const formatHours = (value: number): string => `${integer.format(value)} h`;
 export const formatCount = (value: number): string => integer.format(value);
 
+/** "1 crédito", "14 créditos": the count is written as is, the noun follows it. */
+export const pluralize = (count: number, singular: string, plural: string): string => `${count} ${count === 1 ? singular : plural}`;
+
 const LOWERCASE_WORDS = new Set(['a', 'à', 'ao', 'as', 'da', 'das', 'de', 'do', 'dos', 'e', 'em', 'na', 'no', 'o', 'os', 'para', 'por']);
 const ROMAN = /^(?=[IVXLC]+$)C{0,3}(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
 

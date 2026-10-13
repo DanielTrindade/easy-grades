@@ -26,7 +26,9 @@ function Harness({ officialHours = 0 }: { officialHours?: number }) {
 }
 
 async function register(user: ReturnType<typeof userEvent.setup>, description: string, hours: string) {
-  await user.type(screen.getByLabelText('Descrição'), description);
+  // One paste, not one keystroke per character: a long description would otherwise take seconds of event dispatch.
+  await user.click(screen.getByLabelText('Descrição'));
+  await user.paste(description);
   await user.clear(screen.getByLabelText('Horas'));
   await user.type(screen.getByLabelText('Horas'), hours);
   await user.click(screen.getByRole('button', { name: 'Registrar atividade' }));
@@ -49,8 +51,7 @@ describe('AaccCard', () => {
     await register(user, 'Semana de tecnologia', '12');
     expect(screen.getByText('Registradas por você: 42 h (pendentes)')).toBeInTheDocument();
     expect(screen.getByLabelText('Descrição')).toHaveValue('');
-    // Two full registrations take longer than the default timeout when the whole suite runs in parallel.
-  }, 15_000);
+  });
 
   it('wraps a long activity description instead of cutting it off', async () => {
     const user = userEvent.setup({ delay: null });
