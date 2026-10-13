@@ -118,7 +118,9 @@ O teste com PDFs reais (`apps/api/test/real-pdfs.test.ts`) roda só na sua máqu
 
 **CI** (`.github/workflows/ci.yml`, em pull requests e pushes para `main`): lint, typecheck, testes, react-doctor (falha em erros), build, `pnpm audit --prod --audit-level high` e gitleaks, que varre todo o histórico do git.
 
-**CD** (`.github/workflows/cd.yml`): quando o CI termina com sucesso em um push para `main`, a imagem é construída e publicada no GitHub Container Registry como `ghcr.io/<dono>/<repo>`, com a tag do SHA do commit e a tag `latest`. Não há deploy automático.
+**CD** (`.github/workflows/cd.yml`): quando o CI termina com sucesso em um push para `main`, a imagem é construída uma vez e publicada no GitHub Container Registry (`ghcr.io/<dono>/<repo>`, tags `sha-<commit>` e `latest`). Em seguida, o job `deploy` (environment `production`, só aceita `main`) copia essa mesma imagem, pelo digest, para o Artifact Registry e a publica no Cloud Run, terminando com um teste de `/api/health`.
+
+O GitHub se autentica no Google Cloud por Workload Identity Federation, sem chave guardada em lugar nenhum, e só um job da `main` neste repositório consegue esse acesso. A conta de deploy só pode publicar imagens e novas revisões do serviço; o app roda com uma conta sem permissões. Produção: https://easy-grades-951677258273.us-central1.run.app
 
 ## Limitações conhecidas
 
