@@ -1,0 +1,146 @@
+# UX, responsividade e PWA — Design Spec
+
+**Data:** 2026-10-12
+**Status:** aguardando revisão
+**Branch:** `feat/ux-mobile-pwa`
+
+## 1. Objetivo
+
+1. Melhorar a página **Disciplinas**.
+2. Refazer a seleção de disciplinas do **Planejamento** seguindo padrões de UI/UX e as heurísticas de Nielsen.
+3. Corrigir os problemas de responsividade do app inteiro.
+4. Tornar o app um **PWA instalável**, com funcionamento offline dos dados já lidos.
+
+## 2. Auditoria (Chrome, 390 px e 1440 px, com um histórico real)
+
+| Área | Achado | Heurística / critério |
+|---|---|---|
+| Geral | Nenhuma tela rola na horizontal (ok). | — |
+| Geral (390 px) | Alvos de toque menores que 44 px: Planejamento 15 de 19, Visão geral 7 de 11, Fluxograma 8 de 12, Disciplinas 5 de 9 (links do menu, botões do topo, switch, checkbox, slider, "Remover"). | WCAG 2.5.5 / Apple HIG 44 pt |
+| Geral (mobile) | A navegação fica no topo e rola na horizontal, longe do polegar. "Novo upload" e "Limpar dados" (destrutivo) ficam lado a lado, sem respiro. | Prevenção de erros; ergonomia |
+| Geral (PWA) | Sem manifest, ícones, service worker, `theme-color`, metas iOS nem safe areas (`viewport-fit=cover`). | Requisitos de instalabilidade |
+| Disciplinas (mobile) | Uma tabela de 6 colunas espremida em 390 px: a coluna Situação é **cortada** ("Matri", "Aprov"), os nomes quebram em 3–4 linhas e a página tem ~4.300 px sem agrupamento. | Visibilidade do estado; estética e minimalismo |
+| Disciplinas | Os filtros são selects (situação/categoria) sem contagem. O aluno não vê quantas disciplinas há em cada situação sem abrir o select. | Reconhecer em vez de lembrar |
+| Planejamento | A seleção mistura escolher e dar nota no mesmo cartão (checkbox + slider). O slider é impreciso e tem alvo pequeno no toque. Não dá para digitar a nota. | Eficiência; prevenção de erros |
+| Planejamento | Não há busca nem filtro: as eletivas ficam atrás de "Ver mais 94 eletivas", uma lista longa sem ordenação útil. | Flexibilidade; reconhecer em vez de lembrar |
+| Planejamento | O resumo (créditos, CR projetado) não fica visível enquanto a lista rola, sobretudo no mobile. | Visibilidade do estado do sistema |
+| Planejamento | O switch "Supor aprovação no que está em curso" **descarta a seleção** sem aviso nem desfazer. | Controle e liberdade do usuário |
+| Planejamento | O plano **se perde** ao trocar de aba ou recarregar. | Controle e liberdade; consistência |
+| Planejamento | Disciplinas bloqueadas não aparecem, e o aluno não sabe o que falta para liberá-las. | Ajuda a reconhecer e recuperar |
+| Fluxograma (mobile) | O grafo com pan/zoom num celular é difícil; a lista acessível existe, mas não é o padrão. | Adequação ao contexto |
+
+## 3. Design
+
+### 3.1 Shell do app (mobile-first)
+
+- **< md:** barra de abas **embaixo**, fixa, com ícone e rótulo para Visão geral, Fluxograma, Disciplinas e Planejamento.
+  - Altura ≥ 56 px, alvo ≥ 44 px, `padding-bottom: env(safe-area-inset-bottom)`, aba ativa com `aria-current`.
+  - O topo mostra só a marca e um menu "Mais opções" (⋯) com Novo upload, Instalar app (quando houver) e Limpar dados (em vermelho, separado por divisor, com a confirmação de hoje).
+- **≥ md:** mantém o topo atual.
+- **Alvos de toque:** ≥ 44 px no mobile em botões, links, switch, checkbox e "Remover". Use padding ou área de toque estendida, sem aumentar o visual quando não precisar.
+- **Safe areas:** `viewport-fit=cover`; o conteúdo respeita `env(safe-area-inset-*)`.
+- **Fluxograma no mobile (< md):** abre por padrão em "Ver como lista". O switch continua permitindo o grafo, e a escolha é lembrada (localStorage, conveniência).
+
+### 3.2 Disciplinas
+
+- **Topo:** chips de situação com contagem (Todas · Concluídas · Em curso · Reprovadas · Outras), que funcionam como filtro de seleção única (`role="radiogroup"`). Em seguida, a busca e o filtro de categoria. "Limpar filtros" aparece quando algum filtro está ativo.
+- **Agrupamento:** por período (padrão) ou por categoria, com um seletor segmentado.
+  - Cada grupo tem cabeçalho fixo ao rolar (sticky) com período, CR do período e horas.
+  - Os grupos são ordenados do mais recente ao mais antigo; dentro do grupo, por código.
+- **≥ md:** tabela por grupo, com colunas Disciplina (código + nome), Categoria, CH, Nota e Situação, e cabeçalho fixo.
+- **< md:** **cartões** em lista no lugar da tabela.
+  - Linha 1: nome (até 2 linhas).
+  - Linha 2: código, categoria e CH.
+  - À direita: nota em destaque e o badge de situação inteiro, nunca cortado.
+- Mantém o estado vazio com instrução e a contagem de resultados.
+
+### 3.3 Planejamento — catálogo + "Meu semestre"
+
+**Catálogo** (coluna principal)
+- Busca por código ou nome.
+- Chips de filtro: **Sugeridas** (padrão), Obrigatórias, Eletivas, Bloqueadas.
+- Cada item mostra nome, código, categoria, período ideal, créditos, CH e o motivo ("libera N disciplinas").
+- Botão **Adicionar**, que vira **Adicionada ✓** com opção de remover.
+- **Bloqueadas** lista as disciplinas ainda não liberadas, com "Falta: ICC431, ICC412" (pré-requisitos ausentes, respeitando blocos E/OU). Essas disciplinas não podem ser adicionadas.
+- O "Ver mais 94 eletivas" sai e é substituído pelos filtros e pela busca.
+
+**Meu semestre** (painel)
+- **≥ lg:** coluna lateral fixa ao rolar.
+- **< lg:** barra fixa embaixo, acima da barra de abas no mobile. Mostra "N disciplinas · X créditos · CR projetado" e abre um painel inferior (bottom sheet, `Sheet` do shadcn) com o conteúdo completo.
+- **Medidor de créditos:** barra com as marcas de mínimo e máximo do currículo. Abaixo do mínimo fica em aviso (solimões, com ícone e texto); acima do máximo fica em erro (urucum, com ícone e texto). Adicionar continua permitido, mas o aviso explica o limite (prevenção de erros sem bloquear).
+- **Lista das escolhidas**, cada uma com:
+  - **nota esperada** em campo numérico (0–10, passo 0,1, `inputMode="decimal"`, aceita vírgula), com botões − e + de 44 px e rótulo acessível "Nota esperada em <disciplina>";
+  - botão **Remover**, que dispara um toast "Removida. Desfazer".
+- **Em curso agora:** grupo recolhível com as notas esperadas das disciplinas matriculadas, no mesmo controle.
+- **Projeção:** CR projetado, faixa (com notas de 5 a 10), o gráfico de projeção e o botão **"Usar sugestão"**, que substitui a seleção e mostra toast com Desfazer.
+- **Switch "Supor aprovação no que está em curso":** não descarta mais a seleção. Só recalcula o que está liberado. Uma escolhida que deixar de estar liberada continua na lista, marcada como "pré-requisito pendente".
+
+**Comportamento**
+- **Persistência:** o plano (escolhidas + notas + switch) é salvo no IndexedDB, associado ao dataset (`savedAt`). Ele sobrevive à troca de aba e ao recarregamento, e é apagado por "Limpar dados".
+- **Teclado:** Enter no item do catálogo adiciona; foco visível; o anúncio "Adicionada ao semestre" vai por `aria-live`.
+
+**Core:** nova função `missingPrerequisites(c, done, code): string[][]`, que devolve os blocos ainda não satisfeitos, para o texto "Falta: …".
+
+### 3.4 PWA
+
+- **Plugin:** `vite-plugin-pwa` 2.x (Workbox).
+  - `registerType: 'prompt'`.
+  - Precache do app shell (JS, CSS, fontes, ícones).
+  - Rotas `/api/*` em **NetworkOnly**: nada da API vai para cache.
+  - `navigateFallback` para `index.html`, exceto `/api`.
+- **Manifest (`manifest.webmanifest`):**
+  - `name` "Easy Grades", `short_name` "Easy Grades", descrição PT-BR, `lang` pt-BR;
+  - `start_url` "/", `scope` "/", `display` standalone, `orientation` any;
+  - `background_color` #EEF1EC, `theme_color` #2E5E4E;
+  - ícones 192, 512 e 512 maskable, além do `apple-touch-icon` 180, todos gerados a partir do favicon atual (círculo negro/solimões) por um script versionado.
+- **`index.html`:**
+  - `viewport-fit=cover`;
+  - `theme-color` claro e escuro via `media`;
+  - `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style` e `apple-touch-icon`.
+- **UX:**
+  - **Nova versão:** quando o SW detecta uma, aparece o toast "Nova versão disponível" com o botão "Atualizar".
+  - **Instalar app:** o item do menu aparece quando houver `beforeinstallprompt`. No iOS, a dica é "No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início".
+  - **Offline:** com o navegador offline, a tela de upload avisa: "Você está offline. Para ler novos PDFs, conecte-se. Seus dados já salvos continuam disponíveis." O painel funciona offline com os dados do IndexedDB.
+- **Servidor (Fastify):**
+  - `sw.js` e `manifest.webmanifest` são servidos com `Cache-Control: no-cache` e o content-type correto;
+  - a CSP continua `default-src 'self'` (SW e manifest são same-origin).
+- **Privacidade:** o service worker nunca guarda respostas da API nem PDFs. Os PDFs continuam só na memória do request.
+
+## 4. Testes e verificação
+
+- Testes unitários e de componente para:
+  - chips com contagem e agrupamento (Disciplinas);
+  - catálogo, busca, filtros e "Bloqueadas" com motivo;
+  - campo de nota (vírgula, limites, ±);
+  - medidor (abaixo, dentro e acima);
+  - desfazer;
+  - persistência do plano;
+  - switch sem descartar;
+  - `missingPrerequisites` (E/OU).
+- **Teste de PWA:** o build gera `manifest.webmanifest` válido, ícones e `sw.js`; a configuração do Workbox não inclui `/api`.
+- **Verificação no Chrome (390 px e 1440 px):**
+  - 0 rolagem horizontal;
+  - alvos de toque < 44 px = 0 no mobile (exceto links de texto corrido);
+  - o SW registra;
+  - o app abre offline depois da primeira visita;
+  - o manifest é instalável (critérios do Chrome).
+- `pnpm react-doctor:gate` ≥ 90, além de lint, typecheck, test e build.
+
+## 5. Fora do escopo
+
+- Notificações push e sincronização em segundo plano.
+- Upload de PDF offline: depende da API.
+- Mudanças no parser ou nas regras de cálculo.
+
+## 6. Tarefas (ordem de implementação)
+
+1. **Shell mobile:** barra de abas inferior, menu "Mais opções", safe areas, alvos de toque e fluxograma em lista no mobile.
+2. **Disciplinas:** chips com contagem, agrupamento com cabeçalho fixo, tabela no desktop e cartões no mobile.
+3. **Planejamento:**
+   - `missingPrerequisites` no core;
+   - catálogo com busca, filtros e bloqueadas;
+   - painel "Meu semestre" com medidor, campo de nota e desfazer;
+   - persistência e switch sem descarte.
+4. **PWA:** manifest, ícones, service worker, UX de atualização, instalação e offline, e headers no servidor.
+
+Cada tarefa é implementada pelo Haiku 5.5 (high) e revisada pelo Opus 5.5 (medium). Ao final há revisão da branch, verificação no Chrome e o PR.
