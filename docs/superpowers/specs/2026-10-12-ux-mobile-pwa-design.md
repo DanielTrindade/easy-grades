@@ -96,7 +96,7 @@ O favicon, os ícones do PWA e o `BrandMark` são regenerados a partir dele.
 - **≥ md:** mantém o topo atual.
 - **Alvos de toque:** ≥ 44 px no mobile em botões, links, switch, checkbox e "Remover". Use padding ou área de toque estendida, sem aumentar o visual quando não precisar.
 - **Safe areas:** `viewport-fit=cover`; o conteúdo respeita `env(safe-area-inset-*)`.
-- **Fluxograma no mobile (< md):** abre por padrão em "Ver como lista". O switch continua permitindo o grafo, e a escolha é lembrada (localStorage, conveniência).
+- **Fluxograma no mobile (< md):** abre no grafo, como no desktop; "Ver como lista" fica a um toque e a escolha é lembrada (localStorage, conveniência). O "Exportar PNG" funciona nas duas visões: a imagem é sempre o grafo (mesmo com a lista na tela), sem as notas dos cartões.
 
 ### 3.2 Disciplinas
 
