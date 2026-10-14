@@ -2,7 +2,7 @@ import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH } from './CourseNode';
 import FlowchartScreen from './FlowchartScreen';
 
@@ -19,15 +19,45 @@ vi.mock('@xyflow/react', async (importOriginal) => {
 });
 
 // Controllable PNG export: each test decides when html-to-image settles.
-const png = vi.hoisted(() => ({ toPng: vi.fn(async (_node: HTMLElement) => 'data:image/png;base64,') }));
-vi.mock('html-to-image', () => ({ toPng: png.toPng }));
+const png = vi.hoisted(() => ({ toBlob: vi.fn(async (_node: HTMLElement) => new Blob(['png'], { type: 'image/png' })) }));
+vi.mock('html-to-image', () => ({ toBlob: png.toBlob }));
 
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
+
+/** A touch screen: the export opens the share sheet instead of downloading the file. */
+function mockTouchScreen(matches = true) {
+  vi.spyOn(window, 'matchMedia').mockImplementation(
+    (query: string) =>
+      ({
+        matches,
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  );
+}
+
+function stubShareSheet(canShare = true) {
+  const share = vi.fn(async (_data: ShareData) => {});
+  Object.defineProperty(navigator, 'canShare', { value: () => canShare, configurable: true });
+  Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+  return share;
+}
 
 beforeEach(() => {
   seen.nodes.length = 0;
   // The view choice is remembered across visits, so each test starts from the width default.
   localStorage.clear();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  Reflect.deleteProperty(navigator, 'canShare');
+  Reflect.deleteProperty(navigator, 'share');
 });
 
 function nodeOf(code: string): HTMLElement {
@@ -136,8 +166,8 @@ describe('FlowchartScreen focus', () => {
   });
 
   it('disables the export button and shows progress while the PNG is being generated', async () => {
-    let finish!: (url: string) => void;
-    png.toPng.mockReturnValueOnce(new Promise<string>((resolve) => (finish = resolve)));
+    let finish!: (blob: Blob) => void;
+    png.toBlob.mockReturnValueOnce(new Promise<Blob>((resolve) => (finish = resolve)));
     render(<FlowchartScreen data={data} />);
     const exportButton = screen.getByRole('button', { name: 'Exportar PNG' });
 
@@ -146,18 +176,18 @@ describe('FlowchartScreen focus', () => {
     expect(busy).toBeDisabled();
     expect(busy).toHaveAttribute('aria-busy', 'true');
 
-    finish('data:image/png;base64,');
+    finish(new Blob(['png'], { type: 'image/png' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Exportar PNG' })).toBeEnabled());
   });
 
   it('exports in export mode with no course dimmed, even when a course is pinned', async () => {
     let captured: { exporting: boolean; dimmed: number } | undefined;
-    png.toPng.mockImplementationOnce(async (node) => {
+    png.toBlob.mockImplementationOnce(async (node) => {
       captured = {
         exporting: node.closest('.is-exporting') !== null,
         dimmed: document.querySelectorAll('[data-dimmed]').length,
       };
-      return 'data:image/png;base64,';
+      return new Blob(['png'], { type: 'image/png' });
     });
     render(<FlowchartScreen data={data} />);
 
@@ -173,9 +203,9 @@ describe('FlowchartScreen focus', () => {
   it('exports the flowchart image from the list view and comes back to the list', async () => {
     const user = userEvent.setup({ delay: null });
     let captured: { exporting: boolean } | undefined;
-    png.toPng.mockImplementationOnce(async (node) => {
+    png.toBlob.mockImplementationOnce(async (node) => {
       captured = { exporting: node.closest('.is-exporting') !== null };
-      return 'data:image/png;base64,';
+      return new Blob(['png'], { type: 'image/png' });
     });
     const { container } = render(<FlowchartScreen data={data} />);
 
@@ -189,6 +219,52 @@ describe('FlowchartScreen focus', () => {
     expect(captured).toEqual({ exporting: true });
     await waitFor(() => expect(container.querySelector('.react-flow')).toBeNull());
     expect(screen.getAllByRole('heading', { name: /º período$/ }).length).toBeGreaterThan(0);
+  });
+
+  it('downloads the PNG on a mouse screen, without the share sheet', async () => {
+    const share = stubShareSheet();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+    await waitFor(() => expect(click).toHaveBeenCalled());
+    const link = click.mock.instances[0] as unknown as HTMLAnchorElement;
+    expect(link.download).toBe('fluxograma.png');
+    expect(share).not.toHaveBeenCalled();
+    expect(screen.queryByAltText('Fluxograma do curso')).toBeNull();
+  });
+
+  // On a phone there is no downloads folder to land in: the sheet previews the image and hands it to the share sheet.
+  it('opens the export sheet on a touch screen and shares the PNG from it', async () => {
+    mockTouchScreen();
+    const share = stubShareSheet();
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+    expect(await screen.findByAltText('Fluxograma do curso')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar ou compartilhar' }));
+
+    await waitFor(() => expect(share).toHaveBeenCalledTimes(1));
+    const shared = share.mock.calls[0]?.[0];
+    expect(shared?.files?.[0]?.name).toBe('fluxograma.png');
+    expect(shared?.files?.[0]?.type).toBe('image/png');
+    await waitFor(() => expect(screen.queryByAltText('Fluxograma do curso')).toBeNull());
+  });
+
+  it('offers the download inside the sheet when the browser cannot share files', async () => {
+    mockTouchScreen();
+    stubShareSheet(false);
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+    expect(await screen.findByText(/toque e segure a imagem/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Baixar imagem' }));
+    await waitFor(() => expect(click).toHaveBeenCalled());
+    expect((click.mock.instances[0] as unknown as HTMLAnchorElement).download).toBe('fluxograma.png');
   });
 
   it('switches between the graph and the list with the keyboard', async () => {

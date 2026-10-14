@@ -1,7 +1,7 @@
 import { layoutFlowchart } from '@easy-grades/core';
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { describe, expect, it } from 'vitest';
-import { exportFrame } from './export-frame';
+import { exportFrame, exportPixelRatio } from './export-frame';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH } from './CourseNode';
 
 const PADDING = 48;
@@ -33,5 +33,21 @@ describe('exportFrame', () => {
 
   it('returns an empty frame of just padding when there are no nodes', () => {
     expect(exportFrame([], 232, 84, 48)).toEqual({ width: 96, height: 96, offsetX: 48, offsetY: 48 });
+  });
+});
+
+describe('exportPixelRatio', () => {
+  it('exports at 2x when the frame fits the canvas ceiling', () => {
+    expect(exportPixelRatio({ width: 1200, height: 800 })).toBe(2);
+  });
+
+  // iPhone Safari leaves a 4352 px wide canvas blank, so the scale shrinks to stay under 4096 px.
+  it('shrinks the scale when the frame would cross 4096 px', () => {
+    expect(exportPixelRatio({ width: 2176, height: 1000 })).toBeCloseTo(4096 / 2176, 5);
+  });
+
+  it('never grows past the given maximum', () => {
+    expect(exportPixelRatio({ width: 300, height: 200 })).toBe(2);
+    expect(exportPixelRatio({ width: 300, height: 200 }, 1)).toBe(1);
   });
 });

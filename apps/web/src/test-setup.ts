@@ -43,3 +43,11 @@ if (!Element.prototype.setPointerCapture) {
   Element.prototype.releasePointerCapture = () => {};
   Element.prototype.hasPointerCapture = () => false;
 }
+
+// jsdom lacks object URLs; the PNG export hands the browser a blob URL (download and share sheet).
+if (!URL.createObjectURL) {
+  URL.createObjectURL = () => 'blob:mock';
+}
+if (!URL.revokeObjectURL) {
+  URL.revokeObjectURL = () => {};
+}
