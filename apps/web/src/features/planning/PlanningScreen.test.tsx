@@ -1,4 +1,5 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
+import type { CurriculumCourse } from '@easy-grades/core';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
@@ -10,6 +11,17 @@ import { PlanningScreen } from './PlanningScreen';
 
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
 const savedAt = '2026-10-12T10:00:00.000Z';
+
+/** A released extension course, like the real curriculum's Práticas Extensionistas. */
+const extensionCourse: CurriculumCourse = {
+  code: 'ICC610',
+  name: 'PRÁTICAS EXTENSIONISTAS EM COMPUTAÇÃO XI',
+  category: 'extensao',
+  idealPeriod: 7,
+  credits: 6,
+  hours: { theory: 0, practice: 0, extension: 90, total: 90 },
+  prerequisites: [],
+};
 
 /** lg (1024px) and up gets the side column; below it the summary bar opens the panel in a sheet. */
 function setDesktop(desktop: boolean) {
@@ -66,6 +78,26 @@ describe('PlanningScreen', () => {
     for (const input of inputs) {
       expect(input).toHaveAccessibleName(/\S/);
     }
+  });
+
+  // Extension courses are courses students must take to reach the required hours, so they are planned like the others.
+  it('suggests a released extension course and lists it under Extensão', async () => {
+    const user = userEvent.setup({ delay: null });
+    const withExtension = { curriculum: { ...sampleCurriculum, courses: [...sampleCurriculum.courses, extensionCourse] }, transcript: sampleTranscript };
+    render(
+      <>
+        <PlanningScreen data={withExtension} analysis={analyze(withExtension)} savedAt={savedAt} />
+        <Toaster />
+      </>,
+    );
+    await screen.findByRole('heading', { name: 'Meu semestre', level: 2 }, { timeout: 10000 });
+
+    // The planner suggests it, so it is already in the semester.
+    expect(chosenNames()).toContain('Nota esperada em Práticas Extensionistas em Computação XI');
+
+    await user.click(screen.getByRole('radio', { name: /^Extensão, 1$/ }));
+    expect(within(catalog()).getByText('Práticas Extensionistas em Computação XI')).toBeInTheDocument();
+    expect(within(catalog()).getByText(/Extensão, período ideal 7/)).toBeInTheDocument();
   });
 
   it('names the grade input of a chosen course with its discipline', async () => {
