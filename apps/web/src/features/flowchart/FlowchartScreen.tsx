@@ -8,17 +8,20 @@ import {
   useReactFlow,
   type Edge,
 } from '@xyflow/react';
-import { toPng } from 'html-to-image';
+import { toBlob } from 'html-to-image';
 import { Download, LoaderCircle } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/lib/use-media-query';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH, CourseNode, type CourseNodeType } from './CourseNode';
-import { exportFrame } from './export-frame';
+import { downloadImage } from './export-image';
+import { exportFrame, exportPixelRatio } from './export-frame';
+import { ExportSheet, type ExportImage } from './ExportSheet';
 import { FlowchartList } from './FlowchartList';
 import { FlowLegend } from './FlowLegend';
 import { type FlowView, pickFlowView, readStoredFlowView, writeFlowView } from './flow-view';
@@ -27,6 +30,38 @@ import { highlightSet, nextPinned, visibleGraph } from './highlight';
 import { useHoverFocus } from './hoverFocus';
 
 const nodeTypes = { course: CourseNode };
+
+/**
+ * One paint, or a short wait when the browser is throttled (backgrounded tab, locked screen, occluded window).
+ * A bare requestAnimationFrame can stay pending forever there, which would freeze the export mid-flight.
+ */
+function nextPaint(timeout = 150): Promise<void> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, timeout);
+    requestAnimationFrame(() => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
+/** Longest the export waits for running animations to settle; in export mode there should be none. */
+const ANIMATIONS_SETTLE_MS = 500;
+
+/**
+ * Runs the capture on timer-backed frames. html-to-image waits for a requestAnimationFrame right after decoding
+ * its image, and a throttled page (backgrounded tab, locked screen, occluded window) can go minutes without
+ * painting one — the export would hang with the button stuck on "Exportando…". The real frame comes back after.
+ */
+async function withTimerFrames<T>(capture: () => Promise<T>): Promise<T> {
+  const real = window.requestAnimationFrame;
+  window.requestAnimationFrame = (callback) => window.setTimeout(() => callback(performance.now()), 16);
+  try {
+    return await capture();
+  } finally {
+    window.requestAnimationFrame = real;
+  }
+}
 
 function Graph({ data }: { data: ParseResponse }) {
   const { curriculum, transcript } = data;
@@ -37,8 +72,19 @@ function Graph({ data }: { data: ParseResponse }) {
   const [flowView, setFlowView] = useState<FlowView>(() => pickFlowView(readStoredFlowView()));
   const asList = flowView === 'lista';
   const [exporting, setExporting] = useState(false);
+  const [exportImage, setExportImage] = useState<ExportImage | null>(null);
+  // A touch screen gets the image in a sheet: on iOS a download has no place to go, especially as an installed PWA.
+  const touchScreen = useMediaQuery('(pointer: coarse)');
   const { fitView, setViewport } = useReactFlow();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // The sheet owns the image: release the previous object URL when a new export replaces it, and on unmount.
+  useEffect(() => {
+    const url = exportImage?.url;
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [exportImage]);
 
   const layout = useMemo(() => layoutFlowchart(curriculum, transcript, { columnWidth: 264, rowHeight: 112 }), [curriculum, transcript]);
   const graph = useMemo(() => visibleGraph(layout.nodes, layout.edges, onlyRemaining), [layout, onlyRemaining]);
@@ -98,11 +144,13 @@ function Graph({ data }: { data: ParseResponse }) {
   }, [fitView, setViewport, layout.width]);
 
   // The graph mounts a frame after the list is left, so the capture waits for its viewport instead of assuming it.
+  // The deadline, not a frame count, bounds the wait: a throttled tab may never paint a frame.
   const waitForViewport = useCallback(async (): Promise<HTMLElement | null> => {
-    for (let frame = 0; frame < 60; frame++) {
+    const deadline = Date.now() + 2000;
+    while (Date.now() < deadline) {
       const viewport = containerRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
       if (viewport) return viewport;
-      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await nextPaint();
     }
     return null;
   }, []);
@@ -125,26 +173,34 @@ function Graph({ data }: { data: ParseResponse }) {
         hover.clear();
         setPinned(null);
       });
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-      await Promise.allSettled((viewportEl.getAnimations?.({ subtree: true }) ?? []).map((a) => a.finished));
+      await nextPaint();
+      // Transitions and entrance animations are off in export mode; the race keeps a stuck animation from freezing it.
+      await Promise.race([
+        Promise.allSettled((viewportEl.getAnimations?.({ subtree: true }) ?? []).map((a) => a.finished)),
+        new Promise((resolve) => setTimeout(resolve, ANIMATIONS_SETTLE_MS)),
+      ]);
       // Frame the visible cards at 1:1 from the layout, regardless of the current zoom and pan on screen.
       const frame = exportFrame(graph.nodes, COURSE_NODE_WIDTH, COURSE_NODE_HEIGHT, 48);
-      const url = await toPng(viewportEl, {
-        backgroundColor: getComputedStyle(document.body).backgroundColor,
-        width: frame.width,
-        height: frame.height,
-        pixelRatio: 2,
-        style: {
-          width: `${frame.width}px`,
-          height: `${frame.height}px`,
-          transform: `translate(${frame.offsetX}px, ${frame.offsetY}px) scale(1)`,
-        },
-      });
-      const link = document.createElement('a');
-      link.download = 'fluxograma.png';
-      link.href = url;
-      link.click();
-      toast.success('Fluxograma exportado.');
+      const blob = await withTimerFrames(() =>
+        toBlob(viewportEl, {
+          backgroundColor: getComputedStyle(document.body).backgroundColor,
+          width: frame.width,
+          height: frame.height,
+          pixelRatio: exportPixelRatio(frame),
+          style: {
+            width: `${frame.width}px`,
+            height: `${frame.height}px`,
+            transform: `translate(${frame.offsetX}px, ${frame.offsetY}px) scale(1)`,
+          },
+        }),
+      );
+      if (!blob) throw new Error('A imagem exportada saiu vazia.');
+      if (touchScreen) {
+        setExportImage({ url: URL.createObjectURL(blob), blob });
+      } else {
+        downloadImage(blob);
+        toast.success('Fluxograma exportado.');
+      }
     } catch {
       toast.error('Não foi possível exportar a imagem. Tente de novo.');
     } finally {
@@ -245,6 +301,8 @@ function Graph({ data }: { data: ParseResponse }) {
           </HighlightContext>
         </div>
       )}
+
+      <ExportSheet image={exportImage} onClose={() => setExportImage(null)} />
     </div>
   );
 }
