@@ -31,8 +31,9 @@ export function forecastGraduation(c: Curriculum, t: Transcript, opts: { maxCred
   const terms: ForecastTerm[] = [];
   let term = latest ? nextTerm(latest) : t.admissionTerm;
   for (let i = 0; term && i < MAX_SIMULATED_TERMS && remaining().length > 0; i++) {
-    const ranked = rankCandidates(c, t, { includeElectives: false, assumeDone, countInProgress: true });
-    const picks = pickWithinCredits(ranked, maxCredits, 0);
+    // The forecast schedules the mandatory path only: electives and extension are hour requirements, listed as pending.
+    const ranked = rankCandidates(c, t, { includeElectives: false, includeExtension: false, assumeDone, countInProgress: true });
+    const picks = pickWithinCredits(ranked, maxCredits, 0, 0);
     if (picks.length === 0) break;
     terms.push({ term, courses: picks, credits: picks.reduce((s, x) => s + x.credits, 0) });
     for (const p of picks) assumeDone.add(p.code);
