@@ -175,14 +175,16 @@ CR = Σ (nota × CH) / Σ CH      sobre entradas com status ∈ {aprovado, disp_
 ### Sugestões para o próximo semestre
 
 1. Candidatas:
-   - obrigatórias (e eletivas do currículo) não concluídas e não em curso, com pré-requisitos satisfeitos (com o toggle de "em curso");
-   - excluindo ENADE e atividades de extensão, que são listadas à parte como pendências.
+   - obrigatórias não concluídas e não em curso, com pré-requisitos satisfeitos (com o toggle de "em curso");
+   - **eletivas** do currículo, enquanto faltarem horas de eletiva na integralização;
+   - **disciplinas de extensão** ("Práticas Extensionistas"), enquanto faltarem horas de extensão — são disciplinas normais, com código, créditos e pré-requisitos, e são como o aluno cumpre as 320 h do currículo real;
+   - excluindo ENADE e o que já está em curso ou concluído.
 2. Ordenação:
    - (a) período ideal crescente;
    - (b) número de disciplinas que ela desbloqueia transitivamente (decrescente);
    - (c) créditos.
-3. Seleção gulosa até o máximo de créditos por período (do currículo; se ausente, 30), respeitando o mínimo.
-4. Cada sugestão traz um motivo legível, ex.: "Obrigatória, período ideal 8, não é pré-requisito de outras". O "desbloqueia" conta só obrigatórias e eletivas: no currículo real, 7 optativas exigem o TCC, e contá-las distorceria a ordem.
+3. Seleção gulosa até o máximo de créditos por período (do currículo; se ausente, 30), respeitando o mínimo. Eletivas e extensão também respeitam um teto em horas: não se gasta crédito com horas que a integralização não pede mais.
+4. Cada sugestão traz um motivo legível, ex.: "Obrigatória, período ideal 8, não é pré-requisito de outras" ou "Extensão, período ideal 7, não é pré-requisito de outras". O "desbloqueia" conta só obrigatórias e eletivas: no currículo real, 7 optativas exigem o TCC, e contá-las distorceria a ordem.
 
 ### Previsão de formatura
 
@@ -226,7 +228,8 @@ CR = Σ (nota × CH) / Σ CH      sobre entradas com status ∈ {aprovado, disp_
    - **Exportação:** botão "Exportar PNG" (`html-to-image`), gerado localmente. A imagem é sempre o fluxograma, mesmo com a lista na tela, e sai sem as notas dos cartões. Em telas de toque a imagem abre numa folha com prévia e o botão "Salvar ou compartilhar" (folha de compartilhamento do sistema, que é onde a imagem vira Foto ou Arquivo no iOS); no mouse ela baixa direto. O botão fica em "Exportando…" enquanto a imagem é gerada.
 4. **Disciplinas:** tabela filtrável (status, categoria, período, busca) com todas as entradas do histórico.
 5. **Planejamento:**
-   - sugestões com motivo;
+   - sugestões com motivo (obrigatórias, eletivas e disciplinas de extensão);
+   - catálogo de disciplinas do próximo semestre com busca e filtros ("Sugeridas", "Obrigatórias", "Eletivas", "Extensão", "Bloqueadas"), mostrando categoria, período ideal, créditos, carga e o que falta para liberar;
    - seleção de disciplinas com contador de créditos (mín./máx.);
    - sliders de nota esperada;
    - gráfico de CR com projeção tracejada, melhor e pior caso.

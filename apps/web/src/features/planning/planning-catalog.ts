@@ -7,23 +7,24 @@ import {
   type Transcript,
 } from '@easy-grades/core';
 
-export type CatalogFilter = 'sugeridas' | 'obrigatorias' | 'eletivas' | 'bloqueadas';
+export type CatalogFilter = 'sugeridas' | 'obrigatorias' | 'eletivas' | 'extensao' | 'bloqueadas';
 
 export const CATALOG_FILTERS: { value: CatalogFilter; label: string }[] = [
   { value: 'sugeridas', label: 'Sugeridas' },
   { value: 'obrigatorias', label: 'Obrigatórias' },
   { value: 'eletivas', label: 'Eletivas' },
+  { value: 'extensao', label: 'Extensão' },
   { value: 'bloqueadas', label: 'Bloqueadas' },
 ];
 
 export interface CatalogItem {
   code: string;
   name: string;
-  category: 'obrigatoria' | 'eletiva';
+  category: 'obrigatoria' | 'eletiva' | 'extensao';
   credits: number;
   hours: number;
   idealPeriod: number | null;
-  /** Mandatory or elective courses this one unlocks, directly or not. */
+  /** Mandatory, elective or extension courses this one unlocks, directly or not. */
   unlocks: number;
   /** "Libera N disciplinas", or why it unlocks nothing. */
   reason: string;
@@ -41,7 +42,7 @@ export function formatMissing(missing: readonly (readonly string[])[]): string {
 }
 
 /**
- * Pending mandatory and elective courses: not passed, not in progress (those are under "Em curso agora").
+ * Pending mandatory, elective and extension courses: not passed, not in progress (those are under "Em curso agora").
  * Released and blocked courses are both listed, so the student can see what is missing.
  */
 export function buildCatalog(c: Curriculum, t: Transcript, countInProgress: boolean): CatalogItem[] {
@@ -53,7 +54,7 @@ export function buildCatalog(c: Curriculum, t: Transcript, countInProgress: bool
   return c.courses
     .filter(
       (course) =>
-        (course.category === 'obrigatoria' || course.category === 'eletiva') &&
+        (course.category === 'obrigatoria' || course.category === 'eletiva' || course.category === 'extensao') &&
         !course.code.startsWith('ENADE') &&
         !done.has(course.code) &&
         !inProgress.has(course.code),
@@ -104,7 +105,9 @@ export function filterCatalog(items: readonly CatalogItem[], { filter, query, su
           ? blocked
           : filter === 'obrigatorias'
             ? item.category === 'obrigatoria'
-            : item.category === 'eletiva';
+            : filter === 'eletivas'
+              ? item.category === 'eletiva'
+              : item.category === 'extensao';
     return matchesFilter && (!q || item.searchText.includes(q));
   });
 }

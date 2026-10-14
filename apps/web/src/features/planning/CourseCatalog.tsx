@@ -9,7 +9,7 @@ import { formatHours, pluralize, toTitleCase } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { CATALOG_FILTERS, filterCatalog, formatMissing, type CatalogFilter, type CatalogItem } from './planning-catalog';
 
-const CATEGORY_NAMES = { obrigatoria: 'Obrigatória', eletiva: 'Eletiva' } as const;
+const CATEGORY_NAMES = { obrigatoria: 'Obrigatória', eletiva: 'Eletiva', extensao: 'Extensão' } as const;
 
 interface CourseCatalogProps {
   items: readonly CatalogItem[];
