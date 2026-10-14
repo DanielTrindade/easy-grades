@@ -223,7 +223,7 @@ CR = Σ (nota × CH) / Σ CH      sobre entradas com status ∈ {aprovado, disp_
      - posição determinística calculada em `packages/core` (`layoutFlowchart`): x pelo período, y ordenado para minimizar cruzamentos (barycenter simples). Sem dagre/elk;
      - entrada com stagger por coluna (motion), respeitando `prefers-reduced-motion`.
    - **Acessibilidade:** navegação por teclado entre nós, e uma lista alternativa acessível (tabela por período) para leitores de tela.
-   - **Exportação:** botão "Exportar PNG" (`html-to-image`), gerado localmente. A imagem é sempre o fluxograma, mesmo com a lista na tela, e sai sem as notas dos cartões. O botão fica em "Exportando…" enquanto a imagem é gerada.
+   - **Exportação:** botão "Exportar PNG" (`html-to-image`), gerado localmente. A imagem é sempre o fluxograma, mesmo com a lista na tela, e sai sem as notas dos cartões. Em telas de toque a imagem abre numa folha com prévia e o botão "Salvar ou compartilhar" (folha de compartilhamento do sistema, que é onde a imagem vira Foto ou Arquivo no iOS); no mouse ela baixa direto. O botão fica em "Exportando…" enquanto a imagem é gerada.
 4. **Disciplinas:** tabela filtrável (status, categoria, período, busca) com todas as entradas do histórico.
 5. **Planejamento:**
    - sugestões com motivo;

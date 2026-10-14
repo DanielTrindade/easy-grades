@@ -27,3 +27,11 @@ export function exportFrame(
     offsetY: padding - minY,
   };
 }
+
+/** Mobile Safari cannot draw a canvas past 4096 px in either dimension and hands back a blank image. */
+export const MAX_EXPORT_PX = 4096;
+
+/** Export scale: up to 2x, shrunk only when the frame would cross the canvas ceiling of mobile Safari. */
+export function exportPixelRatio(frame: { width: number; height: number }, max = 2): number {
+  return Math.min(max, MAX_EXPORT_PX / frame.width, MAX_EXPORT_PX / frame.height);
+}
