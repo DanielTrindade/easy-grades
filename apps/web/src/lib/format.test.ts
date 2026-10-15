@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCr, formatHours, formatPercent, pluralize, toTitleCase } from './format';
+import { formatCr, formatHours, formatOneDecimal, formatPercent, pluralize, toTitleCase } from './format';
 import { viewFromHash } from './use-hash-view';
 
 describe('format', () => {
@@ -8,6 +8,8 @@ describe('format', () => {
     expect(formatCr(null)).toBe('sem nota');
     expect(formatPercent(64.69)).toBe('64,69%');
     expect(formatHours(3200)).toBe('3.200 h');
+    expect(formatOneDecimal(0.29)).toBe('0,3');
+    expect(formatOneDecimal(2)).toBe('2,0');
   });
 
   it('title-cases course names keeping roman numerals and connectives', () => {

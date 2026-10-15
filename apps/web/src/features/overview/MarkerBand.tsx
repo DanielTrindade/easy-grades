@@ -1,10 +1,14 @@
-import type { Progress } from '@easy-grades/core';
-import { formatHours, formatPercent } from '@/lib/format';
+import { formatTerm, type InProgressInsights, type MilestoneInsights, type Progress } from '@easy-grades/core';
+import { formatHours, formatPercent, pluralize } from '@/lib/format';
 
 interface MarkerBandProps {
   progress: Progress;
   /** Extra percentage points from activities the student registered and the coordination has not posted yet. */
   pendingPercent?: number;
+  /** Next 25/50/75/90/100 milestone, with the hours left and the estimated term. */
+  milestone?: MilestoneInsights | null;
+  /** Enrolled courses; projected as completed when everything is approved. */
+  inProgress?: InProgressInsights | null;
   /** Play the one-time reveal (first time this dataset is shown). */
   reveal: boolean;
   onRevealed: () => void;
@@ -15,7 +19,7 @@ interface MarkerBandProps {
  * percentage, with a hard edge; the rest is the empty track. Activities the student registered are a hatched fill
  * right after the done part.
  */
-export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }: MarkerBandProps) {
+export function MarkerBand({ progress, pendingPercent = 0, milestone = null, inProgress = null, reveal, onRevealed }: MarkerBandProps) {
   const percent = progress.officialPercent ?? progress.percent;
   const hasPending = pendingPercent > 0;
   const room = Number((100 - percent).toFixed(2));
@@ -60,12 +64,32 @@ export function MarkerBand({ progress, pendingPercent = 0, reveal, onRevealed }:
               }}
             />
           )}
+          {milestone && (
+            <span
+              data-milestone={milestone.target}
+              aria-hidden
+              className="absolute inset-y-0 border-l border-dashed border-suave"
+              style={{ left: `${milestone.target}%` }}
+            />
+          )}
         </div>
       </div>
       {progress.divergent && progress.officialPercent !== null && (
         <p className="mt-3 text-sm text-muted-foreground">
           O e-Campus informa {formatPercent(progress.officialPercent)}; pelas disciplinas do histórico calculamos{' '}
           {formatPercent(progress.percent)}. Mostramos o valor do e-Campus.
+        </p>
+      )}
+      {inProgress && (
+        <p className="mt-1 max-w-[60ch] text-muted-foreground">
+          Em curso: {pluralize(inProgress.courses, 'disciplina', 'disciplinas')}, {formatHours(inProgress.hours)}.
+          {inProgress.percentIfApproved !== null && ` Se aprovar tudo: ${formatPercent(inProgress.percentIfApproved)} do curso.`}
+        </p>
+      )}
+      {milestone && (
+        <p className="mt-1 max-w-[60ch] text-muted-foreground">
+          Próxima meta: {milestone.target}%. Faltam {formatHours(milestone.hoursLeft)}
+          {milestone.term ? ` — no seu ritmo, até ${formatTerm(milestone.term)}` : ''}.
         </p>
       )}
       <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-5">
