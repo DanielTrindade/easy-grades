@@ -11,6 +11,32 @@ function position(term: string | null, timeline: TimelineInsights): number | nul
   return Math.min(100, Math.max(0, raw));
 }
 
+function slackTail(timeline: TimelineInsights): string {
+  if (timeline.paceSlack === null || timeline.maxTerm === null) return '';
+  if (timeline.paceSlack >= 0) {
+    return `, com ${pluralize(timeline.paceSlack, 'período', 'períodos')} de folga até ${formatTerm(timeline.maxTerm)}`;
+  }
+  return `, ${pluralize(Math.abs(timeline.paceSlack), 'período', 'períodos')} além do prazo máximo de ${formatTerm(timeline.maxTerm)}`;
+}
+
+function timelineSentence(timeline: TimelineInsights): string {
+  const parts: string[] = [];
+  if (timeline.currentPeriod !== null && timeline.usedPercent !== null) {
+    parts.push(
+      `Você está no ${timeline.currentPeriod}º período de ${timeline.minPeriods} ideais — ${formatPercent(timeline.usedPercent)} do prazo máximo de ${timeline.maxPeriods}.`,
+    );
+  }
+  if (timeline.forecastTerm !== null) {
+    parts.push(`As obrigatórias terminam em ${formatTerm(timeline.forecastTerm)}.`);
+  }
+  if (timeline.paceTerm !== null) {
+    parts.push(
+      `No seu ritmo médio, contando as horas fora das disciplinas, o curso fecha em ${formatTerm(timeline.paceTerm)}${slackTail(timeline)}.`,
+    );
+  }
+  return parts.join(' ');
+}
+
 interface TimelineBandProps {
   timeline: TimelineInsights;
 }
@@ -26,27 +52,7 @@ export function TimelineBand({ timeline }: TimelineBandProps) {
     { label: 'Previsão', term: timeline.forecastTerm },
     { label: 'Limite', term: timeline.maxTerm },
   ];
-  const parts: string[] = [];
-  if (timeline.currentPeriod !== null && timeline.usedPercent !== null) {
-    parts.push(
-      `Você está no ${timeline.currentPeriod}º período de ${timeline.minPeriods} ideais — ${formatPercent(timeline.usedPercent)} do prazo máximo de ${timeline.maxPeriods}.`,
-    );
-  }
-  if (timeline.forecastTerm !== null) {
-    parts.push(`As obrigatórias terminam em ${formatTerm(timeline.forecastTerm)}.`);
-  }
-  if (timeline.paceTerm !== null) {
-    const maxTerm = timeline.maxTerm;
-    const tail =
-      timeline.paceSlack === null || maxTerm === null
-        ? ''
-        : timeline.paceSlack >= 0
-          ? `, com ${pluralize(timeline.paceSlack, 'período', 'períodos')} de folga até ${formatTerm(maxTerm)}`
-          : `, ${pluralize(Math.abs(timeline.paceSlack), 'período', 'períodos')} além do prazo máximo de ${formatTerm(maxTerm)}`;
-    parts.push(
-      `No seu ritmo médio, contando as horas fora das disciplinas, o curso fecha em ${formatTerm(timeline.paceTerm)}${tail}.`,
-    );
-  }
+  const sentence = timelineSentence(timeline);
 
   return (
     <section aria-labelledby="linha-do-tempo" className="min-w-0">
@@ -92,7 +98,7 @@ export function TimelineBand({ timeline }: TimelineBandProps) {
           </div>
         ))}
       </dl>
-      {parts.length > 0 && (
+      {sentence.length > 0 && (
         <p
           className={
             late
@@ -101,7 +107,7 @@ export function TimelineBand({ timeline }: TimelineBandProps) {
           }
         >
           {late && <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-erro" />}
-          <span>{parts.join(' ')}</span>
+          <span>{sentence}</span>
         </p>
       )}
     </section>
