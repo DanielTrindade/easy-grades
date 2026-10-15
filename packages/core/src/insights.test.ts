@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { sampleCurriculum, sampleTranscript } from './__fixtures__/sample';
 import {
+  attemptInsights,
+  crProjectionInsights,
+  delayInsights,
+  gradeInsights,
   inProgressInsights,
   milestoneInsights,
   paceInsights,
   pendingInsights,
   performanceInsights,
   progressWithPendingAacc,
+  streakInsights,
   timelineInsights,
 } from './insights';
 import type { Curriculum, Transcript, TranscriptEntry } from './schemas';
@@ -160,9 +165,17 @@ describe('performanceInsights', () => {
 
   it('returns nulls and zeros when nothing counts', () => {
     expect(performanceInsights(sampleCurriculum, withEntries([]))).toEqual({
-      takenHours: 0, failedHours: 0, passRate: null, failures: 0, unresolvedFailures: [], retakingNow: [],
+      takenHours: 0, failedHours: 0, failedCredits: 0, passRate: null, failures: 0, unresolvedFailures: [], retakingNow: [],
       lastTerm: null, previousCumulativeCr: null, trend: null, bestTerm: null, worstTerm: null,
       mandatoryCr: null, creditedCount: 0, creditedHours: 0,
+      crByCategory: { optativa: null, eletiva: null, extensao: null },
+    });
+  });
+
+  it('sums the credits of the failures and breaks the CR down by category', () => {
+    expect(p).toMatchObject({
+      failedCredits: 8,
+      crByCategory: { optativa: 7.516, eletiva: 8.65, extensao: null },
     });
   });
 
@@ -346,5 +359,115 @@ describe('pendingInsights', () => {
       { code: 'ICC002', name: 'ALGORITMOS E ESTRUTURA DE DADOS I', unlocks: 1 },
     ]);
     expect(q).toMatchObject({ mandatoryTotal: 3, mandatoryRemaining: 3, available: 1, blocked: 2 });
+  });
+});
+
+describe('crProjectionInsights', () => {
+  const tiny = {
+    ...sampleCurriculum,
+    courses: sampleCurriculum.courses.filter((x) => x.code === 'ICC001' || x.code === 'ICC002'),
+  };
+  const taken = withEntries([entry({ code: 'ICC001', term: '2024.1', hours: 60, credits: 5, grade: 6 })]);
+
+  it('projects the best and worst CR over the mandatory courses left', () => {
+    expect(crProjectionInsights(tiny, taken)).toEqual({ remainingCourses: 1, remainingHours: 90, best: 8.4, worst: 5.4 });
+  });
+
+  it('projects nothing when there is no mandatory course left', () => {
+    const all = withEntries([entry({ code: 'ICC001', grade: 6 }), entry({ code: 'ICC002', hours: 90, grade: 7 })]);
+    expect(crProjectionInsights(tiny, all)).toEqual({ remainingCourses: 0, remainingHours: 0, best: 6.6, worst: 6.6 });
+  });
+});
+
+describe('delayInsights', () => {
+  it('reads the delay against the ideal term, only for courses actually taken', () => {
+    const q = delayInsights(
+      sampleCurriculum,
+      withEntries([
+        entry({ code: 'ICC001', term: '2024.1', grade: 7, status: 'equivalencia', rawStatus: 'Equivalenc' }),
+        entry({ code: 'ICC120', term: '2024.1', grade: 7 }),
+        entry({ code: 'IEM075', term: '2024.2', grade: 7 }),
+        entry({ code: 'ICC120', term: '2025.1', grade: 8 }),
+      ]),
+    );
+    expect(q).toEqual({ courses: 2, averageDelay: 1.5, onTime: 0, onTimePercent: 0 });
+  });
+
+  it('is absent without the admission term', () => {
+    expect(delayInsights(sampleCurriculum, { ...sampleTranscript, admissionTerm: null })).toBeNull();
+  });
+});
+
+describe('attemptInsights', () => {
+  it('lists courses with more than one enrolment, unresolved first', () => {
+    expect(
+      attemptInsights(
+        withEntries([
+          entry({ code: 'ICC120', term: '2024.2', grade: 3, status: 'reprovado_nota', rawStatus: 'Repro Nota' }),
+          entry({ code: 'ICC120', term: '2025.1', grade: 7 }),
+          entry({ code: 'ICC130', name: 'ESTRUTURAS DE DADOS', term: '2024.2', grade: 2, status: 'reprovado_freq', rawStatus: 'Repro Freq' }),
+          entry({ code: 'ICC130', name: 'ESTRUTURAS DE DADOS', term: '2025.1', grade: 4, status: 'reprovado_nota', rawStatus: 'Repro Nota' }),
+          entry({ code: 'ICC130', name: 'ESTRUTURAS DE DADOS', term: '2026.2', grade: null, status: 'matriculado', rawStatus: 'Matricula' }),
+          entry({ code: 'ICC001' }),
+        ]),
+      ),
+    ).toEqual([
+      { code: 'ICC130', name: 'ESTRUTURAS DE DADOS', attempts: 2, approved: false, retakingNow: true },
+      { code: 'ICC120', name: 'DISCIPLINA', attempts: 2, approved: true, retakingNow: false },
+    ]);
+  });
+
+  it('is empty without repeated courses', () => {
+    expect(attemptInsights(withEntries([entry({}), entry({ code: 'IEM075' })]))).toEqual([]);
+  });
+});
+
+describe('streakInsights', () => {
+  it('counts the recent terms without failures and remembers the last one', () => {
+    expect(streakInsights(sampleTranscript)).toEqual({ terms: 1, judgedTerms: 5, lastFailureTerm: '2025.2', neverFailed: false });
+  });
+
+  it('reports a clean history when nothing was failed', () => {
+    const q = streakInsights(withEntries([entry({ term: '2024.1', grade: 8 }), entry({ term: '2024.2', grade: 9 })]));
+    expect(q).toEqual({ terms: 2, judgedTerms: 2, lastFailureTerm: null, neverFailed: true });
+  });
+
+  it('ignores terms without graded enrolments', () => {
+    const q = streakInsights(
+      withEntries([
+        entry({ term: '2024.1', grade: 8 }),
+        entry({ term: '2024.2', grade: null, status: 'matriculado', rawStatus: 'Matricula' }),
+      ]),
+    );
+    expect(q).toMatchObject({ terms: 1, judgedTerms: 1 });
+  });
+});
+
+describe('gradeInsights', () => {
+  it('reads the median and the distribution of the graded courses', () => {
+    const q = gradeInsights(
+      withEntries([
+        entry({ code: 'ICC120', grade: 5.5, status: 'reprovado_nota', rawStatus: 'Repro Nota' }),
+        entry({ code: 'ICC001', grade: 9.5 }),
+        entry({ code: 'IEM075', grade: 8 }),
+      ]),
+    );
+    expect(q).toEqual({
+      count: 3,
+      median: 8,
+      ninePlus: 1,
+      bands: [
+        { key: 'abaixo6', count: 1 },
+        { key: '6a7', count: 0 },
+        { key: '7a8', count: 0 },
+        { key: '8a9', count: 1 },
+        { key: '9a10', count: 1 },
+      ],
+    });
+  });
+
+  it('is absent without grades', () => {
+    const enrolled = withEntries([entry({ grade: null, status: 'matriculado', rawStatus: 'Matricula' })]);
+    expect(gradeInsights(enrolled)).toBeNull();
   });
 });

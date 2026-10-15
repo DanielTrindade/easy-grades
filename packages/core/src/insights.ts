@@ -1,8 +1,8 @@
-import { computeCr, crByTerm, type TermCr } from './cr';
+import { computeCr, crByTerm, crScenarios, type TermCr } from './cr';
 import { forecastGraduation, type Forecast } from './forecast';
 import { completedCodes, dependentClosure, inProgressCodes, isSatisfied } from './prerequisites';
 import { computeProgress } from './progress';
-import type { Category, Curriculum, Transcript } from './schemas';
+import type { Category, Curriculum, CurriculumCourse, Transcript, TranscriptEntry, Status } from './schemas';
 import { countsInCr, isCompleted, isFailed, isInProgress } from './status';
 import { isEnade, latestTerm } from './suggestions';
 import { addTerms, compareTerms, termIndex } from './terms';
@@ -42,13 +42,15 @@ export interface PerformanceInsights {
   mandatoryCr: number | null;
   creditedCount: number;
   creditedHours: number;
+  failedCredits: number;
+  crByCategory: { optativa: number | null; eletiva: number | null; extensao: number | null };
 }
 
 const CREDITED_STATUSES = new Set(['equivalencia', 'transf_real', 'disp_nota', 'disp']);
 const TREND_THRESHOLD = 0.05;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
-export const round1 = (n: number) => Math.round(n * 10) / 10 + 0;
+const round1 = (n: number) => Math.round(n * 10) / 10 + 0;
 
 export function paceInsights(c: Curriculum, t: Transcript): PaceInsights {
   const progress = computeProgress(c, t);
@@ -147,6 +149,12 @@ export function performanceInsights(c: Curriculum, t: Transcript): PerformanceIn
     mandatoryCr: computeCr(t.entries.filter((e) => e.category === 'obrigatoria')),
     creditedCount: credited.length,
     creditedHours: credited.reduce((sum, e) => sum + (e.hours ?? 0), 0),
+    failedCredits: failed.reduce((sum, e) => sum + (e.credits ?? 0), 0),
+    crByCategory: {
+      optativa: computeCr(t.entries.filter((e) => e.category === 'optativa')),
+      eletiva: computeCr(t.entries.filter((e) => e.category === 'eletiva')),
+      extensao: computeCr(t.entries.filter((e) => e.category === 'extensao')),
+    },
   };
 }
 
@@ -321,4 +329,137 @@ export function pendingInsights(c: Curriculum, t: Transcript): PendingInsights {
     },
     bottlenecks,
   };
+}
+
+/** Enrolments that were actually taken, graded or not: the course history, equivalence aside. */
+const TAKEN_STATUSES = new Set<Status>(['aprovado', 'disp_nota', 'reprovado_nota', 'reprovado_freq']);
+
+export interface CrProjectionInsights {
+  remainingCourses: number;
+  remainingHours: number;
+  /** CR at graduation when every remaining mandatory course is worth 10. */
+  best: number | null;
+  /** CR at graduation when every remaining mandatory course is worth 5 (the minimum pass). */
+  worst: number | null;
+}
+
+export function crProjectionInsights(c: Curriculum, t: Transcript): CrProjectionInsights {
+  const done = completedCodes(t);
+  const remaining = c.courses.filter((x) => x.category === 'obrigatoria' && !isEnade(x.code) && !done.has(x.code));
+  const planned = remaining.map((x) => ({ code: x.code, hours: x.hours.total }));
+  const scenarios = crScenarios(t, planned);
+  return {
+    remainingCourses: planned.length,
+    remainingHours: planned.reduce((sum, p) => sum + p.hours, 0),
+    best: scenarios.best,
+    worst: scenarios.worst,
+  };
+}
+
+export interface DelayInsights {
+  courses: number;
+  /** Mean terms between the ideal term and the term the course was last taken. */
+  averageDelay: number;
+  onTime: number;
+  onTimePercent: number;
+}
+
+export function delayInsights(c: Curriculum, t: Transcript): DelayInsights | null {
+  const admission = t.admissionTerm;
+  if (!admission) return null;
+  const byCode = new Map<string, CurriculumCourse>(c.courses.map((x) => [x.code, x]));
+  const lastTaken = new Map<string, TranscriptEntry>();
+  for (const e of t.entries) {
+    if (!TAKEN_STATUSES.has(e.status) || isEnade(e.code)) continue;
+    const course = byCode.get(e.code);
+    if (!course || course.category !== 'obrigatoria' || course.idealPeriod === null) continue;
+    const current = lastTaken.get(e.code);
+    if (!current || compareTerms(e.term, current.term) > 0) lastTaken.set(e.code, e);
+  }
+  if (lastTaken.size === 0) return null;
+  let sum = 0;
+  let onTime = 0;
+  for (const e of lastTaken.values()) {
+    const course = byCode.get(e.code)!;
+    const ideal = addTerms(admission, course.idealPeriod! - 1);
+    const delay = termIndex(e.term) - termIndex(ideal);
+    sum += delay;
+    if (delay <= 0) onTime += 1;
+  }
+  return {
+    courses: lastTaken.size,
+    averageDelay: round1(sum / lastTaken.size),
+    onTime,
+    onTimePercent: round2((onTime / lastTaken.size) * 100),
+  };
+}
+
+export interface CourseAttempts {
+  code: string;
+  name: string;
+  /** Historical enrolments that ended in a grade, approvals and failures. */
+  attempts: number;
+  approved: boolean;
+  retakingNow: boolean;
+}
+
+export function attemptInsights(t: Transcript): CourseAttempts[] {
+  const byCode = new Map<string, CourseAttempts>();
+  for (const e of t.entries) {
+    if (isEnade(e.code)) continue;
+    const item = byCode.get(e.code) ?? { code: e.code, name: e.name, attempts: 0, approved: false, retakingNow: false };
+    if (TAKEN_STATUSES.has(e.status)) item.attempts += 1;
+    if (isCompleted(e.status)) item.approved = true;
+    if (isInProgress(e.status)) item.retakingNow = true;
+    byCode.set(e.code, item);
+  }
+  return [...byCode.values()]
+    .filter((x) => x.attempts >= 2)
+    .sort((a, b) => Number(a.approved) - Number(b.approved) || b.attempts - a.attempts || a.code.localeCompare(b.code));
+}
+
+export interface StreakInsights {
+  /** Recent terms in a row without a failure. */
+  terms: number;
+  /** Terms with at least one graded enrolment; 0 means there is no history to read. */
+  judgedTerms: number;
+  lastFailureTerm: string | null;
+  neverFailed: boolean;
+}
+
+export function streakInsights(t: Transcript): StreakInsights {
+  const judged = [...new Set(t.entries.filter((e) => TAKEN_STATUSES.has(e.status)).map((e) => e.term))].sort(compareTerms);
+  const failedTerms = new Set(t.entries.filter((e) => isFailed(e.status)).map((e) => e.term));
+  const lastFailureTerm = [...failedTerms].sort(compareTerms).at(-1) ?? null;
+  let terms = 0;
+  for (let i = judged.length - 1; i >= 0 && !failedTerms.has(judged[i]!); i -= 1) terms += 1;
+  return { terms, judgedTerms: judged.length, lastFailureTerm, neverFailed: failedTerms.size === 0 };
+}
+
+export const GRADE_BANDS = ['abaixo6', '6a7', '7a8', '8a9', '9a10'] as const;
+export type GradeBandKey = (typeof GRADE_BANDS)[number];
+
+export interface GradeInsights {
+  count: number;
+  median: number;
+  ninePlus: number;
+  bands: { key: GradeBandKey; count: number }[];
+}
+
+function bandOf(grade: number): GradeBandKey {
+  if (grade < 6) return 'abaixo6';
+  if (grade < 7) return '6a7';
+  if (grade < 8) return '7a8';
+  if (grade < 9) return '8a9';
+  return '9a10';
+}
+
+export function gradeInsights(t: Transcript): GradeInsights | null {
+  const grades = t.entries.filter((e) => countsInCr(e.status) && e.grade !== null).map((e) => e.grade!);
+  if (grades.length === 0) return null;
+  const sorted = [...grades].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 1 ? sorted[middle]! : round2((sorted[middle - 1]! + sorted[middle]!) / 2);
+  const bands = GRADE_BANDS.map((key) => ({ key, count: grades.filter((grade) => bandOf(grade) === key).length }));
+  return { count: grades.length, median, ninePlus: bands.find((b) => b.key === '9a10')?.count ?? 0, bands };
 }
