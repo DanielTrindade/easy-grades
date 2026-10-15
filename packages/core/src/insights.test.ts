@@ -377,6 +377,14 @@ describe('crProjectionInsights', () => {
     const all = withEntries([entry({ code: 'ICC001', grade: 6 }), entry({ code: 'ICC002', hours: 90, grade: 7 })]);
     expect(crProjectionInsights(tiny, all)).toEqual({ remainingCourses: 0, remainingHours: 0, best: 6.6, worst: 6.6 });
   });
+
+  it('uses the hours from the transcript when the remaining course has an entry', () => {
+    const enrolled = withEntries([
+      entry({ code: 'ICC001', grade: 6 }),
+      entry({ code: 'ICC002', hours: 100, grade: null, status: 'matriculado', rawStatus: 'Matricula' }),
+    ]);
+    expect(crProjectionInsights(tiny, enrolled)).toEqual({ remainingCourses: 1, remainingHours: 100, best: 8.5, worst: 5.375 });
+  });
 });
 
 describe('delayInsights', () => {

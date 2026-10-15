@@ -346,7 +346,13 @@ export interface CrProjectionInsights {
 export function crProjectionInsights(c: Curriculum, t: Transcript): CrProjectionInsights {
   const done = completedCodes(t);
   const remaining = c.courses.filter((x) => x.category === 'obrigatoria' && !isEnade(x.code) && !done.has(x.code));
-  const planned = remaining.map((x) => ({ code: x.code, hours: x.hours.total }));
+  const withHours = new Map<string, TranscriptEntry>();
+  for (const e of t.entries) {
+    if (e.hours === null) continue;
+    const current = withHours.get(e.code);
+    if (!current || compareTerms(e.term, current.term) > 0) withHours.set(e.code, e);
+  }
+  const planned = remaining.map((x) => ({ code: x.code, hours: withHours.get(x.code)?.hours ?? x.hours.total }));
   const scenarios = crScenarios(t, planned);
   return {
     remainingCourses: planned.length,
