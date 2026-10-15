@@ -69,7 +69,7 @@ export function MarkerBand({ progress, pendingPercent = 0, milestone = null, inP
               data-milestone={milestone.target}
               aria-hidden
               className="absolute inset-y-0 border-l border-dashed border-suave"
-              style={{ left: `${milestone.target}%` }}
+              style={milestone.target === 100 ? { right: 0 } : { left: `${milestone.target}%` }}
             />
           )}
         </div>

@@ -80,6 +80,20 @@ describe('MarkerBand', () => {
     expect(screen.getByText('Próxima meta: 75%. Faltam 330 h — no seu ritmo, até 2027/1.')).toBeInTheDocument();
   });
 
+  it('keeps the tick visible at the last milestone', () => {
+    const { container } = render(
+      <MarkerBand
+        progress={progress}
+        reveal={false}
+        onRevealed={() => {}}
+        milestone={{ target: 100, hoursLeft: 30, term: null }}
+      />,
+    );
+    const tick = container.querySelector<HTMLElement>('[data-milestone="100"]');
+    expect(tick).not.toBeNull();
+    expect(tick!.style.right).toBe('0px');
+  });
+
   it('adds the projection of the enrolled courses', () => {
     render(
       <MarkerBand
