@@ -310,4 +310,10 @@ describe('inProgressInsights', () => {
     const done = withEntries(sampleTranscript.entries.filter((e) => e.status !== 'matriculado'));
     expect(inProgressInsights(sampleCurriculum, done)).toBeNull();
   });
+
+  it('keeps the ENADE out of the enrolled courses', () => {
+    const enrolled = entry({ code: 'ICC006', term: '2026.2', hours: 60, grade: null, status: 'matriculado', rawStatus: 'Matricula' });
+    const enade = entry({ code: 'ENADE02', name: 'ENADE - CONCLUINTE', term: '2026.2', hours: 60, grade: null, status: 'matriculado', rawStatus: 'Matricula' });
+    expect(inProgressInsights(sampleCurriculum, withEntries([enrolled, enade]))).toEqual({ courses: 1, hours: 60, percentIfApproved: 66.57 });
+  });
 });
