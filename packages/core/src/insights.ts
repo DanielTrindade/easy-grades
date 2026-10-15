@@ -1,9 +1,10 @@
 import { computeCr, crByTerm, type TermCr } from './cr';
+import { forecastGraduation, type Forecast } from './forecast';
 import { computeProgress } from './progress';
 import type { Category, Curriculum, Transcript } from './schemas';
 import { countsInCr, isCompleted, isFailed, isInProgress } from './status';
-import { compareTerms, termIndex } from './terms';
-import { latestTerm } from './suggestions';
+import { isEnade, latestTerm } from './suggestions';
+import { addTerms, compareTerms, termIndex } from './terms';
 
 export interface PaceInsights {
   termsElapsed: number;
@@ -46,6 +47,7 @@ const CREDITED_STATUSES = new Set(['equivalencia', 'transf_real', 'disp_nota', '
 const TREND_THRESHOLD = 0.05;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+export const round1 = (n: number) => Math.round(n * 10) / 10 + 0;
 
 export function paceInsights(c: Curriculum, t: Transcript): PaceInsights {
   const progress = computeProgress(c, t);
@@ -166,4 +168,101 @@ export function progressWithPendingAacc(
   const addedHours = aaccHours - aaccOfficial;
   const percent = base.requiredHours === 0 ? 100 : round2(((base.doneHours + addedHours) / base.requiredHours) * 100);
   return { percent, aaccHours, addedHours };
+}
+
+export interface TimelineInsights {
+  admissionTerm: string | null;
+  currentTerm: string | null;
+  /** Periods between admission and the current term, both included. */
+  currentPeriod: number | null;
+  minPeriods: number;
+  maxPeriods: number;
+  /** Last term allowed by the curriculum: admission + maxPeriods - 1. */
+  maxTerm: string | null;
+  /** How much of the maximum period is already used, capped at 100. */
+  usedPercent: number | null;
+  /** Term the mandatory courses end (forecast), when there is one. */
+  forecastTerm: string | null;
+  /** Terms between the forecast and the maximum: negative means it goes past it. */
+  forecastSlack: number | null;
+  /** Graduation term estimated from the average pace, when it can be measured. */
+  paceTerm: string | null;
+  /** Periods the remaining hours take at the average pace. */
+  pacePeriods: number | null;
+  /** Terms between the pace term and the maximum: negative means it goes past it. */
+  paceSlack: number | null;
+}
+
+export function timelineInsights(
+  c: Curriculum,
+  t: Transcript,
+  forecast: Forecast = forecastGraduation(c, t),
+): TimelineInsights {
+  const pace = paceInsights(c, t);
+  const admission = t.admissionTerm;
+  const currentTerm = latestTerm(t);
+  const maxTerm = admission ? addTerms(admission, c.requirements.maxPeriods - 1) : null;
+  const hasPace = pace.completedTerms > 0 && pace.avgHoursPerTerm > 0;
+  const pacePeriods = hasPace
+    ? pace.remainingHours === 0
+      ? 0
+      : Math.ceil(pace.remainingHours / pace.avgHoursPerTerm)
+    : null;
+  const paceTerm = pacePeriods !== null && currentTerm ? addTerms(currentTerm, pacePeriods) : null;
+  const slack = (term: string | null) => (term !== null && maxTerm !== null ? termIndex(maxTerm) - termIndex(term) : null);
+  return {
+    admissionTerm: admission,
+    currentTerm,
+    currentPeriod: admission ? pace.termsElapsed : null,
+    minPeriods: c.requirements.minPeriods,
+    maxPeriods: c.requirements.maxPeriods,
+    maxTerm,
+    usedPercent: admission ? Math.min(100, round2((pace.termsElapsed / c.requirements.maxPeriods) * 100)) : null,
+    forecastTerm: forecast.graduationTerm,
+    forecastSlack: slack(forecast.graduationTerm),
+    paceTerm,
+    pacePeriods,
+    paceSlack: slack(paceTerm),
+  };
+}
+
+export const MILESTONES = [25, 50, 75, 90, 100] as const;
+
+export interface MilestoneInsights {
+  target: number;
+  hoursLeft: number;
+  /** Term the milestone is reached at the current pace, when it can be measured. */
+  term: string | null;
+}
+
+export function milestoneInsights(c: Curriculum, t: Transcript): MilestoneInsights | null {
+  const progress = computeProgress(c, t);
+  const percent = progress.officialPercent ?? progress.percent;
+  const target = MILESTONES.find((milestone) => milestone > percent);
+  if (target === undefined) return null;
+  const pace = paceInsights(c, t);
+  const hoursLeft = Math.max(0, Math.ceil(((target - percent) / 100) * progress.requiredHours));
+  const currentTerm = latestTerm(t);
+  const periods =
+    pace.completedTerms > 0 && pace.avgHoursPerTerm > 0 ? Math.ceil(hoursLeft / pace.avgHoursPerTerm) : null;
+  return { target, hoursLeft, term: periods !== null && currentTerm ? addTerms(currentTerm, periods) : null };
+}
+
+export interface InProgressInsights {
+  courses: number;
+  hours: number;
+  /** Percentage of the course if every enrolled course is approved, on top of the displayed progress. */
+  percentIfApproved: number | null;
+}
+
+export function inProgressInsights(c: Curriculum, t: Transcript): InProgressInsights | null {
+  const entries = t.entries.filter((e) => isInProgress(e.status) && !isEnade(e.code));
+  if (entries.length === 0) return null;
+  const progress = computeProgress(c, t);
+  const hours = entries.reduce((sum, e) => sum + (e.hours ?? 0), 0);
+  const base = progress.officialPercent ?? progress.percent;
+  const added = round2((hours / progress.requiredHours) * 100);
+  const percentIfApproved =
+    hours <= 0 || progress.requiredHours === 0 ? null : Math.min(100, round2(base + added));
+  return { courses: entries.length, hours, percentIfApproved };
 }
