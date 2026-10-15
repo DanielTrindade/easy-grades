@@ -8,6 +8,7 @@ import { IntegrationTable } from './IntegrationTable';
 import { MarkerBand } from './MarkerBand';
 import { OverviewSummary } from './OverviewSummary';
 import { PaceSection } from './PaceSection';
+import { PendingSection } from './PendingSection';
 import { PerformanceSection } from './PerformanceSection';
 import { TimelineBand } from './TimelineBand';
 import { usePendingAacc } from './use-pending-aacc';
@@ -63,6 +64,8 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
           </span>
         </p>
       )}
+
+      <PendingSection pending={analysis.pending} />
 
       <IntegrationTable components={transcript.officialComponents} />
 
