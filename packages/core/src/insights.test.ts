@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { sampleCurriculum, sampleTranscript } from './__fixtures__/sample';
-import { paceInsights, performanceInsights, progressWithPendingAacc } from './insights';
+import {
+  inProgressInsights,
+  milestoneInsights,
+  paceInsights,
+  performanceInsights,
+  progressWithPendingAacc,
+  timelineInsights,
+} from './insights';
 import type { Curriculum, Transcript, TranscriptEntry } from './schemas';
 
 const entry = (over: Partial<TranscriptEntry>): TranscriptEntry => ({
@@ -228,5 +235,79 @@ describe('progressWithPendingAacc', () => {
     // official AACC 30 h is already in the 2100 h base; 30 + 100 = 130 h → adds 100 → (2100 + 100) / 3200
     const q = progressWithPendingAacc(sampleCurriculum, { ...sampleTranscript, aaccDoneHours: 30 }, 100);
     expect(q).toEqual({ percent: 68.75, aaccHours: 130, addedHours: 100 });
+  });
+});
+
+describe('timelineInsights', () => {
+  it('reads the course timeline from admission to the maximum term, with both graduations', () => {
+    expect(timelineInsights(sampleCurriculum, sampleTranscript)).toEqual({
+      admissionTerm: '2024.1',
+      currentTerm: '2026.2',
+      currentPeriod: 6,
+      minPeriods: 8,
+      maxPeriods: 12,
+      maxTerm: '2029.2',
+      usedPercent: 50,
+      forecastTerm: '2027.1',
+      forecastSlack: 5,
+      paceTerm: '2028.1',
+      pacePeriods: 3,
+      paceSlack: 3,
+    });
+  });
+
+  it('keeps only the forecast when the transcript has no admission term', () => {
+    const q = timelineInsights(sampleCurriculum, { ...sampleTranscript, admissionTerm: null });
+    expect(q).toMatchObject({
+      admissionTerm: null,
+      currentPeriod: null,
+      maxTerm: null,
+      usedPercent: null,
+      forecastSlack: null,
+      paceSlack: null,
+      paceTerm: '2028.1',
+    });
+  });
+
+  it('has no pace estimate before the first completed term', () => {
+    const first = withEntries([entry({ term: '2024.1', grade: null, status: 'matriculado', rawStatus: 'Matricula' })]);
+    expect(timelineInsights(sampleCurriculum, first)).toMatchObject({
+      paceTerm: null,
+      pacePeriods: null,
+      paceSlack: null,
+      currentPeriod: 1,
+    });
+  });
+
+  it('marks a finished course with a zero-period pace', () => {
+    expect(timelineInsights(withTotalHours(2070), sampleTranscript)).toMatchObject({ pacePeriods: 0, paceTerm: '2026.2' });
+  });
+});
+
+describe('milestoneInsights', () => {
+  it('points at the next milestone with the hours left and the term at the current pace', () => {
+    expect(milestoneInsights(sampleCurriculum, sampleTranscript)).toEqual({ target: 75, hoursLeft: 330, term: '2027.1' });
+  });
+
+  it('has no milestone once the course is complete', () => {
+    expect(milestoneInsights(sampleCurriculum, { ...sampleTranscript, officialProgressPercent: 100 })).toBeNull();
+  });
+
+  it('shows the hours left without a term when there is no pace to measure', () => {
+    const first = withEntries([entry({ term: '2024.1', grade: null, status: 'matriculado', rawStatus: 'Matricula' })], {
+      officialProgressPercent: null,
+    });
+    expect(milestoneInsights(sampleCurriculum, first)).toEqual({ target: 25, hoursLeft: 800, term: null });
+  });
+});
+
+describe('inProgressInsights', () => {
+  it('sums the enrolled courses and the percentage if they are all approved', () => {
+    expect(inProgressInsights(sampleCurriculum, sampleTranscript)).toEqual({ courses: 5, hours: 420, percentIfApproved: 77.82 });
+  });
+
+  it('is absent without enrolled courses', () => {
+    const done = withEntries(sampleTranscript.entries.filter((e) => e.status !== 'matriculado'));
+    expect(inProgressInsights(sampleCurriculum, done)).toBeNull();
   });
 });
