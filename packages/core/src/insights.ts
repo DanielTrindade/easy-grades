@@ -1,5 +1,6 @@
 import { computeCr, crByTerm, type TermCr } from './cr';
 import { forecastGraduation, type Forecast } from './forecast';
+import { completedCodes, dependentClosure, inProgressCodes, isSatisfied } from './prerequisites';
 import { computeProgress } from './progress';
 import type { Category, Curriculum, Transcript } from './schemas';
 import { countsInCr, isCompleted, isFailed, isInProgress } from './status';
@@ -265,4 +266,59 @@ export function inProgressInsights(c: Curriculum, t: Transcript): InProgressInsi
   const percentIfApproved =
     hours <= 0 || progress.requiredHours === 0 ? null : Math.min(100, round2(base + added));
   return { courses: entries.length, hours, percentIfApproved };
+}
+
+export interface PendingInsights {
+  /** Mandatory courses in the curriculum, ENADE aside. */
+  mandatoryTotal: number;
+  /** Mandatory courses without a completed entry, enrolled ones included. */
+  mandatoryRemaining: number;
+  mandatoryInProgress: number;
+  /** Hours still to take in the mandatory courses, from the curriculum. */
+  mandatoryHoursLeft: number;
+  /** Remaining mandatory courses whose prerequisites are already satisfied (enrolments count). */
+  available: number;
+  blocked: number;
+  /** Hours still missing per requirement outside the mandatory path. */
+  hours: { optativa: number; eletiva: number; aacc: number; extensao: number };
+  /** Pending mandatory courses that hold back the most other pending courses. */
+  bottlenecks: { code: string; name: string; unlocks: number }[];
+}
+
+export function pendingInsights(c: Curriculum, t: Transcript): PendingInsights {
+  const progress = computeProgress(c, t);
+  const done = completedCodes(t);
+  const inProgress = inProgressCodes(t);
+  const effective = new Set([...done, ...inProgress]);
+  const remaining = c.courses.filter((x) => x.category === 'obrigatoria' && !isEnade(x.code) && !done.has(x.code));
+  const remainingCodes = new Set(remaining.map((x) => x.code));
+  const available = remaining.filter((x) => isSatisfied(x.prerequisites, effective)).length;
+  const hoursLeft = (key: 'optativa' | 'eletiva' | 'aacc' | 'extensao') => {
+    const category = progress.categories.find((x) => x.key === key)!;
+    return Math.max(0, category.requiredHours - category.rawHours);
+  };
+  const bottlenecks = remaining
+    .map((x) => ({
+      code: x.code,
+      name: x.name,
+      unlocks: [...dependentClosure(c, x.code)].filter((code) => remainingCodes.has(code)).length,
+    }))
+    .filter((x) => x.unlocks > 0)
+    .sort((a, b) => b.unlocks - a.unlocks || a.code.localeCompare(b.code))
+    .slice(0, 3);
+  return {
+    mandatoryTotal: c.courses.filter((x) => x.category === 'obrigatoria' && !isEnade(x.code)).length,
+    mandatoryRemaining: remaining.length,
+    mandatoryInProgress: remaining.filter((x) => inProgress.has(x.code)).length,
+    mandatoryHoursLeft: remaining.reduce((sum, x) => sum + x.hours.total, 0),
+    available,
+    blocked: remaining.length - available,
+    hours: {
+      optativa: hoursLeft('optativa'),
+      eletiva: hoursLeft('eletiva'),
+      aacc: hoursLeft('aacc'),
+      extensao: hoursLeft('extensao'),
+    },
+    bottlenecks,
+  };
 }

@@ -4,6 +4,7 @@ import {
   inProgressInsights,
   milestoneInsights,
   paceInsights,
+  pendingInsights,
   performanceInsights,
   progressWithPendingAacc,
   timelineInsights,
@@ -315,5 +316,35 @@ describe('inProgressInsights', () => {
     const enrolled = entry({ code: 'ICC006', term: '2026.2', hours: 60, grade: null, status: 'matriculado', rawStatus: 'Matricula' });
     const enade = entry({ code: 'ENADE02', name: 'ENADE - CONCLUINTE', term: '2026.2', hours: 60, grade: null, status: 'matriculado', rawStatus: 'Matricula' });
     expect(inProgressInsights(sampleCurriculum, withEntries([enrolled, enade]))).toEqual({ courses: 1, hours: 60, percentIfApproved: 66.57 });
+  });
+});
+
+describe('pendingInsights', () => {
+  it('counts what is left, what is released and what is blocked', () => {
+    expect(pendingInsights(sampleCurriculum, sampleTranscript)).toEqual({
+      mandatoryTotal: 35,
+      mandatoryRemaining: 6,
+      mandatoryInProgress: 4,
+      mandatoryHoursLeft: 540,
+      available: 6,
+      blocked: 0,
+      hours: { optativa: 0, eletiva: 60, aacc: 210, extensao: 320 },
+      bottlenecks: [{ code: 'ICC412', name: 'PROCESSO DE DESENVOLVIMENTO DE SOFTWARE', unlocks: 1 }],
+    });
+  });
+
+  it('blocks the dependent course when its prerequisite is not in progress', () => {
+    const entries = sampleTranscript.entries.filter((e) => e.code !== 'ICC412');
+    expect(pendingInsights(sampleCurriculum, withEntries(entries))).toMatchObject({ available: 5, blocked: 1 });
+  });
+
+  it('orders bottlenecks by how many pending courses they hold back', () => {
+    const chain = ['ICC001', 'ICC002', 'ICC003'].map((code) => sampleCurriculum.courses.find((x) => x.code === code)!);
+    const q = pendingInsights({ ...sampleCurriculum, courses: chain }, withEntries([]));
+    expect(q.bottlenecks).toEqual([
+      { code: 'ICC001', name: 'INTRODUÇÃO À COMPUTAÇÃO', unlocks: 2 },
+      { code: 'ICC002', name: 'ALGORITMOS E ESTRUTURA DE DADOS I', unlocks: 1 },
+    ]);
+    expect(q).toMatchObject({ mandatoryTotal: 3, mandatoryRemaining: 3, available: 1, blocked: 2 });
   });
 });
