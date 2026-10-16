@@ -38,8 +38,10 @@ export function PendingSection({ pending }: { pending: PendingInsights }) {
       {pending.mandatoryRemaining > 0 && (
         <p className="text-sm">
           {pending.blocked === 0
-            ? `Todas as ${pending.mandatoryRemaining} já cumprem os pré-requisitos.`
-            : `${pending.available} já cumprem os pré-requisitos; ${pending.blocked} ainda ${pending.blocked === 1 ? 'bloqueada' : 'bloqueadas'}.`}
+            ? pending.mandatoryRemaining === 1
+              ? 'A única obrigatória já cumpre os pré-requisitos.'
+              : `Todas as ${pending.mandatoryRemaining} já cumprem os pré-requisitos.`
+            : `${pending.available === 1 ? '1 já cumpre' : `${pending.available} já cumprem`} os pré-requisitos; ${pending.blocked} ainda ${pending.blocked === 1 ? 'bloqueada' : 'bloqueadas'}.`}
         </p>
       )}
       {outside !== null && <p className="text-sm text-muted-foreground">{outside}</p>}

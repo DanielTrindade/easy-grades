@@ -2,7 +2,6 @@ import { formatTerm, termIndex, type TimelineInsights } from '@easy-grades/core'
 import { TriangleAlert } from 'lucide-react';
 import { formatPercent, pluralize } from '@/lib/format';
 
-/** Position of a term on the track: 0% at admission, 100% at the maximum term. */
 function position(term: string | null, timeline: TimelineInsights): number | null {
   if (term === null || timeline.admissionTerm === null || timeline.maxTerm === null) return null;
   const scale = termIndex(timeline.maxTerm) - termIndex(timeline.admissionTerm);
@@ -41,7 +40,6 @@ interface TimelineBandProps {
   timeline: TimelineInsights;
 }
 
-/** Admission, today, forecast and limit on one track, with the sentence that ties them together. */
 export function TimelineBand({ timeline }: TimelineBandProps) {
   const current = position(timeline.currentTerm, timeline);
   const forecast = position(timeline.forecastTerm, timeline);
