@@ -863,7 +863,7 @@ describe('OverviewSummary', () => {
 
   it('projects the CR range over the mandatory courses left', () => {
     renderSummary();
-    expect(screen.getByText('Na formatura: entre 7,229 e 8,187.')).toBeInTheDocument();
+    expect(screen.getByText('Na formatura: entre 7,229 e 8,186.')).toBeInTheDocument();
   });
 
   it('explains a CR that diverges from the printed one', () => {
