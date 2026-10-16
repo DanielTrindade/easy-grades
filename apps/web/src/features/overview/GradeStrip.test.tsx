@@ -27,5 +27,7 @@ describe('GradeStrip', () => {
     expect(rows).toHaveLength(5);
     expect(rows[2]!.querySelector('span[aria-hidden]')).toHaveStyle({ width: '100%' });
     expect(rows[4]!.querySelector('span[aria-hidden]')).toHaveStyle({ width: '50%' });
+    expect(rows[1]!.querySelector('span[aria-hidden]')).toHaveStyle({ width: '0%' });
+    expect(rows[1]!.querySelector('span[aria-hidden]')).not.toHaveClass('min-w-px');
   });
 });

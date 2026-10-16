@@ -43,7 +43,12 @@ function costSentence(performance: PerformanceInsights, avgHoursPerTerm: number)
   const cost = `Custo: ${formatHours(performance.failedHours)} e ${pluralize(performance.failedCredits, 'crédito', 'créditos')}`;
   const ratio = avgHoursPerTerm > 0 && performance.failedHours > 0 ? performance.failedHours / avgHoursPerTerm : null;
   if (ratio === null || ratio < 0.1) return `${cost}.`;
-  return `${cost} — o equivalente a ${formatOneDecimal(ratio)} ${ratio < 2 ? 'período' : 'períodos'} no seu ritmo.`;
+  return `${cost} — o equivalente a ${formatOneDecimal(ratio)} ${ratio < 1 ? 'período' : 'períodos'} no seu ritmo.`;
+}
+
+function FailureCost({ performance, avgHoursPerTerm }: { performance: PerformanceInsights; avgHoursPerTerm: number }) {
+  if (performance.failures === 0 || performance.failedHours + performance.failedCredits === 0) return null;
+  return <p className="text-sm text-muted-foreground">{costSentence(performance, avgHoursPerTerm)}</p>;
 }
 
 function streakSentence(streak: StreakInsights): string {
@@ -102,7 +107,7 @@ export function PerformanceSection({ performance, attempts, streak, grades, avgH
         {retakingNow.length > 0 && <p>Refazendo agora: {retakingNow.join(', ')}</p>}
       </div>
 
-      {failures > 0 && <p className="text-sm text-muted-foreground">{costSentence(performance, avgHoursPerTerm)}</p>}
+      <FailureCost performance={performance} avgHoursPerTerm={avgHoursPerTerm} />
 
       <AttemptsBlock attempts={attempts} />
 
