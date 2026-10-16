@@ -1,0 +1,39 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+const css = readFileSync(resolve(process.cwd(), 'src/styles/index.css'), 'utf8');
+
+function rule(selector: string): string {
+  const start =
+    selector === 'body'
+      ? css.lastIndexOf('body {', css.indexOf('--tab-bar-space: 0px;'))
+      : css.indexOf(`${selector} {`);
+  if (start === -1) throw new Error(`Missing rule ${selector}`);
+  return css.slice(start, css.indexOf('}', start));
+}
+
+describe('bottom chrome', () => {
+  it('sums the tab bar and the screen accessory into one variable', () => {
+    const body = rule('body');
+    expect(body).toContain('--tab-bar-space: 0px;');
+    expect(body).toContain('--accessory-space: 0px;');
+    expect(body).toContain('--bottom-chrome: calc(var(--tab-bar-space) + var(--accessory-space));');
+  });
+
+  it('reserves room for the expanded and the minimized tab bar', () => {
+    expect(rule("body[data-tab-bar='expanded']")).toContain('--tab-bar-space: 4.25rem;');
+    expect(rule("body[data-tab-bar='minimized']")).toContain('--tab-bar-space: 3.75rem;');
+  });
+
+  it('reserves room for a screen accessory such as the Meu semestre bar', () => {
+    expect(rule('body[data-bottom-accessory]')).toContain('--accessory-space: 3.75rem;');
+  });
+
+  it('keeps toasts above all of it', () => {
+    expect(rule("[data-sonner-toaster][data-y-position='bottom']")).toContain(
+      'bottom: calc(var(--bottom-chrome) + 1.5rem + env(safe-area-inset-bottom)) !important;',
+    );
+    expect(css).not.toContain('data-summary-bar');
+  });
+});
