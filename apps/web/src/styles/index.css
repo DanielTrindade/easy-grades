@@ -31,8 +31,9 @@
   line-height: 1.1;
 }
 
-/* Course codes: the same family at 87.5% width, in the muted ink. No monospace font. */
+/* Course codes: Mona Sans at 87.5% width, in the muted ink. */
 @utility code-label {
+  font-family: var(--font-heading);
   font-stretch: 87.5%;
   color: var(--ink-muted);
 }

@@ -47,4 +47,10 @@ describe('typography', () => {
     expect(rules).toContain('font-stretch: 106%;');
     expect(rules).toContain('letter-spacing: -0.015em;');
   });
+
+  it('keeps course codes in Mona Sans at a narrower width', () => {
+    const rules = utility('code-label');
+    expect(rules).toContain('font-family: var(--font-heading);');
+    expect(rules).toContain('font-stretch: 87.5%;');
+  });
 });
