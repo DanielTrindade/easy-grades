@@ -64,4 +64,51 @@ describe('MarkerBand', () => {
     expect(segment!.style.width).toBe('35.31%');
     expect(screen.getByText('Com as atividades que você registrou: 100,00%.')).toBeInTheDocument();
   });
+
+  it('marks the next milestone inside the band and describes it below', () => {
+    const { container } = render(
+      <MarkerBand
+        progress={progress}
+        reveal={false}
+        onRevealed={() => {}}
+        milestone={{ target: 75, hoursLeft: 330, term: '2027.1' }}
+      />,
+    );
+    const tick = container.querySelector<HTMLElement>('[data-milestone="75"]');
+    expect(tick).not.toBeNull();
+    expect(tick!.style.left).toBe('75%');
+    expect(screen.getByText('Próxima meta: 75%. Faltam 330 h — no seu ritmo, até 2027/1.')).toBeInTheDocument();
+  });
+
+  it('keeps the tick visible at the last milestone', () => {
+    const { container } = render(
+      <MarkerBand
+        progress={progress}
+        reveal={false}
+        onRevealed={() => {}}
+        milestone={{ target: 100, hoursLeft: 30, term: null }}
+      />,
+    );
+    const tick = container.querySelector<HTMLElement>('[data-milestone="100"]');
+    expect(tick).not.toBeNull();
+    expect(tick!.style.right).toBe('0px');
+  });
+
+  it('adds the projection of the enrolled courses', () => {
+    render(
+      <MarkerBand
+        progress={progress}
+        reveal={false}
+        onRevealed={() => {}}
+        inProgress={{ courses: 5, hours: 420, percentIfApproved: 77.82 }}
+      />,
+    );
+    expect(screen.getByText('Em curso: 5 disciplinas, 420 h. Se aprovar tudo: 77,82% do curso.')).toBeInTheDocument();
+  });
+
+  it('omits both lines when the data is missing', () => {
+    renderBand();
+    expect(screen.queryByText(/Próxima meta/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Em curso/)).not.toBeInTheDocument();
+  });
 });
