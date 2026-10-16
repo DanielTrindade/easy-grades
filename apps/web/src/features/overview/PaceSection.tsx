@@ -1,6 +1,6 @@
-import type { PaceInsights } from '@easy-grades/core';
+import type { DelayInsights, PaceInsights } from '@easy-grades/core';
 import { CircleCheck, Clock, OctagonAlert, TriangleAlert, type LucideIcon } from 'lucide-react';
-import { formatHours } from '@/lib/format';
+import { formatHours, formatOneDecimal, formatPercent } from '@/lib/format';
 
 const PACE_STATUS: Record<PaceInsights['status'], { icon: LucideIcon; label: string; iconColor: string }> = {
   concluido: { icon: CircleCheck, label: 'Carga horária concluída', iconColor: 'text-esmeralda-texto' },
@@ -12,11 +12,12 @@ const PACE_STATUS: Record<PaceInsights['status'], { icon: LucideIcon; label: str
 
 interface PaceSectionProps {
   pace: PaceInsights;
+  delay: DelayInsights | null;
   minPeriods: number;
   maxPeriods: number;
 }
 
-export function PaceSection({ pace, minPeriods, maxPeriods }: PaceSectionProps) {
+export function PaceSection({ pace, delay, minPeriods, maxPeriods }: PaceSectionProps) {
   const status = PACE_STATUS[pace.status];
   const StatusIcon = status.icon;
   const paceText = (hours: number | null) => (hours === null ? 'prazo encerrado' : `${formatHours(hours)} por período`);
@@ -42,6 +43,13 @@ export function PaceSection({ pace, minPeriods, maxPeriods }: PaceSectionProps) 
             </li>
             <li>Média de {formatHours(pace.avgHoursPerTerm)} por período</li>
           </>
+        )}
+        {delay && (
+          <li>
+            {delay.averageDelay > 0
+              ? `Suas obrigatórias acontecem, em média, ${formatOneDecimal(delay.averageDelay)} períodos depois do ideal; ${formatPercent(delay.onTimePercent)} no prazo ou antes.`
+              : `Suas obrigatórias acontecem, em média, no período ideal ou antes; ${formatPercent(delay.onTimePercent)} no prazo.`}
+          </li>
         )}
         <li>Para formar no prazo ideal: {paceText(pace.requiredPaceIdeal)}</li>
         <li>No prazo máximo: {paceText(pace.requiredPaceMax)}</li>

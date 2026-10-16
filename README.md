@@ -10,6 +10,7 @@ O Easy Grades ajuda o estudante da UFAM a acompanhar o curso a partir de dois PD
 - **Disciplinas:** tudo o que consta no histórico, com filtros por situação, categoria e busca, e agrupamento por período ou por categoria.
 - **Planejamento:** sugestões para o próximo semestre, cada uma com o motivo. O catálogo filtra por sugeridas, obrigatórias, eletivas ou bloqueadas, e "Meu semestre" mostra o limite de créditos, as notas esperadas e o CR projetado com melhor e pior caso. Disciplinas com pré-requisito pendente ficam de fora da projeção, e o plano fica salvo neste navegador até você limpar os dados. "Desfazer" reverte remoções e a sugestão aplicada.
 - **Previsão de formatura:** termo previsto de conclusão das obrigatórias e comparação com o máximo de períodos do curso.
+- **Trajetória:** linha do tempo do curso (ingresso, hoje, previsão e prazo máximo), próxima meta de conclusão, o que falta e o que ainda bloqueia, atraso médio em relação ao período ideal, tentativas por disciplina, custo das reprovações e faixas de notas.
 
 ## Privacidade
 

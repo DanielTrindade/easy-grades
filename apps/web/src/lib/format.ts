@@ -3,6 +3,7 @@ const integer = new Intl.NumberFormat('pt-BR');
 
 export const formatCr = (value: number | null): string => (value === null ? 'sem nota' : decimals(3).format(value));
 export const formatGrade = (value: number | null): string => (value === null ? '—' : decimals(2).format(value));
+export const formatOneDecimal = (value: number): string => decimals(1).format(value);
 export const formatPercent = (value: number): string => `${decimals(2).format(value)}%`;
 export const formatHours = (value: number): string => `${integer.format(value)} h`;
 export const formatCount = (value: number): string => integer.format(value);
