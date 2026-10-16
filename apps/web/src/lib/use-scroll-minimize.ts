@@ -24,7 +24,13 @@ export function reduceScroll(state: ScrollState, y: number): ScrollState {
 
 export function useScrollMinimize(enabled: boolean): { minimized: boolean; expand: () => void } {
   const [minimized, setMinimized] = useState(false);
+  const [previousEnabled, setPreviousEnabled] = useState(enabled);
   const state = useRef(INITIAL_SCROLL_STATE);
+
+  if (previousEnabled !== enabled) {
+    setPreviousEnabled(enabled);
+    setMinimized(false);
+  }
 
   useEffect(() => {
     const y = window.scrollY;

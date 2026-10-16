@@ -85,6 +85,18 @@ describe('useScrollMinimize', () => {
     expect(result.current.minimized).toBe(false);
   });
 
+  it('starts expanded again when re-enabled after being minimized', () => {
+    const { result, rerender } = renderHook(({ enabled }: { enabled: boolean }) => useScrollMinimize(enabled), {
+      initialProps: { enabled: true },
+    });
+    scrollTo(30);
+    scrollTo(300);
+    expect(result.current.minimized).toBe(true);
+    rerender({ enabled: false });
+    rerender({ enabled: true });
+    expect(result.current.minimized).toBe(false);
+  });
+
   it('stops listening on unmount', () => {
     const remove = vi.spyOn(window, 'removeEventListener');
     const { unmount } = renderHook(() => useScrollMinimize(true));
