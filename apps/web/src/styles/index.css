@@ -21,13 +21,14 @@
   }
 }
 
-/* Headings and big numbers: Mona Sans at weight 800 on the widest axis (wdth 125), with tight spacing. */
+/* Headings and big numbers: Mona Sans close to the bold of the iOS large titles, so the switch to the system body font
+   stays smooth on SF, Roboto and Segoe UI. */
 @utility heading-ink {
   font-family: var(--font-heading);
-  font-weight: 800;
-  font-stretch: 125%;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-weight: 750;
+  font-stretch: 106%;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
 }
 
 /* Course codes: the same family at 87.5% width, in the muted ink. No monospace font. */
@@ -37,11 +38,32 @@
 }
 
 @theme inline {
-  --font-sans: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  /* Type scale steps from the visual direction (44 px and 64 px). */
-  --text-display: 2.75rem;
-  --text-stat: 4rem;
+  --font-sans: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Mona Sans Variable", -apple-system, system-ui, sans-serif;
+  /* iOS Dynamic Type at the default "Large" size. Fixed line heights keep layouts stable whatever the system font. */
+  --text-large-title: 2.125rem;
+  --text-large-title--line-height: 2.5625rem;
+  --text-title1: 1.75rem;
+  --text-title1--line-height: 2.125rem;
+  --text-title2: 1.375rem;
+  --text-title2--line-height: 1.75rem;
+  --text-title3: 1.25rem;
+  --text-title3--line-height: 1.5625rem;
+  --text-headline: 1.0625rem;
+  --text-headline--line-height: 1.375rem;
+  --text-headline--font-weight: 600;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.375rem;
+  --text-callout: 1rem;
+  --text-callout--line-height: 1.3125rem;
+  --text-subhead: 0.9375rem;
+  --text-subhead--line-height: 1.25rem;
+  --text-footnote: 0.8125rem;
+  --text-footnote--line-height: 1.125rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-stat: clamp(2.75rem, 8vw, 4rem);
+  --text-stat--line-height: 1;
 
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -219,7 +241,12 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-variant-numeric: tabular-nums;
-    line-height: 1.55;
+    font-size: 1.0625rem;
+    line-height: 1.375rem;
+    @media (min-width: 48rem) {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
   }
   h1,
   h2,

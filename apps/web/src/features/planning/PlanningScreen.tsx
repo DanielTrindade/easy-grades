@@ -156,7 +156,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
     <div className="grid gap-12 max-lg:pb-16">
       <div className="grid gap-6 border-b border-hairline pb-8 md:grid-cols-2 md:items-end">
         <div>
-          <h1 className="text-3xl sm:text-display">Planejamento</h1>
+          <h1 className="text-large-title">Planejamento</h1>
           <p className="mt-2 max-w-[40ch] text-ink-muted">Monte o próximo semestre e veja o CR mudar enquanto escolhe.</p>
         </div>
         <div className="md:text-right">
