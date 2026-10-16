@@ -312,6 +312,10 @@
   animation: node-in 250ms var(--ease-snap) both;
   animation-delay: calc(var(--col, 0) * 40ms);
 }
+/* The selected-section pill slides with the snappy spring (tab bar and the desktop segmented nav). */
+.tab-indicator {
+  transition: transform 430ms var(--ease-spring-snappy);
+}
 /* PNG export: the capture clones the live DOM, so freeze the entrance animation and never capture a hidden node. */
 .is-exporting .course-node {
   animation: none !important;
@@ -412,6 +416,9 @@ body {
   .course-node {
     animation: node-fade 150ms var(--ease-snap) both;
     animation-delay: 0s;
+  }
+  .tab-indicator {
+    transition: none;
   }
 }
 
