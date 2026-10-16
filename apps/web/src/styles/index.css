@@ -36,6 +36,18 @@
   color: var(--ink-muted);
 }
 
+/* Scroll edge effect under a floating bar: content fades into the canvas instead of meeting a hard border. */
+@utility scroll-edge {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 100% 0 auto;
+    height: 1rem;
+    pointer-events: none;
+    background: linear-gradient(var(--canvas), transparent);
+  }
+}
+
 @theme inline {
   --font-sans: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
