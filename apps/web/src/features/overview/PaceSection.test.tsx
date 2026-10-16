@@ -1,13 +1,18 @@
-import { paceInsights } from '@easy-grades/core';
+import { paceInsights, type DelayInsights } from '@easy-grades/core';
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { PaceSection } from './PaceSection';
 
-function renderWith(curriculum: typeof sampleCurriculum) {
+function renderWith(curriculum: typeof sampleCurriculum, delay: DelayInsights | null = null) {
   const { minPeriods, maxPeriods } = curriculum.requirements;
   return render(
-    <PaceSection pace={paceInsights(curriculum, sampleTranscript)} minPeriods={minPeriods} maxPeriods={maxPeriods} />,
+    <PaceSection
+      pace={paceInsights(curriculum, sampleTranscript)}
+      delay={delay}
+      minPeriods={minPeriods}
+      maxPeriods={maxPeriods}
+    />,
   );
 }
 
@@ -43,6 +48,7 @@ describe('PaceSection', () => {
     const { container } = render(
       <PaceSection
         pace={paceInsights(sampleCurriculum, { ...sampleTranscript, entries: [] })}
+        delay={null}
         minPeriods={8}
         maxPeriods={12}
       />,
@@ -53,5 +59,19 @@ describe('PaceSection', () => {
     expect(screen.queryByText(/Média de/)).not.toBeInTheDocument();
     expect(screen.getByText('Para formar no prazo ideal: 400 h por período')).toBeInTheDocument();
     expect(screen.getByText('No prazo máximo: 267 h por período')).toBeInTheDocument();
+  });
+
+  it('shows the average delay against the ideal term', () => {
+    renderWith(sampleCurriculum, { courses: 2, averageDelay: 1.4, onTime: 1, onTimePercent: 50 });
+    expect(
+      screen.getByText('Suas obrigatórias acontecem, em média, 1,4 períodos depois do ideal; 50,00% no prazo ou antes.'),
+    ).toBeInTheDocument();
+  });
+
+  it('says the courses are on time when the average delay is not positive', () => {
+    renderWith(sampleCurriculum, { courses: 20, averageDelay: 0, onTime: 13, onTimePercent: 65 });
+    expect(
+      screen.getByText('Suas obrigatórias acontecem, em média, no período ideal ou antes; 65,00% no prazo.'),
+    ).toBeInTheDocument();
   });
 });

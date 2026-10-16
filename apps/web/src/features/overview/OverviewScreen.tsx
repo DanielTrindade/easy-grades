@@ -72,10 +72,17 @@ export function OverviewScreen({ data, analysis, reveal, onRevealed }: OverviewS
       <div className="grid min-w-0 gap-12 lg:grid-cols-2">
         <PaceSection
           pace={pace}
+          delay={analysis.delay}
           minPeriods={curriculum.requirements.minPeriods}
           maxPeriods={curriculum.requirements.maxPeriods}
         />
-        <PerformanceSection performance={performance} />
+        <PerformanceSection
+          performance={performance}
+          attempts={analysis.attempts}
+          streak={analysis.streak}
+          grades={analysis.grades}
+          avgHoursPerTerm={pace.avgHoursPerTerm}
+        />
       </div>
 
       <EnadeSection records={transcript.enade} />
