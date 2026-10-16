@@ -37,7 +37,7 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 
 ## Workflow
 - One branch per group from `main` (see plan "Branches & review"). Merge with `--no-ff` after the whole-branch review.
-- Implementation: subagents on **Haiku 5.5 (effort high)**; review: subagent on **Opus 5.5 (effort medium)** after each task and per branch.
+- Implementation runs through **Orca orchestration** (`orca orchestration worker-start`, loaded via the `orca-cli` / `orchestration` skills); Claude only coordinates and routes, it does not implement. Implementers, alternating per task: **OpenCode** with `opencode-go/deepseek-v4.1-flash#max` (reasoning max) and **Codex** with `gpt-6-luna`, effort **high**. Review: **Claude `claude-opus-5-5`, effort medium**, after each task and on the whole branch. Fixes from a review go back to an implementer, not to the coordinator.
 - **Every branch touching `apps/web`: run `pnpm react-doctor:changed` and fix every error before requesting review.**
 - **Score gate:** the pre-push hook (simple-git-hooks, installed by `prepare`) runs `pnpm react-doctor:gate` (score ≥ 90 and 0 errors) before any push or PR. CI runs the same gate in the "Lint, types, tests, React Doctor, build" job and blocks the merge when it fails. The gate calls react-doctor's score API and sends the diagnostics report (rules, files and lines) to that service, so it does not use `--no-telemetry`. `REACT_DOCTOR_MIN_SCORE` overrides the minimum. `pnpm react-doctor:changed` stays local and without telemetry.
 - TDD: failing test first. Commit per task.
