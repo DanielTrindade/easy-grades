@@ -40,6 +40,16 @@ describe('PendingSection', () => {
     expect(screen.getByText('5 já cumprem os pré-requisitos; 1 ainda bloqueada.')).toBeInTheDocument();
   });
 
+  it('uses the singular when the only mandatory course left is unlocked', () => {
+    render(<PendingSection pending={{ ...pending, mandatoryRemaining: 1, available: 1, blocked: 0 }} />);
+    expect(screen.getByText('A única obrigatória já cumpre os pré-requisitos.')).toBeInTheDocument();
+  });
+
+  it('uses the singular for the single available course next to the blocked ones', () => {
+    render(<PendingSection pending={{ ...pending, mandatoryRemaining: 3, available: 1, blocked: 2 }} />);
+    expect(screen.getByText('1 já cumpre os pré-requisitos; 2 ainda bloqueadas.')).toBeInTheDocument();
+  });
+
   it('closes the section when nothing is left', () => {
     render(
       <PendingSection
