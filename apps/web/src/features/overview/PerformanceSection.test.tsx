@@ -82,6 +82,21 @@ describe('PerformanceSection', () => {
     expect(screen.getByText('Custo: 120 h e 8 créditos — o equivalente a 0,3 período no seu ritmo.')).toBeInTheDocument();
   });
 
+  it('uses the plural above one period of study', () => {
+    renderSection({
+      performance: { ...performanceInsights(sampleCurriculum, sampleTranscript), failedHours: 300 },
+      avgHoursPerTerm: 200,
+    });
+    expect(screen.getByText('Custo: 300 h e 8 créditos — o equivalente a 1,5 períodos no seu ritmo.')).toBeInTheDocument();
+  });
+
+  it('hides the cost when the failures carry no hours or credits', () => {
+    renderSection({
+      performance: { ...performanceInsights(sampleCurriculum, sampleTranscript), failedHours: 0, failedCredits: 0 },
+    });
+    expect(screen.queryByText(/Custo:/)).not.toBeInTheDocument();
+  });
+
   it('lists the courses with more than one enrolment', () => {
     renderSection({
       attempts: [
