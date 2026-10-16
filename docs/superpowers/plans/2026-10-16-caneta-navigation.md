@@ -1065,13 +1065,17 @@ describe('SectionNav', () => {
 `apps/web/src/components/Dashboard.test.tsx`:
 
 ```tsx
-import { sampleParseResponse } from '@easy-grades/core/fixtures';
+import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Dataset } from '@/lib/storage';
 import { Dashboard } from './Dashboard';
 
-const dataset: Dataset = { data: sampleParseResponse, savedAt: '2026-10-16T00:00:00.000Z', revealed: true };
+const dataset: Dataset = {
+  data: { curriculum: sampleCurriculum, transcript: sampleTranscript },
+  savedAt: '2026-10-16T00:00:00.000Z',
+  revealed: true,
+};
 
 function setWidth(desktop: boolean) {
   vi.spyOn(window, 'matchMedia').mockImplementation(
@@ -1142,7 +1146,7 @@ describe('Dashboard shell', () => {
 });
 ```
 
-(Se `Dataset` tiver outros campos obrigatórios, ou se o fixture exportar outro nome, ajustar o objeto ao tipo real em `@/lib/storage` e ao export real de `@easy-grades/core/fixtures`; não mudar o que o teste afirma.)
+(Os testes de CSS desta fase não usam `?raw`: no Vitest deste repo ele vem vazio. Quando um teste precisar do `index.css`, ler com `readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), 'index.css'), 'utf8')`.)
 
 Run: `pnpm --filter @easy-grades/web exec vitest run src/components/SectionNav.test.tsx src/components/Dashboard.test.tsx`
 Expected: FAIL.
