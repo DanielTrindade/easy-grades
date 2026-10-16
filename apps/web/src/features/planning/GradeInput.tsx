@@ -42,11 +42,11 @@ export function GradeInput({ id, courseName, value, onChange }: GradeInputProps)
   }
 
   return (
-    <div className="inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-lg border border-campo focus-within:ring-3 focus-within:ring-ring/50 md:h-[34px] md:pointer-coarse:h-11">
+    <div className="inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-lg border border-field focus-within:ring-3 focus-within:ring-ring/50 md:h-[34px] md:pointer-coarse:h-11">
       <Button
         type="button"
         variant="ghost"
-        className="h-full w-11 rounded-none px-0 text-suave md:w-8 md:pointer-coarse:w-11"
+        className="h-full w-11 rounded-none px-0 text-ink-muted md:w-8 md:pointer-coarse:w-11"
         aria-label={`Diminuir nota em ${courseName}`}
         onClick={() => onChange(stepGrade(value, -0.1))}
       >
@@ -61,12 +61,12 @@ export function GradeInput({ id, courseName, value, onChange }: GradeInputProps)
         onChange={(event) => setDraft(event.target.value)}
         onBlur={(event) => commit(event.target.value)}
         onKeyDown={onKeyDown}
-        className="h-full w-12 rounded-none border-x border-y-0 border-linha bg-transparent px-1 text-center text-base tabular-nums shadow-none focus-visible:ring-0 md:w-11 md:text-sm md:pointer-coarse:w-12 dark:bg-transparent"
+        className="h-full w-12 rounded-none border-x border-y-0 border-hairline bg-transparent px-1 text-center text-base tabular-nums shadow-none focus-visible:ring-0 md:w-11 md:text-sm md:pointer-coarse:w-12 dark:bg-transparent"
       />
       <Button
         type="button"
         variant="ghost"
-        className="h-full w-11 rounded-none px-0 text-suave md:w-8 md:pointer-coarse:w-11"
+        className="h-full w-11 rounded-none px-0 text-ink-muted md:w-8 md:pointer-coarse:w-11"
         aria-label={`Aumentar nota em ${courseName}`}
         onClick={() => onChange(stepGrade(value, 0.1))}
       >

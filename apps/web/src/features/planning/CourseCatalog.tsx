@@ -29,15 +29,15 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
     <li className="flex items-start gap-4 py-4">
       <div className="grid min-w-0 flex-1 gap-1">
         <p className="font-semibold">{name}</p>
-        <p className="text-sm text-suave tabular-nums">
+        <p className="text-sm text-ink-muted tabular-nums">
           <span className="code-label">{item.code}</span>, {CATEGORY_NAMES[item.category]}
           {item.idealPeriod !== null && <>, período ideal {item.idealPeriod}</>}, {pluralize(item.credits, 'crédito', 'créditos')},{' '}
           {formatHours(item.hours)}
         </p>
-        <p className="text-sm text-suave">{item.reason}</p>
+        <p className="text-sm text-ink-muted">{item.reason}</p>
         {blocked && (
-          <p className="flex items-start gap-1.5 text-sm text-texto">
-            <Lock aria-hidden className="mt-0.5 size-4 shrink-0 text-suave" />
+          <p className="flex items-start gap-1.5 text-sm text-ink">
+            <Lock aria-hidden className="mt-0.5 size-4 shrink-0 text-ink-muted" />
             <span>Falta: {formatMissing(item.missing)}</span>
           </p>
         )}
@@ -49,7 +49,7 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
         className={cn(
           'max-md:h-11 shrink-0',
           added &&
-            'bg-esmeralda-fundo text-esmeralda-texto hover:bg-esmeralda-fundo/80 hover:text-esmeralda-texto dark:hover:bg-esmeralda-fundo/80',
+            'bg-pen-tint text-pen-ink hover:bg-pen-tint/80 hover:text-pen-ink dark:hover:bg-pen-tint/80',
         )}
         disabled={blocked && !added}
         onClick={onToggle}
@@ -97,7 +97,7 @@ export function CourseCatalog({
   return (
     <section aria-label="Próximo semestre" className="grid content-start gap-4">
       <div className="grid gap-3">
-        <Label htmlFor="busca-disciplinas" className="font-normal text-suave">
+        <Label htmlFor="busca-disciplinas" className="font-normal text-ink-muted">
           Buscar por código ou nome
         </Label>
         <Input
@@ -115,7 +115,7 @@ export function CourseCatalog({
             onCheckedChange={onCountInProgressChange}
             className="max-md:after:-inset-y-3.5"
           />
-          <Label htmlFor="contar-em-curso" className="font-normal text-suave max-md:min-h-11">
+          <Label htmlFor="contar-em-curso" className="font-normal text-ink-muted max-md:min-h-11">
             Supor aprovação no que está em curso
           </Label>
         </div>
@@ -144,15 +144,15 @@ export function CourseCatalog({
         value={filter}
         onValueChange={setFilter}
         className="flex flex-wrap gap-2"
-        itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-linha px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-texto aria-checked:bg-texto aria-checked:text-fundo md:min-h-8 md:pointer-coarse:min-h-11"
+        itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-hairline px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-ink aria-checked:bg-ink aria-checked:text-canvas md:min-h-8 md:pointer-coarse:min-h-11"
       />
 
       {visible.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-linha p-6 text-suave">
+        <p className="rounded-lg border border-dashed border-hairline p-6 text-ink-muted">
           Nenhuma disciplina nesse filtro. Tente outra busca ou outro filtro.
         </p>
       ) : (
-        <ul className="divide-y divide-linha border-t border-linha">
+        <ul className="divide-y divide-hairline border-t border-hairline">
           {visible.map((item) => (
             <CatalogRow key={item.code} item={item} added={selected.has(item.code)} onToggle={() => onToggle(item)} />
           ))}

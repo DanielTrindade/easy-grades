@@ -73,7 +73,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
             <Button
               variant="ghost"
               size="sm"
-              className="text-erro hover:text-erro"
+              className="text-danger hover:text-danger"
               onClick={(event) => openClear(event.currentTarget)}
             >
               Limpar dados

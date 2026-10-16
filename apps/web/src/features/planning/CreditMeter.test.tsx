@@ -41,14 +41,14 @@ describe('CreditMeter', () => {
   it('marks the maximum caption as an error above the maximum, with an icon and text', () => {
     const { container } = render(<CreditMeter credits={34} min={12} max={30} />);
     const caption = screen.getByText('máximo 30');
-    expect(caption).toHaveClass('text-erro');
+    expect(caption).toHaveClass('text-danger');
     expect(caption.querySelector('svg')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-cell="over"]')).toHaveLength(4);
   });
 
   it('keeps the maximum caption neutral within the limits', () => {
     render(<CreditMeter credits={18} min={12} max={30} />);
-    expect(screen.getByText('máximo 30')).not.toHaveClass('text-erro');
+    expect(screen.getByText('máximo 30')).not.toHaveClass('text-danger');
   });
 
   it('draws one cell per credit of the maximum, filling the chosen ones', () => {

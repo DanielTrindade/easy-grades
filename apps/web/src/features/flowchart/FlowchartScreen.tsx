@@ -125,7 +125,7 @@ function Graph({ data }: { data: ParseResponse }) {
           target: edge.target,
           focusable: false,
           style: {
-            stroke: edge.satisfied ? 'var(--texto)' : 'var(--suave)',
+            stroke: edge.satisfied ? 'var(--ink)' : 'var(--ink-muted)',
             strokeWidth: inChain ? 2.5 : 1.5,
             strokeDasharray: edge.alternative ? '5 4' : undefined,
             opacity: highlighted === null || inChain ? 1 : 0.15,

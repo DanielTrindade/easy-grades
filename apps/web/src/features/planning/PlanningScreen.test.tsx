@@ -220,13 +220,13 @@ describe('PlanningScreen', () => {
     expect(await screen.findByRole('radio', { name: /^Eletivas, \d+$/ })).toBeInTheDocument();
   });
 
-  it('keeps the esmeralda text on "No semestre" when it is hovered', async () => {
+  it('keeps the pen blue text on "No semestre" when it is hovered', async () => {
     const user = userEvent.setup({ delay: null });
     render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
     await user.click(await screen.findByRole('radio', { name: /^Eletivas,/ }));
     const added = screen.getAllByText('No semestre');
     expect(added.length).toBeGreaterThan(0);
-    for (const label of added) expect(label.closest('button')).toHaveClass('hover:text-esmeralda-texto');
+    for (const label of added) expect(label.closest('button')).toHaveClass('hover:text-pen-ink');
   });
 
   it('keeps the panel in a bottom sheet below lg, with one copy of it', async () => {

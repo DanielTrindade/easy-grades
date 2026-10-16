@@ -33,7 +33,7 @@
 /* Course codes: the same family at 87.5% width, in the muted ink. No monospace font. */
 @utility code-label {
   font-stretch: 87.5%;
-  color: var(--suave);
+  color: var(--ink-muted);
 }
 
 @theme inline {
@@ -43,17 +43,20 @@
   --text-display: 2.75rem;
   --text-stat: 4rem;
 
-  --color-fundo: var(--fundo);
-  --color-superficie: var(--superficie);
-  --color-texto: var(--texto);
-  --color-suave: var(--suave);
-  --color-linha: var(--linha);
-  --color-campo: var(--campo);
-  --color-esmeralda: var(--esmeralda);
-  --color-esmeralda-texto: var(--esmeralda-texto);
-  --color-esmeralda-fundo: var(--esmeralda-fundo);
-  --color-erro: var(--erro);
-  --color-erro-foreground: var(--erro-foreground);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--hairline);
+  --color-field: var(--field);
+  --color-pen: var(--pen);
+  --color-pen-ink: var(--pen-ink);
+  --color-pen-tint: var(--pen-tint);
+  --color-pen-foreground: var(--pen-foreground);
+  --color-success: var(--success);
+  --color-success-tint: var(--success-tint);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
 
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
@@ -99,83 +102,110 @@
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-/* Palette: cool graphite neutrals and one accent, esmeralda, which means "approved" everywhere it appears. */
+/* Palette: graphite neutrals and one accent, pen blue. Approval has its own quiet green so the accent never means "approved". */
 :root {
-  --fundo: #f4f4f2;
-  --superficie: #ffffff;
-  --texto: #18191c;
-  --suave: #5d6068;
-  --linha: #e2e2de;
-  /* Field borders: 3.4:1 on fundo and 3.8:1 on superficie (WCAG 1.4.11). The spec value #8E9198 gave 2.9:1 on fundo. */
-  --campo: #7f848c;
-  --esmeralda: #0f8f61;
-  /* Esmeralda as text on fundo and superficie: 4.5:1 or better. */
-  --esmeralda-texto: #0b7651;
-  --esmeralda-fundo: #dcf1e8;
-  --erro: #c23b3b;
-  /* Text on an --erro fill. */
-  --erro-foreground: #ffffff;
+  --canvas: #f4f4f2;
+  --surface: #ffffff;
+  --ink: #18191c;
+  --ink-muted: #5d6068;
+  --hairline: #e2e2de;
+  --field: #7f848c;
+  --pen: #2a5bd7;
+  --pen-ink: #2350c2;
+  --pen-tint: #e3eafb;
+  --pen-foreground: #ffffff;
+  --success: #2a7348;
+  --success-tint: #e2efe6;
+  --danger: #c23b3b;
+  --danger-foreground: #ffffff;
 
-  /* MarkerBand: the hatched esmeralda used for activities the student registered (the done fill is solid esmeralda). */
-  --band-pending: color-mix(in oklab, var(--esmeralda) 45%, transparent);
+  --band-pending: color-mix(in oklab, var(--pen) 45%, transparent);
 
-  --background: var(--fundo);
-  --foreground: var(--texto);
-  --card: var(--superficie);
-  --card-foreground: var(--texto);
-  --popover: var(--superficie);
-  --popover-foreground: var(--texto);
-  /* Buttons are graphite, not green: esmeralda is reserved for progress, approval and focus. */
-  --primary: var(--texto);
-  --primary-foreground: var(--fundo);
+  /* Opacity floor that keeps --ink-muted at 4.5:1 with any content color under the glass (tokens.test.ts). */
+  --glass-opacity: 84%;
+  --glass-tint: color-mix(in oklab, var(--surface) var(--glass-opacity), transparent);
+  --glass-edge: color-mix(in oklab, #ffffff 60%, transparent);
+  --glass-shadow: 0 8px 24px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.06);
+  --glass-filter: blur(16px) saturate(170%);
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  /* Buttons stay graphite: blue is reserved for navigation, progress, focus and one primary action per screen. */
+  --primary: var(--ink);
+  --primary-foreground: var(--canvas);
   --secondary: #ededea;
-  --secondary-foreground: var(--texto);
+  --secondary-foreground: var(--ink);
   --muted: #ededea;
-  --muted-foreground: var(--suave);
+  --muted-foreground: var(--ink-muted);
   --accent: #ededea;
-  --accent-foreground: var(--texto);
-  --destructive: var(--erro);
-  --border: var(--linha);
-  --input: var(--campo);
-  --ring: var(--esmeralda);
-  --chart-1: var(--esmeralda);
-  --chart-2: var(--texto);
-  --chart-3: var(--suave);
-  --chart-4: #1f6b4f;
-  --chart-5: var(--erro);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--hairline);
+  --input: var(--field);
+  --ring: var(--pen);
+  --chart-1: var(--pen);
+  --chart-2: var(--ink);
+  --chart-3: var(--ink-muted);
+  --chart-4: #1f47b4;
+  --chart-5: var(--danger);
   --radius: 0.5rem;
-  --sidebar: var(--superficie);
-  --sidebar-foreground: var(--texto);
-  --sidebar-primary: var(--texto);
-  --sidebar-primary-foreground: var(--fundo);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--canvas);
   --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--texto);
+  --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--border);
-  --sidebar-ring: var(--esmeralda);
+  --sidebar-ring: var(--pen);
 }
 
 /* Dark is graphite at night: a cool near-black, not navy. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --fundo: #141517;
-    --superficie: #1c1d20;
-    --texto: #ecedee;
-    --suave: #9a9ca3;
-    --linha: #2a2c30;
-    /* Field borders: 3.8:1 on fundo and 3.5:1 on superficie (WCAG 1.4.11). The spec value #474A51 gave 1.9:1. */
-    --campo: #6e727b;
-    --esmeralda: #2fbf8a;
-    --esmeralda-texto: #4fd6a2;
-    --esmeralda-fundo: #173a2e;
-    --erro: #f07070;
-    /* Graphite ink on the coral fill keeps the same contrast as in light mode. */
-    --erro-foreground: #141517;
+    --canvas: #0e0f11;
+    --surface: #1b1c1f;
+    --ink: #ecedee;
+    --ink-muted: #9a9ca3;
+    --hairline: #2a2c30;
+    --field: #6e727b;
+    --pen: #6f9bff;
+    --pen-ink: #8fb0ff;
+    --pen-tint: #1c2a4d;
+    --pen-foreground: #0e0f11;
+    --success: #7fc79a;
+    --success-tint: #1c3326;
+    --danger: #f07070;
+    --danger-foreground: #0e0f11;
+
+    --glass-opacity: 90%;
+    --glass-edge: color-mix(in oklab, #ffffff 14%, transparent);
+    --glass-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
 
     --secondary: #232427;
     --muted: #232427;
     --accent: #232427;
-    --chart-4: #7fd1b0;
-    --sidebar-primary-foreground: var(--fundo);
+    --chart-4: #a8c2ff;
+    --sidebar-primary-foreground: var(--canvas);
+  }
+}
+
+/* "Increase contrast": stronger neutrals. The glass turns solid in the same condition (see the glass section). */
+@media (prefers-contrast: more) {
+  :root {
+    --ink-muted: #3f4248;
+    --hairline: #8a8e95;
+    --field: #5d6068;
+  }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root {
+    --ink-muted: #c4c6cb;
+    --hairline: #6e727b;
+    --field: #9a9ca3;
   }
 }
 
@@ -217,7 +247,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: linear-gradient(var(--linha) 1px, transparent 1px), linear-gradient(90deg, var(--linha) 1px, transparent 1px);
+  background-image: linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
   background-size: 8px 8px;
   -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
   mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
@@ -225,10 +255,10 @@
 
 /* MarkerBand: a surface with a grid of hairlines and a border. The fills are child spans in .marker-fills. */
 .marker-band {
-  background-color: var(--superficie);
-  background-image: linear-gradient(var(--linha) 1px, transparent 1px), linear-gradient(90deg, var(--linha) 1px, transparent 1px);
+  background-color: var(--surface);
+  background-image: linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
   background-size: 8px 8px;
-  border: 1px solid var(--linha);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius);
 }
 /* One-time reveal when a dataset is first shown: the progress fill sweeps left to right. Only the fills wrapper moves. */
@@ -282,7 +312,7 @@
 
 .react-flow {
   --xy-background-color: transparent;
-  --xy-node-boxshadow-selected: 0 0 0 2px var(--esmeralda);
+  --xy-node-boxshadow-selected: 0 0 0 2px var(--pen);
   --xy-minimap-background-color: var(--card);
   --xy-controls-button-background-color: var(--card);
   --xy-controls-button-color: var(--foreground);
@@ -295,19 +325,19 @@
 }
 /* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
 .react-flow__minimap-node.mini-done {
-  fill: var(--esmeralda);
+  fill: var(--success);
 }
 .react-flow__minimap-node.mini-left {
-  fill: var(--linha);
+  fill: var(--hairline);
 }
 .react-flow__background {
-  --xy-background-pattern-dots-color-default: var(--linha);
+  --xy-background-pattern-dots-color-default: var(--hairline);
 }
 .react-flow__minimap-mask {
   fill: color-mix(in oklch, var(--background) 70%, transparent);
 }
 .react-flow__node:focus-visible {
-  outline: 2px solid var(--esmeralda);
+  outline: 2px solid var(--pen);
   outline-offset: 3px;
   border-radius: var(--radius);
 }

@@ -6,8 +6,8 @@ import { crDomain, crTicks } from './chart-utils';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 
 const config = {
-  termCr: { label: 'CR do período', color: 'var(--suave)' },
-  cumulativeCr: { label: 'CR acumulado', color: 'var(--esmeralda)' },
+  termCr: { label: 'CR do período', color: 'var(--ink-muted)' },
+  cumulativeCr: { label: 'CR acumulado', color: 'var(--pen)' },
 } satisfies ChartConfig;
 
 export default function CrChart({ history }: { history: TermCr[] }) {

@@ -10,8 +10,8 @@ import { formatCr, formatHours, formatOneDecimal, formatPercent, pluralize, toTi
 import { GradeStrip } from './GradeStrip';
 
 const TREND: Record<NonNullable<PerformanceInsights['trend']>, { icon: LucideIcon; verb: string; iconColor: string }> = {
-  subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-esmeralda-texto' },
-  caindo: { icon: TrendingDown, verb: 'caiu', iconColor: 'text-erro' },
+  subindo: { icon: TrendingUp, verb: 'subiu', iconColor: 'text-success' },
+  caindo: { icon: TrendingDown, verb: 'caiu', iconColor: 'text-danger' },
   estavel: { icon: Minus, verb: 'ficou estável', iconColor: 'text-muted-foreground' },
 };
 
