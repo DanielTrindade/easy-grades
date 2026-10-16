@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OptionsMenu } from './OptionsMenu';
 
 async function openMenu() {
@@ -14,7 +14,7 @@ describe('OptionsMenu', () => {
     render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} />);
     const { menu } = await openMenu();
     expect(within(menu).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Novo upload', 'Limpar dados']);
-    expect(within(menu).getByRole('separator')).toBeInTheDocument();
+    expect(within(menu).getAllByRole('separator')).toHaveLength(2);
   });
 
   it('calls the matching handler when an item is chosen', async () => {
@@ -46,5 +46,33 @@ describe('OptionsMenu', () => {
     const { user, menu } = await openMenu();
     await user.click(within(menu).getByRole('menuitem', { name: 'Instalar app' }));
     expect(onSelect).toHaveBeenCalledWith(screen.getByRole('button', { name: 'Mais opções' }));
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    delete document.documentElement.dataset.appearance;
+  });
+
+  it('offers the glass and solid appearances, with glass checked by default', async () => {
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} />);
+    const { menu } = await openMenu();
+    expect(within(menu).getByText('Aparência')).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitemradio', { name: 'Vidro' })).toHaveAttribute('aria-checked', 'true');
+    expect(within(menu).getByRole('menuitemradio', { name: 'Sólida' })).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('applies and remembers the solid appearance', async () => {
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} />);
+    const { user, menu } = await openMenu();
+    await user.click(within(menu).getByRole('menuitemradio', { name: 'Sólida' }));
+    expect(document.documentElement).toHaveAttribute('data-appearance', 'solid');
+    expect(localStorage.getItem('appearance')).toBe('solid');
+  });
+
+  it('shows only the appearance when the actions already sit in the header', async () => {
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} showActions={false} />);
+    const { menu } = await openMenu();
+    expect(within(menu).queryByRole('menuitem')).not.toBeInTheDocument();
+    expect(within(menu).getAllByRole('menuitemradio')).toHaveLength(2);
   });
 });
