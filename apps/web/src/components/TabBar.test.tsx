@@ -74,6 +74,16 @@ describe('TabBar', () => {
     expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveFocus();
   });
 
+  it('stays expanded while a link holds focus, even when the page scrolls', () => {
+    render(<TabBar view="disciplinas" />);
+    const link = screen.getByRole('link', { name: 'Disciplinas' });
+    act(() => link.focus());
+    scrollTo(30);
+    scrollTo(300);
+    expect(link).toHaveFocus();
+    expect(document.body).toHaveAttribute('data-tab-bar', 'expanded');
+  });
+
   it('never minimizes on the flowchart, whose canvas does not scroll the page', () => {
     render(<TabBar view="fluxograma" />);
     scrollTo(30);
