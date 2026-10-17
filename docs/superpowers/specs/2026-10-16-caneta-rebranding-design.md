@@ -82,7 +82,7 @@ Contrastes calculados (WCAG): `ink-muted` ≥ 5,7:1 e `pen-ink` ≥ 6,3:1 sobre 
 | `text-title2` | 22/28 | Título de seção. |
 | `text-title3` | 20/25 | Cabeçalho de grupo de cartões. |
 | `text-headline` | 17/22, semibold | Título de cartão ou linha. |
-| `text-body` | 17/22 (the body rule itself uses 16/24 from md; the utility is fixed) | Texto corrido. |
+| `text-body` | 17/22 (a regra do body usa 16/24 a partir de md; o utilitário é fixo) | Texto corrido. |
 | `text-callout` | 16/21 | — |
 | `text-subhead` | 15/20 | Rótulos de campo. |
 | `text-footnote` | 13/18 | Cabeçalhos de grupo de lista, contexto de métrica. |
