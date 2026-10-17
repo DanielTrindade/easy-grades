@@ -54,3 +54,61 @@ describe('typography', () => {
     expect(rules).toContain('font-stretch: 87.5%;');
   });
 });
+
+function rule(selector: string): string {
+  const start = css.indexOf(`${selector} {`);
+  if (start === -1) throw new Error(`Missing rule ${selector}`);
+  return css.slice(start, css.indexOf('}', start));
+}
+
+describe('shape', () => {
+  it.each([
+    ['card', '1.25rem'],
+    ['group', '1rem'],
+    ['node', '0.75rem'],
+    ['sheet', '1.75rem'],
+    ['xl', '1.25rem'],
+  ])('defines rounded-%s', (name, value) => {
+    expect(declaration(`--radius-${name}`)).toBe(value);
+  });
+});
+
+describe('glass', () => {
+  it('reads every visual property from tokens, so a token switch turns it solid', () => {
+    const rules = utility('glass');
+    expect(rules).toContain('background-color: var(--glass-tint);');
+    expect(rules).toContain('-webkit-backdrop-filter: var(--glass-filter);');
+    expect(rules).toContain('backdrop-filter: var(--glass-filter);');
+    expect(rules).toContain('box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);');
+  });
+
+  it('turns solid when the user picks the solid appearance', () => {
+    const solid = rule(":root[data-appearance='solid']");
+    expect(solid).toContain('--glass-tint: var(--surface);');
+    expect(solid).toContain('--glass-filter: none;');
+  });
+
+  it('turns solid with increased contrast or reduced transparency', () => {
+    const start = css.indexOf('@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {');
+    expect(start).toBeGreaterThan(-1);
+    const block = css.slice(start, css.indexOf('}', start));
+    expect(block).toContain('--glass-tint: var(--surface);');
+    expect(block).toContain('--glass-filter: none;');
+    expect(block).toContain('--glass-edge: var(--ink);');
+  });
+
+  it('falls back to a solid surface where backdrop-filter is missing', () => {
+    expect(css).toContain('@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {');
+  });
+});
+
+describe('motion', () => {
+  it('defines the spring easings as linear() curves', () => {
+    expect(declaration('--ease-spring-smooth')).toMatch(/^linear\(0, .*, 1\)$/);
+    expect(declaration('--ease-spring-snappy')).toMatch(/^linear\(0, .*, 1\)$/);
+  });
+
+  it('drops the unused glide easing', () => {
+    expect(declaration('--ease-glide')).toBeUndefined();
+  });
+});
