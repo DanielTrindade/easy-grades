@@ -1,4 +1,4 @@
-import { ChoiceGroup, type ChoiceItem } from '@/features/courses/ChoiceGroup';
+import { ChoiceGroup, type ChoiceItem } from '@/components/ChoiceGroup';
 import { cn } from '@/lib/utils';
 
 interface ChipGroupProps<T extends string> {
