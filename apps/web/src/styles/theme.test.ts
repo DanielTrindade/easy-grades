@@ -99,7 +99,15 @@ describe('glass', () => {
     const block = css.slice(start, css.indexOf('}', start));
     expect(block).toContain('--glass-tint: var(--surface);');
     expect(block).toContain('--glass-filter: none;');
-    expect(block).toContain('--glass-edge: var(--ink);');
+    expect(block).toContain('--glass-edge: var(--hairline);');
+  });
+
+  it('keeps the ink edge only when contrast is increased', () => {
+    const shared = css.indexOf('@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {');
+    const ink = css.search(/@media \(prefers-contrast: more\) \{\r?\n {2}:root \{\r?\n {4}--glass-edge: var\(--ink\);/);
+    const solid = css.indexOf(":root[data-appearance='solid']");
+    expect(ink).toBeGreaterThan(shared);
+    expect(ink).toBeLessThan(solid);
   });
 
   it('falls back to a solid surface where backdrop-filter is missing', () => {

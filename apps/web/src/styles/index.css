@@ -260,6 +260,11 @@
   :root {
     --glass-tint: var(--surface);
     --glass-filter: none;
+    --glass-edge: var(--hairline);
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
     --glass-edge: var(--ink);
   }
 }
