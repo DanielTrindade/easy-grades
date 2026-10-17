@@ -1,12 +1,13 @@
 import { crByTerm, type Category, type ParseResponse } from '@easy-grades/core';
 import { CircleHelp, List, type LucideIcon } from 'lucide-react';
 import { useDeferredValue, useMemo, useRef, useState } from 'react';
+import { ChipGroup } from '@/components/ChipGroup';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { STATE_STYLE } from '@/components/state-style';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChoiceGroup } from './ChoiceGroup';
 import { CourseGroup } from './CourseGroup';
 import {
   CATEGORY_LABELS,
@@ -65,9 +66,8 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
       <h1 className="text-large-title">Disciplinas cursadas</h1>
 
       <div className="grid gap-4">
-        <ChoiceGroup
+        <ChipGroup
           label="Filtrar por situação"
-          className="flex flex-wrap gap-2"
           items={STATUS_ORDER.map((key) => {
             const Icon = STATUS_ICONS[key];
             return {
@@ -83,7 +83,6 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
           })}
           value={status}
           onValueChange={setStatus}
-          itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-hairline px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-ink aria-checked:bg-ink aria-checked:text-canvas aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
         />
 
         <div className="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-end">
@@ -130,14 +129,7 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
             ? `${rows.length} de ${entries.length} ${plural(entries.length)} com os filtros atuais.`
             : `${entries.length} ${plural(entries.length)} no histórico.`}
         </p>
-        <ChoiceGroup
-          label="Agrupar por"
-          className="inline-flex rounded-lg border border-hairline p-0.5"
-          items={GROUP_OPTIONS}
-          value={groupBy}
-          onValueChange={setGroupBy}
-          itemClassName="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:bg-ink aria-checked:text-canvas aria-checked:focus-visible:ring-offset-2 aria-checked:focus-visible:ring-offset-background md:min-h-8"
-        />
+        <SegmentedControl label="Agrupar por" items={GROUP_OPTIONS} value={groupBy} onValueChange={setGroupBy} />
       </div>
 
       {groups.length === 0 ? (
