@@ -108,7 +108,7 @@ Contrastes calculados (WCAG): `ink-muted` ≥ 5,7:1 e `pen-ink` ≥ 6,3:1 sobre 
 
 Utilitário `glass` em `index.css`:
 
-- tinta: `color-mix(in oklab, var(--surface) 78%, transparent)`;
+- tinta: `color-mix(in oklab, var(--surface) var(--glass-opacity), transparent)`, com `--glass-opacity` 84% no claro e 90% no escuro. É o mínimo que mantém `--ink-muted` a 4,5:1 com qualquer cor de conteúdo passando por baixo (garantido por `tokens.test.ts`); os 78% da pesquisa davam 3,9:1;
 - `backdrop-filter` e `-webkit-backdrop-filter`: `blur(16px) saturate(170%)`;
 - borda especular: `inset 0 1px 0` clara, mais uma hairline translúcida;
 - sombra externa suave (`--glass-shadow`, uma por modo);
@@ -282,7 +282,7 @@ Ao fim de cada fase, a seção "Frontend conventions" do `CLAUDE.md` é atualiza
 
 | Risco | Mitigação |
 |---|---|
-| Legibilidade sobre o vidro | Tinta de 78% (opaca para web), teste de contraste no pior caso, aparência sólida. |
+| Legibilidade sobre o vidro | Tinta de 84% (claro) e 90% (escuro), teste de contraste no pior caso, aparência sólida. |
 | Custo de GPU do `backdrop-filter` em Android de entrada | Vidro só em poucos elementos fixos e pequenos; nunca em listas ou nós; nunca animar o blur; medir FPS. |
 | Tingimento das barras pelo Safari 26 | Verificação no iPhone; fallback opaco em `display-mode: browser`. |
 | "Falso iOS" fora da Apple | Sem SF, SF Symbols, chevron de voltar sem texto ou cópia de componentes do sistema; adaptação por capacidade (`pointer`, `display-mode`, `prefers-*`), nunca por user-agent. |
