@@ -1,6 +1,6 @@
 import { Check, Lock, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { ChoiceGroup } from '@/features/courses/ChoiceGroup';
+import { ChipGroup } from '@/components/ChipGroup';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -121,7 +121,7 @@ export function CourseCatalog({
         </div>
       </div>
 
-      <ChoiceGroup<CatalogFilter>
+      <ChipGroup<CatalogFilter>
         label="Filtrar disciplinas"
         items={CATALOG_FILTERS.map((f) => {
           const count = counts.get(f.value) ?? 0;
@@ -143,8 +143,6 @@ export function CourseCatalog({
         })}
         value={filter}
         onValueChange={setFilter}
-        className="flex flex-wrap gap-2"
-        itemClassName="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-hairline px-3 text-sm text-foreground outline-none transition-colors duration-150 ease-snap focus-visible:ring-3 focus-visible:ring-ring/50 aria-[checked=false]:hover:bg-muted aria-checked:border-ink aria-checked:bg-ink aria-checked:text-canvas md:min-h-8 md:pointer-coarse:min-h-11"
       />
 
       {visible.length === 0 ? (
