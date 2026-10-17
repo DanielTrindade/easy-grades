@@ -24,6 +24,12 @@ describe('SegmentedControl', () => {
     expect(checked).toHaveClass('rounded-full', 'aria-checked:bg-surface', 'min-h-11');
   });
 
+  it('gives the checked segment a field edge, 3:1 against the muted track', () => {
+    render(<Harness />);
+    const checked = screen.getByRole('radio', { name: 'Por período' });
+    expect(checked).toHaveClass('aria-checked:ring-1', 'aria-checked:ring-field');
+  });
+
   it('keeps one tab stop and moves with the arrow keys', async () => {
     const user = userEvent.setup();
     render(<Harness />);
