@@ -88,6 +88,11 @@ describe('glass', () => {
     expect(solid).toContain('--glass-filter: none;');
   });
 
+  it('keeps the ink edge when the solid appearance meets increased contrast', () => {
+    const solid = rule("@media (prefers-contrast: more) {\n  :root[data-appearance='solid']");
+    expect(solid).toContain('--glass-edge: var(--ink);');
+  });
+
   it('turns solid with increased contrast or reduced transparency', () => {
     const start = css.indexOf('@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {');
     expect(start).toBeGreaterThan(-1);
