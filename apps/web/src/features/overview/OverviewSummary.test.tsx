@@ -1,7 +1,9 @@
 import { crProjectionInsights, forecastGraduation, performanceInsights } from '@easy-grades/core';
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { PerformanceSection } from './PerformanceSection';
 import { OverviewSummary } from './OverviewSummary';
 
 const forecast = forecastGraduation(sampleCurriculum, sampleTranscript);
@@ -60,5 +62,34 @@ describe('OverviewSummary', () => {
     expect(screen.getByRole('link', { name: /Coeficiente de rendimento/ })).toHaveAttribute('href', '#desempenho');
     expect(screen.getByRole('link', { name: /Previsão de formatura/ })).toHaveAttribute('href', '#ritmo');
     expect(screen.getByRole('link', { name: /Fora das disciplinas/ })).toHaveAttribute('href', '#atividades-complementares');
+  });
+
+  it('moves focus to the real performance heading when the CR card is clicked', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <OverviewSummary
+          cr={7.757}
+          officialCr={7.757}
+          performance={performance}
+          forecast={forecast}
+          projection={projection}
+          outsideHours={forecast.pendingHours.aacc + forecast.pendingHours.extensao}
+        />
+        <PerformanceSection
+          performance={performance}
+          attempts={[]}
+          streak={{ terms: 0, judgedTerms: 0, lastFailureTerm: null, neverFailed: true }}
+          grades={null}
+          avgHoursPerTerm={414}
+        />
+      </>,
+    );
+    const section = screen.getByRole('region', { name: 'Desempenho' });
+    section.scrollIntoView = () => {};
+
+    await user.click(screen.getByRole('link', { name: /Coeficiente de rendimento/ }));
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Desempenho' })).toHaveFocus();
   });
 });

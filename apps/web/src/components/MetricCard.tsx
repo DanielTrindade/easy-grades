@@ -18,8 +18,8 @@ function revealSection(event: MouseEvent<HTMLAnchorElement>, targetId: string) {
   if (!target) return;
   event.preventDefault();
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-  const heading = target.querySelector<HTMLElement>('h2');
+  const heading = target.matches('h2') ? target : target.querySelector<HTMLElement>('h2');
+  (target.closest('section') ?? target).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   if (!heading) return;
   heading.tabIndex = -1;
   heading.focus({ preventScroll: true });

@@ -31,6 +31,22 @@ describe('MetricCard', () => {
     const user = userEvent.setup();
     window.location.hash = '#/visao-geral';
     const section = document.createElement('section');
+    section.innerHTML = '<h2 id="desempenho">Desempenho</h2>';
+    document.body.append(section);
+    const scrollIntoView = vi.fn();
+    section.scrollIntoView = scrollIntoView;
+
+    render(<MetricCard icon={TrendingUp} label="Coeficiente de rendimento" value="7,757" targetId="desempenho" />);
+    await user.click(screen.getByRole('link', { name: /Coeficiente de rendimento/ }));
+
+    expect(window.location.hash).toBe('#/visao-geral');
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    expect(section.querySelector('h2')).toHaveFocus();
+  });
+
+  it('supports an id on the detail section', async () => {
+    const user = userEvent.setup();
+    const section = document.createElement('section');
     section.id = 'desempenho';
     section.innerHTML = '<h2>Desempenho</h2>';
     document.body.append(section);
@@ -40,8 +56,7 @@ describe('MetricCard', () => {
     render(<MetricCard icon={TrendingUp} label="Coeficiente de rendimento" value="7,757" targetId="desempenho" />);
     await user.click(screen.getByRole('link', { name: /Coeficiente de rendimento/ }));
 
-    expect(window.location.hash).toBe('#/visao-geral');
-    expect(scrollIntoView).toHaveBeenCalled();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     expect(section.querySelector('h2')).toHaveFocus();
   });
 });
