@@ -19,13 +19,16 @@ import { useInView } from '@/lib/use-in-view';
 import { useInstallApp } from '@/lib/use-install-app';
 import { useMediaQuery } from '@/lib/use-media-query';
 
+// React Flow is the heaviest dependency: load it only when the flowchart is opened.
 const FlowchartScreen = lazy(() => import('@/features/flowchart/FlowchartScreen'));
 
 interface DashboardProps {
   dataset: Dataset;
   onRevealed: () => void;
   onNewUpload: () => void;
+  /** Explicit "Limpar dados": removes the dataset and the registered activities. */
   onClear: () => void;
+  /** Crash recovery: removes only the parsed PDF data, never the activities the student registered. */
   onResetDataset: () => void | Promise<void>;
 }
 
@@ -39,8 +42,10 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
   const { curriculum } = dataset.data;
   const analysis = useAnalysis(dataset.data);
   const context = `${curriculum.courseName}, currículo ${curriculum.version}`;
+  // On a phone the flowchart canvas needs the height, so its title lives in the compact header instead.
   const compactOnly = !desktop && view === 'fluxograma';
   const [clearOpen, setClearOpen] = useState(false);
+  // Whichever control opened the confirmation (desktop button or options menu trigger), so focus can return to it.
   const clearOpenerRef = useRef<HTMLElement | null>(null);
   const install = useInstallApp();
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
@@ -51,6 +56,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
     setClearOpen(true);
   }
 
+  // Safari cannot prompt, so its "Instalar app" explains the steps; every other browser gets its own install prompt.
   const installOption = install.kind
     ? {
         kind: install.kind,
