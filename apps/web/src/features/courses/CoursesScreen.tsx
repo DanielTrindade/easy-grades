@@ -1,5 +1,5 @@
 import { crByTerm, type Category, type ParseResponse } from '@easy-grades/core';
-import { CircleHelp, List, type LucideIcon } from 'lucide-react';
+import { CircleHelp, List, Search, type LucideIcon } from 'lucide-react';
 import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { ChipGroup } from '@/components/ChipGroup';
 import { SegmentedControl } from '@/components/SegmentedControl';
@@ -85,21 +85,26 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
 
         <div className="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-end">
           <div className="grid gap-1.5">
-            <Label htmlFor="busca">Buscar disciplina</Label>
-            <Input
-              ref={searchRef}
-              id="busca"
-              type="search"
-              placeholder="Código ou nome"
-              className="max-md:h-11"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+            <Label htmlFor="busca" className="sr-only">
+              Buscar disciplina
+            </Label>
+            <div className="relative">
+              <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-muted" />
+              <Input
+                ref={searchRef}
+                id="busca"
+                type="search"
+                placeholder="Buscar por código ou nome"
+                className="pl-10 max-md:h-11"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="filtro-categoria">Categoria</Label>
             <Select value={category} onValueChange={(v) => setCategory(v as Category | 'todas')}>
-              <SelectTrigger id="filtro-categoria" className="w-full max-md:data-[size=default]:h-11">
+              <SelectTrigger id="filtro-categoria" className="w-full rounded-full max-md:data-[size=default]:h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

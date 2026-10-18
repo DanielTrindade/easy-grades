@@ -450,6 +450,17 @@
   }
 }
 
+/* The desktop glass header (Dashboard): one fixed row height, so the sticky course headers can sit right below it. */
+:root {
+  --app-header-height: 3.8125rem;
+}
+/* Touch screens get 44 px section links, so the header row grows. */
+@media (pointer: coarse) {
+  :root {
+    --app-header-height: 4.5625rem;
+  }
+}
+
 /* Fixed chrome under the content: the floating tab bar (below md) and a screen accessory such as the "Meu semestre"
    bar (below lg). Their heights live here so the main padding, the accessory and the toasts stay in step. */
 body {
