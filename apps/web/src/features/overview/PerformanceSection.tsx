@@ -80,8 +80,8 @@ export function PerformanceSection({ performance, attempts, streak, grades, avgH
   const categoryCr = bestCategoryCr(performance);
 
   return (
-    <section aria-labelledby="desempenho" className="grid min-w-0 content-start gap-4">
-      <h2 id="desempenho" className="text-xl">
+    <section aria-labelledby="desempenho" className="grid min-w-0 scroll-mt-20 content-start gap-4 rounded-card bg-surface p-5 md:scroll-mt-24">
+      <h2 id="desempenho" className="text-title3">
         Desempenho
       </h2>
 

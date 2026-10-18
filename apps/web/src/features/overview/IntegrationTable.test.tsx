@@ -35,9 +35,11 @@ describe('IntegrationTable', () => {
 
   it('puts the table in a focusable scroll region named after the section heading', () => {
     render(<IntegrationTable components={components} />);
-    const region = screen.getByRole('region', { name: 'Integralização oficial' });
+    // The card section is a region with the same name, so pick the scroll container.
+    const region = screen
+      .getAllByRole('region', { name: 'Integralização oficial' })
+      .find((element) => element.getAttribute('tabindex') === '0')!;
     expect(region).toHaveClass('overflow-x-auto');
-    expect(region).toHaveAttribute('tabindex', '0');
     expect(within(region).getByRole('table')).toBeInTheDocument();
   });
 

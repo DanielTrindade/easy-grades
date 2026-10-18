@@ -53,8 +53,8 @@ export function TimelineBand({ timeline }: TimelineBandProps) {
   const sentence = timelineSentence(timeline);
 
   return (
-    <section aria-labelledby="linha-do-tempo" className="min-w-0">
-      <h2 id="linha-do-tempo" className="text-xl">
+    <section aria-labelledby="linha-do-tempo" className="min-w-0 scroll-mt-20 rounded-card bg-surface p-5 md:scroll-mt-24">
+      <h2 id="linha-do-tempo" className="text-title3">
         Linha do tempo do curso
       </h2>
       <div aria-hidden className="relative mt-4 h-2">

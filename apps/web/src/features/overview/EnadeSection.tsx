@@ -18,8 +18,8 @@ export function EnadeSection({ records }: EnadeSectionProps) {
   if (!hasGraduating) lines.push({ key: 'concluinte-pendente', icon: Clock, text: 'Concluinte: ainda sem registro no histórico' });
 
   return (
-    <section aria-labelledby="enade" className="grid min-w-0 gap-4">
-      <h2 id="enade" className="text-xl">
+    <section aria-labelledby="enade" className="grid min-w-0 scroll-mt-20 gap-4 rounded-card bg-surface p-5 md:scroll-mt-24">
+      <h2 id="enade" className="text-title3">
         ENADE
       </h2>
       <ul className="grid gap-2 text-sm">
