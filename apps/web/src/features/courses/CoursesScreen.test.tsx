@@ -65,6 +65,13 @@ describe('CoursesScreen', () => {
     expect(screen.queryByText('Redes')).not.toBeInTheDocument();
   });
 
+  it('searches from a capsule field with a search icon', () => {
+    render(<CoursesScreen data={data} />);
+    const search = screen.getByRole('searchbox', { name: 'Buscar disciplina' });
+    expect(search).toHaveClass('rounded-full', 'pl-10');
+    expect(search.parentElement?.querySelector('svg')).not.toBeNull();
+  });
+
   it('shows "Limpar filtros" only while a filter is active, and clears them', async () => {
     render(<CoursesScreen data={data} />);
     expect(screen.queryByRole('button', { name: 'Limpar filtros' })).not.toBeInTheDocument();
