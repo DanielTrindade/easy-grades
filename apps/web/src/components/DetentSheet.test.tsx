@@ -15,6 +15,8 @@ interface HarnessProps {
   attachReturnRef?: boolean;
   returnTargetNonFocusable?: boolean;
   returnTargetDisabled?: boolean;
+  returnTargetHidden?: boolean;
+  returnTargetHiddenAncestor?: boolean;
 }
 
 function Harness({
@@ -27,6 +29,8 @@ function Harness({
   attachReturnRef = true,
   returnTargetNonFocusable = false,
   returnTargetDisabled = false,
+  returnTargetHidden = false,
+  returnTargetHiddenAncestor = false,
 }: HarnessProps) {
   const [open, setOpen] = useState(initialOpen);
 
@@ -48,13 +52,16 @@ function Harness({
           Retorno
         </div>
       ) : (
-        <button
-          ref={attachReturnRef ? (returnFocusRef as RefObject<HTMLButtonElement | null>) : undefined}
-          type="button"
-          disabled={returnTargetDisabled}
-        >
-          Retorno
-        </button>
+        <div hidden={returnTargetHiddenAncestor || undefined}>
+          <button
+            ref={attachReturnRef ? (returnFocusRef as RefObject<HTMLButtonElement | null>) : undefined}
+            type="button"
+            disabled={returnTargetDisabled}
+            hidden={returnTargetHidden}
+          >
+            Retorno
+          </button>
+        </div>
       )}
       <DetentSheet
         open={open}
@@ -411,6 +418,17 @@ describe('DetentSheet', () => {
     expect(bodyDrag()).toBe('');
   });
 
+  it('cancels a pending gesture released outside the header and accepts the next pointer', () => {
+    render(<Harness />);
+
+    fireEvent.pointerDown(handle(), { pointerId: 1, isPrimary: true, button: 0, clientY: 500 });
+    fireEvent.pointerUp(document.body, { pointerId: 1, isPrimary: true, button: 0, clientY: 500 });
+
+    drag(handle(), 500, 220, 300, { pointerId: 2 });
+
+    expect(sheet()).toHaveAttribute('data-detent', 'large');
+  });
+
   it('ignores a second pointer while a gesture is active', () => {
     render(<Harness />);
     const target = handle();
@@ -447,6 +465,50 @@ describe('DetentSheet', () => {
 
     startDrag(target, 500, 200);
     fireEvent.lostPointerCapture(target, { pointerId: 1, isPrimary: true });
+
+    expect(sheet()).toHaveAttribute('data-detent', 'medium');
+    expect(sheet()).not.toHaveAttribute('data-dragging');
+    expect(bodyDrag()).toBe('');
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+  });
+
+  it('keeps dragging when the grabber loses implicit capture during the transfer', () => {
+    render(<Harness />);
+    const grabber = screen.getByRole('button', { name: 'Expandir' });
+    const dot = grabber.firstElementChild as HTMLElement;
+    const target = handle();
+    const base = { pointerId: 1, isPrimary: true, button: 0 };
+
+    fireEvent.pointerDown(dot, { ...base, clientY: 500 });
+    fireEvent.pointerMove(dot, { ...base, clientY: 420 });
+    expect(sheet()).toHaveAttribute('data-dragging');
+
+    fireEvent.lostPointerCapture(dot, { pointerId: 1, bubbles: true });
+    expect(sheet()).toHaveAttribute('data-dragging');
+
+    fireEvent.pointerMove(target, { ...base, clientY: 200 });
+    fireEvent.pointerUp(target, { ...base, clientY: 200 });
+
+    expect(sheet()).toHaveAttribute('data-detent', 'large');
+    expect(sheet()).not.toHaveAttribute('data-dragging');
+  });
+
+  it('cancels when the header itself loses pointer capture', () => {
+    const onOpenChange = vi.fn();
+    render(<Harness onOpenChange={onOpenChange} />);
+    const grabber = screen.getByRole('button', { name: 'Expandir' });
+    const dot = grabber.firstElementChild as HTMLElement;
+    const target = handle();
+    const base = { pointerId: 1, isPrimary: true, button: 0 };
+
+    fireEvent.pointerDown(dot, { ...base, clientY: 500 });
+    fireEvent.pointerMove(dot, { ...base, clientY: 420 });
+    expect(sheet()).toHaveAttribute('data-dragging');
+
+    fireEvent.lostPointerCapture(dot, { pointerId: 1, bubbles: true });
+    expect(sheet()).toHaveAttribute('data-dragging');
+
+    fireEvent.lostPointerCapture(target, { pointerId: 1, bubbles: true });
 
     expect(sheet()).toHaveAttribute('data-detent', 'medium');
     expect(sheet()).not.toHaveAttribute('data-dragging');
@@ -570,6 +632,32 @@ describe('DetentSheet', () => {
 
     await waitFor(() => expect(opener).toHaveFocus());
     expect(document.body).not.toHaveFocus();
+  });
+
+  it('falls back to the opener when the explicit target is hidden', async () => {
+    const user = userEvent.setup();
+    const returnFocusRef = createRef<HTMLButtonElement>();
+    render(<Harness initialOpen={false} returnFocusRef={returnFocusRef} returnTargetHidden />);
+    const opener = screen.getByRole('button', { name: 'Abrir' });
+
+    await user.click(opener);
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(opener).toHaveFocus());
+    expect(returnFocusRef.current).not.toHaveFocus();
+  });
+
+  it('falls back to the opener when an ancestor hides the explicit target', async () => {
+    const user = userEvent.setup();
+    const returnFocusRef = createRef<HTMLButtonElement>();
+    render(<Harness initialOpen={false} returnFocusRef={returnFocusRef} returnTargetHiddenAncestor />);
+    const opener = screen.getByRole('button', { name: 'Abrir' });
+
+    await user.click(opener);
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(opener).toHaveFocus());
+    expect(returnFocusRef.current).not.toHaveFocus();
   });
 
   it('falls back to a valid opener when the explicit target is disabled', async () => {

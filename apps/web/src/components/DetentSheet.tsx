@@ -112,6 +112,16 @@ function isDisabled(element: HTMLElement): boolean {
   return (element as HTMLButtonElement).disabled === true || element.getAttribute('aria-disabled') === 'true';
 }
 
+function isVisible(element: HTMLElement): boolean {
+  for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+    const style = window.getComputedStyle(node);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse') {
+      return false;
+    }
+  }
+  return true;
+}
+
 function canRestoreFocus(element: HTMLElement | null | undefined): element is HTMLElement {
   return (
     element !== null &&
@@ -119,7 +129,8 @@ function canRestoreFocus(element: HTMLElement | null | undefined): element is HT
     element !== document.body &&
     element.isConnected &&
     !isDisabled(element) &&
-    element.tabIndex >= 0
+    element.tabIndex >= 0 &&
+    isVisible(element)
   );
 }
 
@@ -239,16 +250,32 @@ export function DetentSheet({
     };
   }, []);
 
+  useEffect(() => {
+    const releaseOutsideHeader = (event: PointerEvent) => {
+      const gesture = gestureRef.current;
+      if (!gesture || gesture.pointerId !== event.pointerId) return;
+      cancelGesture();
+    };
+    window.addEventListener('pointerup', releaseOutsideHeader);
+    window.addEventListener('pointercancel', releaseOutsideHeader);
+    return () => {
+      window.removeEventListener('pointerup', releaseOutsideHeader);
+      window.removeEventListener('pointercancel', releaseOutsideHeader);
+    };
+  }, [cancelGesture]);
+
   function handleOpenChange(next: boolean) {
     if (!next) cancelGesture();
     onOpenChange(next);
   }
 
   function handleCloseAutoFocus(event: Event) {
-    const target = [returnFocusRef?.current, openerRef.current].find(canRestoreFocus);
-    if (!target) return;
-    event.preventDefault();
-    target.focus();
+    for (const candidate of [returnFocusRef?.current, openerRef.current]) {
+      if (!canRestoreFocus(candidate)) continue;
+      event.preventDefault();
+      candidate.focus();
+      if (document.activeElement === candidate) return;
+    }
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -353,6 +380,13 @@ export function DetentSheet({
     cancelGesture();
   }
 
+  function handleLostPointerCapture(event: ReactPointerEvent<HTMLDivElement>) {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    if (event.target !== gesture.element) return;
+    cancelGesture();
+  }
+
   function handleClickCapture(event: ReactMouseEvent<HTMLElement>) {
     if (!suppressClickRef.current || event.detail === 0) return;
     suppressClickRef.current = false;
@@ -396,7 +430,7 @@ export function DetentSheet({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
-          onLostPointerCapture={handlePointerCancel}
+          onLostPointerCapture={handleLostPointerCapture}
         >
           {toggleable ? (
             <button
