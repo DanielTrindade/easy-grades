@@ -21,7 +21,7 @@
 - Movimento reduzido: troca de detent sem mola (sem transição), entrada/saída só com fade.
 - Alvos ≥ 44 px; o grabber é um botão com nome ("Expandir" / "Reduzir").
 - Testes: `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2`; CSS lido com `readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), 'index.css'), 'utf8')`.
-- Branch: `feat/caneta-sheets` a partir de `main`. Commits com `Co-Authored-By: Claude <noreply@anthropic.com>`. `pnpm react-doctor:changed` sem erros.
+- Branch: `feat/caneta-sheets` a partir de `main`. Commits sem trailer de co-autoria de agente. `pnpm react-doctor:changed` sem erros.
 
 ## Review Focus
 
@@ -164,7 +164,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/lib/detents.ts apps/web/src/lib/detents.test.ts
-git commit -m "feat(web): detent resolution for draggable sheets" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): detent resolution for draggable sheets"
 ```
 
 ---
@@ -446,7 +446,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/components/DetentSheet.tsx apps/web/src/components/DetentSheet.test.tsx
-git commit -m "feat(web): draggable glass sheet with medium and large detents" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): draggable glass sheet with medium and large detents"
 ```
 
 ---
@@ -575,7 +575,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/styles
-git commit -m "feat(web): spring settling, drag-following dimming and glass for detent sheets" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): spring settling, drag-following dimming and glass for detent sheets"
 ```
 
 ---
@@ -652,7 +652,7 @@ Expected: PASS (os testes antigos de "Meu semestre", "Salvar ou compartilhar" e 
 
 ```bash
 git add apps/web/src/features/planning/PlanningScreen.tsx apps/web/src/features/planning/PlanningScreen.test.tsx apps/web/src/features/flowchart/ExportSheet.tsx apps/web/src/features/flowchart/FlowchartScreen.test.tsx
-git commit -m "feat(web): Meu semestre and the PNG export in detent sheets" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): Meu semestre and the PNG export in detent sheets"
 ```
 
 ---
@@ -683,7 +683,7 @@ E na seção "Planejamento": a sheet "Meu semestre" é uma `DetentSheet` que abr
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs: detent sheet conventions" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "docs: detent sheet conventions"
 ```
 
 Revisão da branch inteira (Opus 5.5, médio); `gh auth status`, push, PR, merge `--no-ff`.
