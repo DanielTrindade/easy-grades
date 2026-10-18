@@ -13,14 +13,14 @@ function renderBand(pendingPercent?: number) {
 describe('MarkerBand', () => {
   it('keeps the official percentage as the headline and says nothing about pending activities without them', () => {
     renderBand();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('64,69%');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('64,69%');
     expect(screen.getByRole('img', { name: '64,69% do curso concluído' })).toBeInTheDocument();
     expect(screen.queryByText(/Com as atividades que você registrou/)).not.toBeInTheDocument();
   });
 
   it('shows the total with the registered activities when there are pending points', () => {
     renderBand(10);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('64,69%');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('64,69%');
     expect(screen.getByText('Com as atividades que você registrou: 74,69%.')).toBeInTheDocument();
   });
 

@@ -20,7 +20,11 @@ describe('SectionNav', () => {
     render(<SectionNav view="disciplinas" />);
     expect(screen.getByRole('link', { name: 'Disciplinas' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Visão geral' })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('link', { name: 'Fluxograma' })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('link', { name: 'Planejamento' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('is a capsule segmented control with a sliding pill under the active section', () => {
+    const { container } = render(<SectionNav view="fluxograma" />);
+    expect(screen.getByRole('navigation', { name: 'Seções' })).toHaveClass('rounded-full');
+    expect(container.querySelector('.tab-indicator')).toHaveStyle({ transform: 'translateX(100%)' });
   });
 });

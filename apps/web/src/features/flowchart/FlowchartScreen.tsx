@@ -213,8 +213,7 @@ function Graph({ data }: { data: ParseResponse }) {
     <div className="grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-large-title">Fluxograma do curso</h1>
-          <p className="mt-2 max-w-[60ch] text-muted-foreground">
+          <p className="max-w-[60ch] text-muted-foreground">
             Passe o mouse ou toque numa disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
             percorrer os períodos.
           </p>
