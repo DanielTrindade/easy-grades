@@ -88,7 +88,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
     <div className="min-h-dvh pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       {desktop ? (
         <header className="glass sticky top-0 z-30 rounded-none border-x-0 border-t-0 pt-[env(safe-area-inset-top)]">
-          <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-2.5">
+          <div className="mx-auto flex h-[var(--app-header-height)] max-w-6xl items-center gap-6 px-4">
             <BrandMark className="shrink-0" />
             <SectionNav view={view} />
             <div className="ml-auto flex items-center gap-1">

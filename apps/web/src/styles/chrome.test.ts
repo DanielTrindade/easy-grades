@@ -52,3 +52,14 @@ describe('toasts', () => {
     expect(focus).toContain('outline-offset: 2px;');
   });
 });
+
+describe('app header', () => {
+  it('pins the height of the desktop header row', () => {
+    const height = /--app-header-height:\s*([^;]+);/.exec(css)?.[1]?.trim();
+    expect(height).toBe('3.8125rem');
+  });
+
+  it('grows the header row on touch pointers, where the section links get 44 px', () => {
+    expect(css).toMatch(/@media \(pointer: coarse\) \{\s*:root \{\s*--app-header-height: 4\.5625rem;/);
+  });
+});

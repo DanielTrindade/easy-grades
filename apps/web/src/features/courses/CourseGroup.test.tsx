@@ -69,6 +69,19 @@ describe('CourseGroup', () => {
   it('sticks the group header below the fixed headers', () => {
     render(<CourseGroup group={group} />);
     const header = screen.getByRole('heading', { level: 2 });
-    expect(header).toHaveClass('sticky', 'top-[calc(env(safe-area-inset-top)+2.75rem)]', 'md:top-[3.25rem]');
+    expect(header).toHaveClass(
+      'sticky',
+      'top-[calc(env(safe-area-inset-top)+2.75rem)]',
+      'md:top-[calc(env(safe-area-inset-top)+var(--app-header-height))]',
+    );
+  });
+
+  it('sticks the table head below the group header', () => {
+    render(<CourseGroup group={group} />);
+    const table = screen.getByRole('table', { name: 'Disciplinas de 2024/1' });
+    expect(table.querySelector('thead')).toHaveClass(
+      'sticky',
+      'top-[calc(env(safe-area-inset-top)+var(--app-header-height)+2.75rem)]',
+    );
   });
 });

@@ -15,7 +15,7 @@ export function CourseGroup({ group, cr }: CourseGroupProps) {
 
   return (
     <section aria-labelledby={labelId} className="grid gap-2">
-      <h2 className="sticky top-[calc(env(safe-area-inset-top)+2.75rem)] z-20 -mx-4 flex h-11 items-baseline gap-3 bg-background/95 px-4 pt-2 font-sans tracking-normal font-stretch-normal md:top-[3.25rem]">
+      <h2 className="sticky top-[calc(env(safe-area-inset-top)+2.75rem)] z-20 -mx-4 flex h-11 items-baseline gap-3 bg-background/95 px-4 pt-2 font-sans tracking-normal font-stretch-normal md:top-[calc(env(safe-area-inset-top)+var(--app-header-height))]">
         <span id={labelId} className="heading-ink text-title3">
           {group.label}
         </span>
@@ -32,7 +32,7 @@ export function CourseGroup({ group, cr }: CourseGroupProps) {
       <div className="hidden rounded-card bg-surface px-4 md:block">
         <table className="w-full text-sm">
           <caption className="sr-only">Disciplinas de {group.label}</caption>
-          <thead className="sticky top-[calc(3.25rem+2.75rem)] z-10 text-left text-footnote text-ink-muted">
+          <thead className="sticky top-[calc(env(safe-area-inset-top)+var(--app-header-height)+2.75rem)] z-10 text-left text-footnote text-ink-muted">
             <tr>
               <th scope="col" className="bg-surface py-2.5 pr-4 font-medium">
                 Disciplina
