@@ -1,5 +1,5 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Dataset } from '@/lib/storage';
 import { Dashboard } from './Dashboard';
@@ -33,8 +33,51 @@ function renderAt(hash: string) {
   );
 }
 
+type ObserverCallback = (entries: Partial<IntersectionObserverEntry>[]) => void;
+
+class IntersectionObserverStub {
+  static instances: IntersectionObserverStub[] = [];
+  readonly targets = new Set<Element>();
+  private readonly callback: ObserverCallback;
+
+  constructor(callback: ObserverCallback) {
+    this.callback = callback;
+    IntersectionObserverStub.instances.push(this);
+  }
+
+  observe = (target: Element) => {
+    this.targets.add(target);
+  };
+
+  unobserve = (target: Element) => {
+    this.targets.delete(target);
+  };
+
+  disconnect = () => {
+    this.targets.clear();
+  };
+
+  report(target: Element, isIntersecting: boolean) {
+    this.callback([{ target, isIntersecting }]);
+  }
+}
+
+function notifyIntersection(target: Element, isIntersecting: boolean) {
+  for (const observer of IntersectionObserverStub.instances) {
+    if (observer.targets.has(target)) observer.report(target, isIntersecting);
+  }
+}
+
+function goTo(hash: string) {
+  act(() => {
+    window.location.hash = hash;
+    window.dispatchEvent(new Event('hashchange'));
+  });
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
+  IntersectionObserverStub.instances = [];
   window.location.hash = '';
 });
 
@@ -75,5 +118,34 @@ describe('Dashboard shell', () => {
     setWidth(false);
     renderAt('#/visao-geral');
     expect(screen.getAllByRole('button', { name: 'Mais opções' })).toHaveLength(1);
+  });
+
+  it('observes the new page title after leaving the flowchart', async () => {
+    setWidth(false);
+    vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
+    const { container } = renderAt('#/fluxograma');
+    const compactHeader = () => container.querySelector('.scroll-edge');
+
+    goTo('#/disciplinas');
+    const title = await screen.findByRole('heading', { level: 1, name: 'Disciplinas' });
+    act(() => notifyIntersection(title, false));
+
+    expect(compactHeader()).toHaveClass('opacity-100');
+  });
+
+  it('keeps the compact header hidden when the title changes at the top', async () => {
+    setWidth(false);
+    vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
+    const { container } = renderAt('#/visao-geral');
+    const compactHeader = () => container.querySelector('.scroll-edge');
+    const firstTitle = await screen.findByRole('heading', { level: 1, name: 'Visão geral' });
+
+    goTo('#/fluxograma');
+    // The browser reports the removed title as out of view; a stale observer would trust it.
+    act(() => notifyIntersection(firstTitle, false));
+    goTo('#/disciplinas');
+    await screen.findByRole('heading', { level: 1, name: 'Disciplinas' });
+
+    expect(compactHeader()).toHaveClass('opacity-0');
   });
 });

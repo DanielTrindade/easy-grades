@@ -33,8 +33,8 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
   const view = useHashView();
   const desktop = useMediaQuery('(min-width: 768px)');
   const wide = useMediaQuery('(min-width: 1024px)');
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const titleInView = useInView(titleRef);
+  const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null);
+  const titleInView = useInView(titleEl);
   const title = VIEW_LABELS[view];
   const { curriculum } = dataset.data;
   const analysis = useAnalysis(dataset.data);
@@ -115,7 +115,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
       <IosInstallDialog open={iosInstallOpen} onOpenChange={setIosInstallOpen} openerRef={iosInstallOpenerRef} />
 
       <main className="mx-auto max-w-6xl px-4 pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(var(--bottom-chrome)+2rem+env(safe-area-inset-bottom))] md:pt-8">
-        {!compactOnly && <PageTitle title={title} context={context} titleRef={titleRef} className="mb-8 pr-14 md:pr-0" />}
+        {!compactOnly && <PageTitle title={title} context={context} titleRef={setTitleEl} className="mb-8 pr-14 md:pr-0" />}
         {view === 'visao-geral' && (
           <OverviewScreen data={dataset.data} analysis={analysis} reveal={!dataset.revealed} onRevealed={onRevealed} />
         )}
