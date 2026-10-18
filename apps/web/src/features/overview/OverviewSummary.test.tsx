@@ -52,4 +52,13 @@ describe('OverviewSummary', () => {
     renderSummary({ forecast: { ...forecast, exceedsMax: true, maxTerm: '2029.2' } });
     expect(screen.getByText(/Passa do prazo máximo \(2029\/2\)\./)).toBeInTheDocument();
   });
+
+  it('shows each metric as a card that leads to its detail section', () => {
+    renderSummary();
+    const summary = screen.getByRole('region', { name: 'Resumo' });
+    expect(summary.querySelectorAll('[data-slot="card"]')).toHaveLength(3);
+    expect(screen.getByRole('link', { name: /Coeficiente de rendimento/ })).toHaveAttribute('href', '#desempenho');
+    expect(screen.getByRole('link', { name: /Previsão de formatura/ })).toHaveAttribute('href', '#ritmo');
+    expect(screen.getByRole('link', { name: /Fora das disciplinas/ })).toHaveAttribute('href', '#atividades-complementares');
+  });
 });
