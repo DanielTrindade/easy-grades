@@ -19,8 +19,8 @@ export function PendingSection({ pending }: { pending: PendingInsights }) {
   const outside = hoursSentence(pending.hours);
 
   return (
-    <section aria-labelledby="pendente" className="grid min-w-0 gap-4">
-      <h2 id="pendente" className="text-xl">
+    <section aria-labelledby="pendente" className="grid min-w-0 scroll-mt-20 gap-4 rounded-card bg-surface p-5 md:scroll-mt-24">
+      <h2 id="pendente" className="text-title3">
         O que falta para a formatura
       </h2>
       <div>
