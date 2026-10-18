@@ -51,11 +51,15 @@ describe('semester bar beside the minimized tab bar', () => {
     expect(beside).toContain('bottom: calc(0.75rem + env(safe-area-inset-bottom));');
   });
 
-  it('swaps to a compact summary beside the pill, and drops the action word on the narrowest phones', () => {
+  it('keeps the compact semester summary in two rows beside the pill', () => {
     expect(rule('.semester-bar-compact')).toContain('display: none;');
     expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-full")).toContain('display: none;');
-    expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-compact")).toContain('display: inline;');
+    expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-compact")).toContain('display: flex;');
+    const compactBar = rule("body[data-tab-bar='minimized'] .semester-bar");
+    expect(compactBar).toContain('padding-inline: 0.5rem;');
     expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-cta-label")).toContain('display: none;');
+    expect(rule('.semester-bar-compact-line')).toContain('white-space: nowrap;');
+    expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-compact")).toContain('flex-direction: column;');
   });
 });
 

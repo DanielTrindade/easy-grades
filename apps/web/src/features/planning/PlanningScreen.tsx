@@ -222,14 +222,24 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
           {/* Below lg the summary is a fixed bar above the tab bar; the full panel opens in a bottom sheet. */}
           <button
             type="button"
+            aria-label={`Meu semestre, ${summary}, CR projetado ${formatCr(projected)}, abrir`}
             aria-haspopup="dialog"
             onClick={() => setSheetOpen(true)}
             className="glass semester-bar fixed right-[max(0.75rem,env(safe-area-inset-right))] left-[max(0.75rem,env(safe-area-inset-left))] bottom-[calc(var(--tab-bar-space)+0.5rem+env(safe-area-inset-bottom))] z-30 flex h-12 items-center justify-between gap-3 rounded-full px-5 text-left text-sm"
           >
-            <span className="min-w-0 truncate tabular-nums">
-              <span className="semester-bar-full">{summary}, CR projetado </span>
-              <span className="semester-bar-compact">CR </span>
-              <span className="font-semibold text-pen-ink">{formatCr(projected)}</span>
+            <span className="semester-bar-summary min-w-0 flex-1 tabular-nums">
+              <span className="semester-bar-full truncate">{summary}, CR projetado</span>
+              <span className="semester-bar-projected shrink-0 font-semibold text-pen-ink">{formatCr(projected)}</span>
+              <span className="semester-bar-compact">
+                <span className="semester-bar-compact-line">
+                  <span className="semester-bar-compact-count shrink-0">{chosen.length} disc.</span>
+                  <span className="semester-bar-compact-separator shrink-0" aria-hidden="true">
+                    {' · '}
+                  </span>
+                  <span className="semester-bar-compact-credits shrink-0">{credits} cr</span>
+                </span>
+                <span className="semester-bar-compact-cr">CR {formatCr(projected)}</span>
+              </span>
             </span>
             <span className="flex shrink-0 items-center gap-1 font-medium text-ink">
               <span className="semester-bar-cta-label">Ver</span>
