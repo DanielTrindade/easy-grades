@@ -8,6 +8,7 @@ import FlowchartScreen from './FlowchartScreen';
 
 // Records the `nodes` prop of every render, so a test can check whether the array identity changes.
 const seen = vi.hoisted(() => ({ nodes: [] as unknown[] }));
+const readiness = vi.hoisted(() => ({ ready: true }));
 
 vi.mock('@xyflow/react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@xyflow/react')>();
@@ -21,6 +22,8 @@ vi.mock('@xyflow/react', async (importOriginal) => {
 // Controllable PNG export: each test decides when html-to-image settles.
 const png = vi.hoisted(() => ({ toBlob: vi.fn(async (_node: HTMLElement) => new Blob(['png'], { type: 'image/png' })) }));
 vi.mock('html-to-image', () => ({ toBlob: png.toBlob }));
+
+vi.mock('./export-readiness', () => ({ isExportGraphReady: () => readiness.ready }));
 
 const data = { curriculum: sampleCurriculum, transcript: sampleTranscript };
 
@@ -50,6 +53,7 @@ function stubShareSheet(canShare = true) {
 
 beforeEach(() => {
   seen.nodes.length = 0;
+  readiness.ready = true;
   // The view choice is remembered across visits, so each test starts from the width default.
   localStorage.clear();
 });
@@ -219,6 +223,41 @@ describe('FlowchartScreen focus', () => {
     expect(captured).toEqual({ exporting: true });
     await waitFor(() => expect(container.querySelector('.react-flow')).toBeNull());
     expect(screen.getAllByRole('heading', { name: /º período$/ }).length).toBeGreaterThan(0);
+  });
+
+  it('waits for graph readiness before capturing an export started from the list', async () => {
+    readiness.ready = false;
+    const user = userEvent.setup({ delay: null });
+    render(<FlowchartScreen data={data} />);
+
+    const toggle = screen.getByRole('switch', { name: 'Ver como lista' });
+    toggle.focus();
+    await user.keyboard(' ');
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+    await waitFor(() => expect(document.querySelector('.is-exporting')).not.toBeNull());
+    expect(png.toBlob).not.toHaveBeenCalled();
+
+    readiness.ready = true;
+    await waitFor(() => expect(png.toBlob).toHaveBeenCalledTimes(1));
+  });
+
+  it('restores the list and skips the image when graph readiness times out', async () => {
+    readiness.ready = false;
+    const user = userEvent.setup({ delay: null });
+    const { container } = render(<FlowchartScreen data={data} />);
+
+    const toggle = screen.getByRole('switch', { name: 'Ver como lista' });
+    toggle.focus();
+    await user.keyboard(' ');
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+    await waitFor(() => expect(container.querySelector('.is-exporting')).not.toBeNull());
+    await waitFor(() => expect(container.querySelector('.is-exporting')).toBeNull(), { timeout: 4000 });
+
+    expect(png.toBlob).not.toHaveBeenCalled();
+    expect(container.querySelector('.react-flow')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Exportar PNG' })).toBeEnabled();
   });
 
   it('downloads the PNG on a mouse screen, without the share sheet', async () => {

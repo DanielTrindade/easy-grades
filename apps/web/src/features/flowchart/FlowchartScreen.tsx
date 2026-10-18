@@ -13,6 +13,7 @@ import { useMediaQuery } from '@/lib/use-media-query';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH, CourseNode, type CourseNodeType } from './CourseNode';
 import { downloadImage } from './export-image';
 import { exportFrame, exportPixelRatio } from './export-frame';
+import { isExportGraphReady } from './export-readiness';
 import { ExportSheet, type ExportImage } from './ExportSheet';
 import { FlowchartList } from './FlowchartList';
 import { FlowLegendPanel, FlowZoomControls } from './FlowControls';
@@ -147,6 +148,27 @@ function Graph({ data }: { data: ParseResponse }) {
     return null;
   }, []);
 
+  const waitForGraphReadiness = useCallback(async (viewport: HTMLElement): Promise<boolean> => {
+    const expectedNodeIds = graph.nodes.map((node) => node.code);
+    const expectedEdgeIds = graph.edges.map((edge) => edge.id);
+    const deadline = Date.now() + 2000;
+    while (Date.now() < deadline) {
+      const visibleNodeIds = new Set(
+        [...viewport.querySelectorAll<HTMLElement>('.react-flow__node')]
+          .filter((node) => node.style.visibility !== 'hidden')
+          .map((node) => node.dataset.id ?? ''),
+      );
+      const edgePathIds = new Set(
+        [...viewport.querySelectorAll<HTMLElement>('.react-flow__edge')]
+          .filter((edge) => edge.querySelector('.react-flow__edge-path'))
+          .map((edge) => edge.dataset.id ?? ''),
+      );
+      if (isExportGraphReady(expectedNodeIds, visibleNodeIds, expectedEdgeIds, edgePathIds)) return true;
+      await nextPaint();
+    }
+    return false;
+  }, [graph.edges, graph.nodes]);
+
   async function exportPng() {
     // The image is always the graph: when the list is on screen, the graph mounts for the capture and leaves right after.
     const fromList = asList;
@@ -166,6 +188,7 @@ function Graph({ data }: { data: ParseResponse }) {
         setPinned(null);
       });
       await nextPaint();
+      if (!(await waitForGraphReadiness(viewportEl))) throw new Error('O fluxograma ainda está sendo preparado.');
       // Transitions and entrance animations are off in export mode; the race keeps a stuck animation from freezing it.
       await Promise.race([
         Promise.allSettled((viewportEl.getAnimations?.({ subtree: true }) ?? []).map((a) => a.finished)),
