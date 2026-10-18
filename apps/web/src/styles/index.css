@@ -474,6 +474,12 @@ body {
 [data-sonner-toaster][data-y-position='bottom'] {
   bottom: calc(var(--bottom-chrome) + 1.5rem + env(safe-area-inset-bottom)) !important;
 }
+/* Three attributes, so it outranks Sonner's own [data-sonner-toast][data-styled] rules. */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
+}
 
 @media (prefers-reduced-motion: reduce) {
   /* tw-animate's zoom and slide classes are transforms: neutralize them and keep the opacity fade. */

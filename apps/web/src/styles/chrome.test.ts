@@ -37,3 +37,12 @@ describe('bottom chrome', () => {
     expect(css).not.toContain('data-summary-bar');
   });
 });
+
+describe('toasts', () => {
+  it('are glass capsules on the navigation layer', () => {
+    const toast = rule("[data-sonner-toaster] [data-sonner-toast][data-styled='true']");
+    expect(toast).toContain('-webkit-backdrop-filter: var(--glass-filter);');
+    expect(toast).toContain('backdrop-filter: var(--glass-filter);');
+    expect(toast).toContain('box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);');
+  });
+});
