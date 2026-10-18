@@ -33,12 +33,13 @@ describe('IntegrationTable', () => {
     expect(within(total).getByText('81,33%')).toBeInTheDocument();
   });
 
-  it('puts the table in a focusable scroll region named after the section heading', () => {
+  it('puts the table in a focusable scroll region with its own name', () => {
     render(<IntegrationTable components={components} />);
-    const region = screen.getByRole('region', { name: 'Integralização oficial' });
-    expect(region).toHaveClass('overflow-x-auto');
+    const region = screen.getByRole('region', { name: 'Tabela de integralização' });
     expect(region).toHaveAttribute('tabindex', '0');
+    expect(region).toHaveClass('overflow-x-auto');
     expect(within(region).getByRole('table')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Integralização oficial' })).toBeInTheDocument();
   });
 
   it('names the table after the section heading', () => {

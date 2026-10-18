@@ -17,17 +17,17 @@ export default function CrChart({ history }: { history: TermCr[] }) {
   return (
     <figure>
       <figcaption>
-        <h2 className="text-xl">Coeficiente por período</h2>
+        <h2 className="text-title3">Coeficiente por período</h2>
       </figcaption>
       <ChartContainer config={config} className="mt-4 aspect-auto h-64 w-full">
         <LineChart data={data} margin={{ left: 0, right: 12, top: 8 }} accessibilityLayer>
-          <CartesianGrid vertical={false} />
-          <XAxis dataKey="term" tickLine={false} axisLine={false} tickMargin={8} />
-          <YAxis domain={domain} ticks={crTicks(domain)} tickLine={false} axisLine={false} width={32} />
+          <CartesianGrid vertical={false} stroke="var(--hairline)" />
+          <XAxis dataKey="term" tickLine={false} axisLine={false} tickMargin={8} tick={{ fill: 'var(--ink-muted)', fontSize: 12 }} />
+          <YAxis domain={domain} ticks={crTicks(domain)} tickLine={false} axisLine={false} width={32} tick={{ fill: 'var(--ink-muted)', fontSize: 12 }} />
           <ChartTooltip content={<ChartTooltipContent className="min-w-44" />} />
           <ChartLegend content={<ChartLegendContent />} />
           <Line dataKey="termCr" type="monotone" stroke="var(--color-termCr)" strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} isAnimationActive={false} />
-          <Line dataKey="cumulativeCr" type="monotone" stroke="var(--color-cumulativeCr)" strokeWidth={3} dot={false} isAnimationActive={false} />
+          <Line dataKey="cumulativeCr" type="monotone" stroke="var(--color-cumulativeCr)" strokeWidth={3} strokeLinecap="round" dot={false} isAnimationActive={false} />
         </LineChart>
       </ChartContainer>
     </figure>

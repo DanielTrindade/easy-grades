@@ -18,18 +18,18 @@ export default function HoursChart({ transcript }: { transcript: Transcript }) {
   return (
     <figure>
       <figcaption>
-        <h2 className="text-xl">Horas por período</h2>
+        <h2 className="text-title3">Horas por período</h2>
       </figcaption>
       <ChartContainer config={config} className="mt-4 aspect-auto h-64 w-full">
         <BarChart data={data} margin={{ left: 0, right: 12, top: 8 }} accessibilityLayer>
-          <CartesianGrid vertical={false} />
-          <XAxis dataKey="term" tickLine={false} axisLine={false} tickMargin={8} />
-          <YAxis tickLine={false} axisLine={false} width={40} />
+          <CartesianGrid vertical={false} stroke="var(--hairline)" />
+          <XAxis dataKey="term" tickLine={false} axisLine={false} tickMargin={8} tick={{ fill: 'var(--ink-muted)', fontSize: 12 }} />
+          <YAxis tickLine={false} axisLine={false} width={40} tick={{ fill: 'var(--ink-muted)', fontSize: 12 }} />
           <ChartTooltip content={<ChartTooltipContent className="min-w-44" />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar dataKey="done" stackId="h" fill="var(--color-done)" radius={[0, 0, 4, 4]} isAnimationActive={false} />
-          <Bar dataKey="failed" stackId="h" fill="var(--color-failed)" isAnimationActive={false} />
-          <Bar dataKey="inProgress" stackId="h" fill="var(--color-inProgress)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="done" stackId="h" fill="var(--color-done)" radius={[0, 0, 6, 6]} maxBarSize={28} isAnimationActive={false} />
+          <Bar dataKey="failed" stackId="h" fill="var(--color-failed)" maxBarSize={28} isAnimationActive={false} />
+          <Bar dataKey="inProgress" stackId="h" fill="var(--color-inProgress)" radius={[6, 6, 0, 0]} maxBarSize={28} isAnimationActive={false} />
           {average !== null && (
             <ReferenceLine
               y={average}

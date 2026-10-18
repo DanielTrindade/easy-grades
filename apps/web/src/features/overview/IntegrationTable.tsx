@@ -45,12 +45,12 @@ export function IntegrationTable({ components }: IntegrationTableProps) {
   const gap = total ? total.credits.percent - total.hours.percent : 0;
 
   return (
-    <section className="grid min-w-0 gap-4">
-      <h2 id="integralizacao" className="text-xl">
+    <section aria-labelledby="integralizacao" className="grid min-w-0 scroll-mt-20 gap-4 rounded-card bg-surface p-5 md:scroll-mt-24">
+      <h2 id="integralizacao" className="text-title3">
         Integralização oficial
       </h2>
       {/* The region scrolls the table on narrow screens, so the page itself never does. */}
-      <div role="region" aria-labelledby="integralizacao" tabIndex={0} className="overflow-x-auto">
+      <div role="region" aria-label="Tabela de integralização" tabIndex={0} className="overflow-x-auto">
         <table aria-labelledby="integralizacao" className="w-full caption-bottom text-sm">
           <TableHeader>
             <TableRow>

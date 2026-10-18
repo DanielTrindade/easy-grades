@@ -23,8 +23,8 @@ export function PaceSection({ pace, delay, minPeriods, maxPeriods }: PaceSection
   const paceText = (hours: number | null) => (hours === null ? 'prazo encerrado' : `${formatHours(hours)} por período`);
 
   return (
-    <section aria-labelledby="ritmo" className="grid min-w-0 content-start gap-4">
-      <h2 id="ritmo" className="text-xl">
+    <section aria-labelledby="ritmo" className="grid min-w-0 scroll-mt-20 content-start gap-4 rounded-card bg-surface p-5 md:scroll-mt-24">
+      <h2 id="ritmo" className="text-title3">
         Ritmo e prazo
       </h2>
       <p className="flex items-center gap-2 font-medium">

@@ -356,7 +356,7 @@
   background-image: linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
   background-size: 8px 8px;
   border: 1px solid var(--hairline);
-  border-radius: var(--radius);
+  border-radius: var(--radius-group);
 }
 /* One-time reveal when a dataset is first shown: the progress fill sweeps left to right. Only the fills wrapper moves. */
 @keyframes marker-in {
@@ -447,6 +447,17 @@
   .react-flow__controls-button {
     width: 44px;
     height: 44px;
+  }
+}
+
+/* The desktop glass header (Dashboard): one fixed row height, so the sticky course headers can sit right below it. */
+:root {
+  --app-header-height: 3.8125rem;
+}
+/* Touch screens get 44 px section links, so the header row grows. */
+@media (pointer: coarse) {
+  :root {
+    --app-header-height: 4.5625rem;
   }
 }
 
