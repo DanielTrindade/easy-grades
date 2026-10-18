@@ -1,13 +1,5 @@
 import { COURSE_STATE_LABELS, layoutFlowchart, type ParseResponse } from '@easy-grades/core';
-import {
-  Background,
-  Controls,
-  MiniMap,
-  ReactFlow,
-  ReactFlowProvider,
-  useReactFlow,
-  type Edge,
-} from '@xyflow/react';
+import { Background, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow, type Edge } from '@xyflow/react';
 import { toBlob } from 'html-to-image';
 import { Download, LoaderCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -23,7 +15,7 @@ import { downloadImage } from './export-image';
 import { exportFrame, exportPixelRatio } from './export-frame';
 import { ExportSheet, type ExportImage } from './ExportSheet';
 import { FlowchartList } from './FlowchartList';
-import { FlowLegend } from './FlowLegend';
+import { FlowLegendPanel, FlowZoomControls } from './FlowControls';
 import { type FlowView, pickFlowView, readStoredFlowView, writeFlowView } from './flow-view';
 import { HighlightContext } from './HighlightContext';
 import { highlightSet, nextPinned, visibleGraph } from './highlight';
@@ -211,14 +203,40 @@ function Graph({ data }: { data: ParseResponse }) {
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="max-w-[60ch] text-muted-foreground">
-            Passe o mouse ou toque numa disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
-            percorrer os períodos.
-          </p>
+      <p className="max-w-[60ch] text-footnote text-ink-muted max-md:hidden">
+        Passe o mouse ou toque numa disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
+        percorrer os períodos.
+      </p>
+
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <div className="flex items-center gap-2">
+          <Switch id="so-pendentes" checked={onlyRemaining} onCheckedChange={setOnlyRemaining} className="max-md:after:-inset-y-3.5" />
+          <Label htmlFor="so-pendentes" className="max-md:min-h-11">
+            Mostrar só o que falta
+          </Label>
         </div>
-        <Button variant="outline" size="sm" onClick={exportPng} disabled={exporting} aria-busy={exporting} className="max-md:h-11">
+        <div className="flex items-center gap-2">
+          <Switch
+            id="como-lista"
+            checked={asList}
+            onCheckedChange={(checked) => {
+              const next: FlowView = checked ? 'lista' : 'grafo';
+              writeFlowView(next);
+              setFlowView(next);
+            }}
+            className="max-md:after:-inset-y-3.5"
+          />
+          <Label htmlFor="como-lista" className="max-md:min-h-11">
+            Ver como lista
+          </Label>
+        </div>
+        <Button
+          variant="outline"
+          onClick={exportPng}
+          disabled={exporting}
+          aria-busy={exporting}
+          className="ml-auto rounded-full max-md:h-11"
+        >
           {exporting ? (
             <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" />
           ) : (
@@ -228,40 +246,13 @@ function Graph({ data }: { data: ParseResponse }) {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <FlowLegend nodes={layout.nodes} />
-        <div className="flex flex-wrap gap-5">
-          <div className="flex items-center gap-2">
-            <Switch id="so-pendentes" checked={onlyRemaining} onCheckedChange={setOnlyRemaining} className="max-md:after:-inset-y-3.5" />
-            <Label htmlFor="so-pendentes" className="max-md:min-h-11">
-              Mostrar só o que falta
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              id="como-lista"
-              checked={asList}
-              onCheckedChange={(checked) => {
-                const next: FlowView = checked ? 'lista' : 'grafo';
-                writeFlowView(next);
-                setFlowView(next);
-              }}
-              className="max-md:after:-inset-y-3.5"
-            />
-            <Label htmlFor="como-lista" className="max-md:min-h-11">
-              Ver como lista
-            </Label>
-          </div>
-        </div>
-      </div>
-
       {asList ? (
         <FlowchartList nodes={graph.nodes} curriculum={curriculum} />
       ) : (
         <div
           ref={containerRef}
           className={cn(
-            '-mx-4 h-[min(75dvh,760px)] border-y border-border sm:mx-0 sm:rounded-xl sm:border',
+            'relative -mx-4 h-[calc(100dvh-env(safe-area-inset-top)-var(--bottom-chrome)-11rem)] min-h-96 bg-canvas md:mx-0 md:h-[min(75dvh,760px)] md:rounded-card md:border md:border-hairline',
             exporting && 'is-exporting',
           )}
         >
@@ -288,15 +279,18 @@ function Graph({ data }: { data: ParseResponse }) {
               aria-label="Fluxograma das disciplinas obrigatórias"
             >
               <Background gap={24} size={1} />
-              <Controls showInteractive={false} />
               <MiniMap
                 pannable
                 zoomable
-                className="hidden sm:block"
+                className="hidden md:block"
                 nodeStrokeWidth={0}
                 nodeClassName={(n) => ((n.data as CourseNodeType['data']).course.state === 'concluida' ? 'mini-done' : 'mini-left')}
               />
             </ReactFlow>
+            <div className="contents [.is-exporting_&]:hidden">
+              <FlowLegendPanel nodes={layout.nodes} className="absolute top-3 left-3 z-10" />
+              <FlowZoomControls className="absolute bottom-3 left-3 z-10" />
+            </div>
           </HighlightContext>
         </div>
       )}

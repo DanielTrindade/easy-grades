@@ -415,14 +415,12 @@
   --xy-background-color: transparent;
   --xy-node-boxshadow-selected: 0 0 0 2px var(--pen);
   --xy-minimap-background-color: var(--card);
-  --xy-controls-button-background-color: var(--card);
-  --xy-controls-button-color: var(--foreground);
-  --xy-controls-button-border-color: var(--border);
 }
 .react-flow__minimap {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-group);
+  overflow: hidden;
 }
 /* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
 .react-flow__minimap-node.mini-done {
@@ -440,14 +438,7 @@
 .react-flow__node:focus-visible {
   outline: 2px solid var(--pen);
   outline-offset: 3px;
-  border-radius: var(--radius);
-}
-/* Touch targets: React Flow's zoom buttons are 26 px; below md they grow to 44 px. */
-@media (max-width: 767.98px) {
-  .react-flow__controls-button {
-    width: 44px;
-    height: 44px;
-  }
+  border-radius: var(--radius-node);
 }
 
 /* The desktop glass header (Dashboard): one fixed row height, so the sticky course headers can sit right below it. */
