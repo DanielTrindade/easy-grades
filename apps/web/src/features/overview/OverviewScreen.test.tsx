@@ -17,7 +17,7 @@ describe('OverviewScreen', () => {
     expect(progress.closest('[data-slot="card"]')).toHaveClass('rounded-card', 'bg-surface');
   });
 
-  it.each(['ritmo', 'desempenho', 'pendente', 'atividades-complementares'])(
+  it.each(['ritmo', 'desempenho', 'pendente', 'atividades-complementares', 'integralizacao', 'enade', 'linha-do-tempo'])(
     'renders the %s section as a card that clears the fixed header when scrolled to',
     (id) => {
       const { container } = renderOverview();
