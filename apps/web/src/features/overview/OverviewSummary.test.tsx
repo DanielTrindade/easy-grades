@@ -2,7 +2,7 @@ import { crProjectionInsights, forecastGraduation, performanceInsights } from '@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { PerformanceSection } from './PerformanceSection';
 import { OverviewSummary } from './OverviewSummary';
 
@@ -86,10 +86,12 @@ describe('OverviewSummary', () => {
       </>,
     );
     const section = screen.getByRole('region', { name: 'Desempenho' });
-    section.scrollIntoView = () => {};
+    const scrollIntoView = vi.fn();
+    section.scrollIntoView = scrollIntoView;
 
     await user.click(screen.getByRole('link', { name: /Coeficiente de rendimento/ }));
 
+    expect(scrollIntoView).toHaveBeenCalled();
     expect(screen.getByRole('heading', { level: 2, name: 'Desempenho' })).toHaveFocus();
   });
 });

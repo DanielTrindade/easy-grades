@@ -7,6 +7,7 @@ import { MetricCard } from './MetricCard';
 afterEach(() => {
   document.body.innerHTML = '';
   window.location.hash = '';
+  vi.restoreAllMocks();
 });
 
 describe('MetricCard', () => {
@@ -58,5 +59,27 @@ describe('MetricCard', () => {
 
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     expect(section.querySelector('h2')).toHaveFocus();
+  });
+
+  it('scrolls without smooth behavior under reduced motion', async () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === '(prefers-reduced-motion: reduce)',
+          media: query,
+        }) as unknown as MediaQueryList,
+    );
+    const user = userEvent.setup();
+    const section = document.createElement('section');
+    section.id = 'desempenho';
+    section.innerHTML = '<h2>Desempenho</h2>';
+    document.body.append(section);
+    const scrollIntoView = vi.fn();
+    section.scrollIntoView = scrollIntoView;
+
+    render(<MetricCard icon={TrendingUp} label="Coeficiente de rendimento" value="7,757" targetId="desempenho" />);
+    await user.click(screen.getByRole('link', { name: /Coeficiente de rendimento/ }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
   });
 });
