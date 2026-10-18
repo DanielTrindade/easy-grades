@@ -1,5 +1,6 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Dataset } from '@/lib/storage';
 import { Dashboard } from './Dashboard';
@@ -147,5 +148,21 @@ describe('Dashboard shell', () => {
     await screen.findByRole('heading', { level: 1, name: 'Disciplinas' });
 
     expect(compactHeader()).toHaveClass('opacity-0');
+  });
+
+  it('puts the clear action in the wide header, not in the options menu', async () => {
+    setWidth(true);
+    const user = userEvent.setup({ delay: null });
+    renderAt('#/visao-geral');
+
+    await user.click(screen.getByRole('button', { name: 'Limpar dados' }));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('Limpar dados deste navegador?');
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Mais opções' }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).queryByRole('menuitem', { name: 'Limpar dados' })).not.toBeInTheDocument();
+    expect(within(menu).getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['Vidro', 'Sólida']);
   });
 });
