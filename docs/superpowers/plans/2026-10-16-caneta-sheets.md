@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Trocar as duas bottom sheets do app ("Meu semestre" e "Fluxograma pronto") por uma `DetentSheet` de vidro com alturas fixas (detents `medium` e `large`), grabber acessível e arrasto que assenta com mola ou fecha.
+**Goal:** Trocar as duas bottom sheets do app ("Meu semestre" e "Fluxograma pronto") por `DetentSheet`s de vidro. "Meu semestre" abre em `medium` e pode ir a `large`; o `ExportSheet` usa somente `medium`, ajustado ao conteúdo e limitado a 50% da altura visível.
 
-**Architecture:** A decisão de onde a sheet assenta é uma função pura (`resolveDetent`) que projeta a posição pela velocidade e escolhe o candidato mais próximo (cada detent ou "fechar"). A `DetentSheet` embrulha o `Sheet` do shadcn (Radix Dialog cuida de foco, Esc, `aria-modal` e retorno do foco) sem patch em `ui/sheet.tsx`: a posição vem de uma variável CSS (`--detent-offset`) aplicada como `transform`, e o `index.css` dá a transição de mola, a entrada/saída e o escurecimento que acompanha o arrasto. O arrasto só começa no grabber e no cabeçalho; o conteúdo rola normalmente.
+**Architecture:** A decisão de onde a sheet assenta é uma função pura (`resolveDetent`) que projeta a posição pela velocidade e escolhe entre o detent atual, um detent adjacente ou "fechar". Cada gesto avança no máximo um detent; somente o menor detent pode fechar. A `DetentSheet` embrulha o `Sheet` do shadcn (Radix Dialog cuida de modal e Esc) sem patch em `ui/sheet.tsx`; ela restaura o foco com `onCloseAutoFocus`, priorizando `returnFocusRef` e usando o opener válido como fallback. A geometria usa `visualViewport` quando disponível, incluindo `offsetTop`, e `innerHeight` como fallback. A posição vem de `--detent-offset` aplicado como `transform`; o corpo rolável recebe a compensação de altura do detent atual sem relayout durante o gesto.
 
 **Tech Stack:** React 19, Radix Dialog (via shadcn `Sheet`), Tailwind CSS v4, Vitest + Testing Library (jsdom).
 
@@ -19,14 +19,16 @@
 - Vaul não é usado (sem manutenção).
 - Nomes em código em inglês; copy em PT-BR.
 - Movimento reduzido: troca de detent sem mola (sem transição), entrada/saída só com fade.
-- Alvos ≥ 44 px; o grabber é um botão com nome ("Expandir" / "Reduzir").
+- Alvos ≥ 44 px; o grabber interativo tem alvo real de 44 × 44 px e nome ("Expandir" / "Reduzir"). Com um único detent, ele é decorativo, mas sua região continua aceitando arrasto.
+- Com dois detents, a caixa externa tem a altura do maior; o cabeçalho é `shrink-0` e o corpo é `flex-1 min-h-0 overflow-y-auto`, com padding inferior compensando o detent atual. Essa compensação muda somente ao assentar ou quando a viewport muda. Com apenas `medium`, a altura ajusta ao conteúdo e tem teto de 50% da altura visível.
+- A altura visível usa `visualViewport` e `offsetTop`, com fallback para `innerHeight`; resize, orientação e scroll da viewport visual atualizam a geometria e cancelam gesto ativo. O CSS usa os fallbacks compartilhados de vidro/aparência sólida e remove blur duplicado do overlay.
 - Testes: `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2`; CSS lido com `readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), 'index.css'), 'utf8')`.
 - Branch: `feat/caneta-sheets` a partir de `main`. Commits sem trailer de co-autoria de agente. `pnpm react-doctor:changed` sem erros.
 
 ## Review Focus
 
 1. **Arrastar a lista de dentro da sheet** (catálogo de escolhidas, imagem do fluxograma): rola o conteúdo, não move a sheet. Testado no Task 2 (o arrasto no corpo não muda o detent).
-2. **Puxão rápido para baixo a partir do `large`**: assenta no `medium`, não fecha de uma vez; um puxão rápido a partir do `medium` fecha. Testado no Task 1.
+2. **Puxão rápido para baixo**: a partir de `large`, assenta em `medium`; a partir do menor detent, pode fechar. Um gesto nunca salta detents. Testado no Task 1.
 3. **Teclado e leitor de tela**: o grabber anuncia a ação certa e alterna a altura com Enter/Espaço; Esc fecha e o foco volta a quem abriu. Testado no Task 2.
 4. **Soltar no meio do caminho entre dois detents**: assenta no mais próximo, sem ficar parado entre eles. Testado no Task 1.
 5. **Reduzir transparência / aparência sólida**: a sheet fica opaca como o resto do vidro. Testado no Task 3 (regra de CSS).
@@ -43,7 +45,7 @@
 - Produces:
   - `type Detent = 'medium' | 'large'`
   - `DETENT_FRACTION: Record<Detent, number>` = `{ medium: 0.5, large: 0.92 }` (fração da altura visível)
-  - `detentTop(detent: Detent, viewportHeight: number): number` = `viewportHeight * (1 - DETENT_FRACTION[detent])`
+  - `detentTop(detent: Detent, viewportHeight: number): number` = `viewportHeight * (1 - DETENT_FRACTION[detent])`; `viewportHeight` é a altura visível em px (`visualViewport.height` ou fallback `innerHeight`)
   - `resolveDetent(input: { current: Detent; offset: number; velocity: number; viewportHeight: number; detents: readonly Detent[] }): Detent | 'close'` — `offset` em px (positivo = para baixo) desde o topo do detent atual; `velocity` em px/ms (positivo = para baixo).
 
 - [ ] **Step 1: Criar a branch**
@@ -178,8 +180,8 @@ git commit -m "feat(web): detent resolution for draggable sheets"
 **Interfaces:**
 - Consumes: `Detent`, `DETENT_FRACTION`, `resolveDetent` (Task 1); `Sheet`, `SheetContent`, `SheetDescription`, `SheetHeader`, `SheetTitle` de `@/components/ui/sheet`.
 - Produces:
-  - `DetentSheet(props: { open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: ReactNode; detents?: readonly Detent[]; initialDetent?: Detent; headerAction?: ReactNode; children: ReactNode })` — padrão `detents = ['medium', 'large']`, `initialDetent = detents[0]`.
-  - Atributos no `SheetContent`: `data-detent="medium|large"` e `data-dragging` durante o arrasto; variável inline `--detent-offset` (ex.: `calc(42dvh + 0px)`).
+  - `DetentSheet(props: { open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: ReactNode; detents?: readonly Detent[]; initialDetent?: Detent; headerAction?: ReactNode; children: ReactNode; returnFocusRef?: RefObject<HTMLElement | null> })` — padrão `detents = ['medium', 'large']`, `initialDetent = detents[0]`.
+  - Atributos no `SheetContent`: `data-detent="medium|large"` e `data-dragging` durante o arrasto; variável inline `--detent-offset` em px, incluindo compensação do detent em repouso e do gesto.
   - Durante o arrasto, `document.body.style` recebe `--sheet-drag` (0 a 1, quanto a sheet desceu rumo a fechar); removido ao soltar.
 
 - [ ] **Step 1: Escrever o teste que falha**
@@ -304,10 +306,13 @@ Expected: FAIL (módulo ausente).
 
 - [ ] **Step 2: Implementar**
 
+O trecho de implementação abaixo é um esboço da estrutura visual; prevalecem estes requisitos do componente real: iniciar gesto apenas após limiar de intenção, capturar o ponteiro primário, cancelar sem resolver em `pointercancel`/`lostpointercapture`, medir velocidade recente, suprimir apenas o click sintético pós-arrasto, ignorar ações interativas do cabeçalho, limpar gesto em fechamento/resize/unmount e reiniciar no detent inicial ao reabrir por props. `data-dragging` deve vir de estado React explícito, não da leitura de refs no render. A altura e o offset devem respeitar `visualViewport` (incluindo `offsetTop`) com fallback `innerHeight`; o detent único `medium` usa altura medida para limitar fechamento e ajustar conteúdo a no máximo 50% da viewport. A restauração de foco é feita por `onCloseAutoFocus`, usando `returnFocusRef` antes do opener conectado e habilitado.
+
 `apps/web/src/components/DetentSheet.tsx`:
 
 ```tsx
 import { useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import type { RefObject } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { DETENT_FRACTION, resolveDetent, type Detent } from '@/lib/detents';
 import { cn } from '@/lib/utils';
@@ -321,6 +326,7 @@ interface DetentSheetProps {
   initialDetent?: Detent;
   headerAction?: ReactNode;
   children: ReactNode;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 const DEFAULT_DETENTS = ['medium', 'large'] as const;
@@ -491,13 +497,13 @@ describe('detent sheet styles', () => {
 
   it('turns the large sheet almost opaque', () => {
     expect(rule("[data-slot='sheet-content'][data-detent='large']")).toContain(
-      '--glass-tint: color-mix(in oklab, var(--surface) 97%, transparent);',
+      '--glass-tint: var(--glass-expanded-tint);',
     );
   });
 
   it('keeps the solid appearance solid on the large sheet too', () => {
     expect(rule(":root[data-appearance='solid'] [data-slot='sheet-content'][data-detent='large']")).toContain(
-      '--glass-tint: var(--surface);',
+      '--glass-tint: var(--glass-expanded-tint);',
     );
   });
 
@@ -522,6 +528,7 @@ No `index.css`, logo depois das regras atuais das sheets (`[data-slot='sheet-ove
 }
 [data-slot='sheet-content'][data-detent][data-dragging] {
   transition: none;
+  animation: none;
 }
 @keyframes detent-in {
   from {
@@ -541,16 +548,17 @@ No `index.css`, logo depois das regras atuais das sheets (`[data-slot='sheet-ove
 }
 /* Pulled up to large, the sheet becomes the task, so the glass turns almost opaque (iOS does the same). */
 [data-slot='sheet-content'][data-detent='large'] {
-  --glass-tint: color-mix(in oklab, var(--surface) 97%, transparent);
-}
-:root[data-appearance='solid'] [data-slot='sheet-content'][data-detent='large'] {
-  --glass-tint: var(--surface);
+  --glass-tint: var(--glass-expanded-tint);
 }
 /* The dimming fades as the sheet is dragged toward closing; Radix animates opacity, so the color carries the drag. */
 [data-slot='sheet-overlay'] {
   background-color: rgb(0 0 0 / calc(0.4 * (1 - var(--sheet-drag, 0))));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 ```
+
+`--glass-expanded-tint` já incorpora os fallbacks compartilhados para contraste aumentado, transparência reduzida e aparência sólida; não duplique valores de tinta nos seletores da sheet.
 
 E no `@media (prefers-reduced-motion: reduce)`:
 
@@ -609,10 +617,10 @@ git commit -m "feat(web): spring settling, drag-following dimming and glass for 
 `FlowchartScreen.test.tsx` (perto dos testes que abrem "Fluxograma pronto"):
 
 ```tsx
-  it('shows the exported image in a large detent sheet', async () => {
+  it('shows the exported image in a content-fit medium sheet', async () => {
     // reproduzir o caminho que os testes existentes usam para abrir a ExportSheet num toque
     const dialog = await openExportSheet();
-    expect(dialog).toHaveAttribute('data-detent', 'large');
+    expect(dialog).toHaveAttribute('data-detent', 'medium');
   });
 ```
 
@@ -643,7 +651,7 @@ Expected: FAIL nos dois casos novos.
 
 (import `DetentSheet` de `@/components/DetentSheet`; remover os imports de `Sheet*` e `SheetClose` que ficarem sem uso.)
 
-`ExportSheet.tsx`: trocar `<Sheet ...><SheetContent ...> ... </SheetContent></Sheet>` por `<DetentSheet open={image !== null} onOpenChange={(open) => !open && onClose()} title="Fluxograma pronto" description={...mesmo texto...} detents={['large']}>`, com o conteúdo (imagem e botões) como `children`; o grabber decorativo e o `SheetHeader` próprios saem (a `DetentSheet` já tem); a imagem passa a `rounded-group border border-hairline`.
+`ExportSheet.tsx`: trocar `<Sheet ...><SheetContent ...> ... </SheetContent></Sheet>` por `<DetentSheet open={image !== null} onOpenChange={(open) => !open && onClose()} title="Fluxograma pronto" description={...mesmo texto...} detents={['medium']}>`, com o conteúdo (imagem e botões) como `children`; o grabber decorativo e o `SheetHeader` próprios saem (a `DetentSheet` já tem); a imagem passa a `rounded-group border border-hairline`. A sheet ajusta à altura real do conteúdo e tem teto de 50% da viewport visível; se necessário, o corpo rola dentro desse limite. O opener da exportação deve ser passado em `returnFocusRef` para restaurar foco após a captura assíncrona.
 
 Run: `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2 src/features/planning src/features/flowchart`
 Expected: PASS (os testes antigos de "Meu semestre", "Salvar ou compartilhar" e "Baixar imagem" continuam verdes).
@@ -661,7 +669,7 @@ git commit -m "feat(web): Meu semestre and the PNG export in detent sheets"
 
 - [ ] **Step 1: `CLAUDE.md`**
 
-Substituir o item "`sheet.tsx` is unpatched..." da lista de patches do shadcn por:
+Substituir o item "`sheet.tsx` is unpatched..." da lista de patches do shadcn por uma convenção que registre: detents `medium` (50%) e `large` (92%); `ExportSheet` usa somente `medium` content-fit com teto de 50%; grabber acessível com alvo de 44 × 44 px; gesto só no grabber/cabeçalho e cada gesto alcança no máximo um detent, somente o menor fecha; foco volta via `returnFocusRef` ou opener válido em `onCloseAutoFocus`; geometria por `visualViewport` com fallback `innerHeight`; corpo rolável compensado em medium/large; CSS usa os fallbacks de tinta compartilhados e não adiciona blur ao overlay. Não copiar a descrição inicial antiga sobre o export em `large`.
 
 ```markdown
   - `sheet.tsx` is unpatched. Bottom sheets go through `DetentSheet` (`components/DetentSheet.tsx`): detents `medium` (50%) and `large` (92%), an accessible grabber ("Expandir" / "Reduzir"), dragging only from the grabber and header, and `resolveDetent` (`lib/detents.ts`, pure, tested) deciding where a release settles (a flick never skips a detent; only the smallest can close). Its motion lives in `index.css` under `[data-slot='sheet-content'][data-detent]` (transform from `--detent-offset`, smooth spring, `data-dragging` turns the transition off) and the overlay dims by `--sheet-drag`; don't add motion classes to the component.
@@ -671,11 +679,11 @@ E na seção "Planejamento": a sheet "Meu semestre" é uma `DetentSheet` que abr
 
 - [ ] **Step 2: React Doctor e verificação**
 
-`pnpm react-doctor:changed` (0 erros); `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2 && pnpm typecheck && pnpm lint && pnpm build` (PASS).
+`pnpm react-doctor:changed` (0 erros); `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2 && pnpm typecheck && pnpm lint && pnpm build` (PASS). Estes gates só são marcados concluídos após execução.
 
 - [ ] **Step 3: Verificação manual (iPhone real e 390 px no DevTools com toque)**
 - "Meu semestre": abre na metade; arrastar pelo cabeçalho para cima vai a 92% e o vidro fica quase opaco; um puxão rápido para baixo volta à metade; outro fecha; o fundo clareia acompanhando o dedo; rolar a lista dentro dela não move a sheet.
-- Exportar PNG num toque: sheet grande; arrastar para baixo fecha.
+- Exportar PNG num toque: sheet content-fit `medium`, limitada a 50% da viewport visível; o corpo rola quando necessário e arrastar para baixo fecha.
 - VoiceOver: o grabber lê "Expandir"/"Reduzir"; Esc (teclado) fecha e o foco volta.
 - Movimento reduzido: sem mola; entrada e saída só com fade.
 
@@ -686,7 +694,7 @@ git add CLAUDE.md
 git commit -m "docs: detent sheet conventions"
 ```
 
-Revisão da branch inteira (Opus 5.5, médio); `gh auth status`, push, PR, merge `--no-ff`.
+Revisão da branch inteira (gpt-6.1-sol, low, caso Opus esteja indisponível); `gh auth status`, push, PR, merge `--no-ff`. A revisão ainda não executada permanece pendente.
 
 ## Ordem e paralelismo
 
