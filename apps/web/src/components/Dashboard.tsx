@@ -1,18 +1,24 @@
 import { lazy, Suspense, useRef, useState } from 'react';
 import { BrandMark } from '@/components/BrandMark';
 import { ClearDataDialog } from '@/components/ClearDataDialog';
+import { CompactHeader } from '@/components/CompactHeader';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InstallAppButton, IosInstallDialog } from '@/components/InstallApp';
 import { OptionsMenu } from '@/components/OptionsMenu';
+import { PageTitle } from '@/components/PageTitle';
 import { SectionNav } from '@/components/SectionNav';
+import { TabBar } from '@/components/TabBar';
 import { Button } from '@/components/ui/button';
 import { CoursesScreen } from '@/features/courses/CoursesScreen';
 import { OverviewScreen } from '@/features/overview/OverviewScreen';
 import { PlanningScreen } from '@/features/planning/PlanningScreen';
 import type { Dataset } from '@/lib/storage';
 import { useAnalysis } from '@/lib/use-analysis';
-import { useHashView } from '@/lib/use-hash-view';
+import { VIEW_LABELS, useHashView } from '@/lib/use-hash-view';
+import { useInView } from '@/lib/use-in-view';
 import { useInstallApp } from '@/lib/use-install-app';
+import { useMediaQuery } from '@/lib/use-media-query';
+import { cn } from '@/lib/utils';
 
 // React Flow is the heaviest dependency: load it only when the flowchart is opened.
 const FlowchartScreen = lazy(() => import('@/features/flowchart/FlowchartScreen'));
@@ -29,8 +35,17 @@ interface DashboardProps {
 
 export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDataset }: DashboardProps) {
   const view = useHashView();
-  const analysis = useAnalysis(dataset.data);
+  const desktop = useMediaQuery('(min-width: 768px)');
+  const wide = useMediaQuery('(min-width: 1024px)');
+  const [titleEl, setTitleEl] = useState<HTMLHeadingElement | null>(null);
+  const titleInView = useInView(titleEl);
+  const title = VIEW_LABELS[view];
   const { curriculum } = dataset.data;
+  const analysis = useAnalysis(dataset.data);
+  const context = `${curriculum.courseName}, currículo ${curriculum.version}`;
+  // On a phone the flowchart canvas needs the height, so its title lives in the compact header instead.
+  const compactOnly = !desktop && view === 'fluxograma';
+  const compactHeaderVisible = compactOnly || !titleInView;
   const [clearOpen, setClearOpen] = useState(false);
   // Whichever control opened the confirmation (desktop button or options menu trigger), so focus can return to it.
   const clearOpenerRef = useRef<HTMLElement | null>(null);
@@ -58,55 +73,60 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
       }
     : undefined;
 
+  const optionsMenu = (
+    <OptionsMenu
+      onNewUpload={onNewUpload}
+      onClearData={openClear}
+      install={installOption}
+      showActions={!wide}
+      // Never glass on glass: on mobile the trigger floats right on top of the compact header whenever it shows.
+      className={desktop ? undefined : cn('size-11', !compactHeaderVisible && 'glass')}
+    />
+  );
+
   return (
     <div className="min-h-dvh pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-      <header className="border-b border-border pt-[env(safe-area-inset-top)]">
-        {/* One line from lg up: brand, sections, then actions. The course label sits in the page (see below), not here. */}
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 px-4 py-3 lg:flex-nowrap">
-          <BrandMark compactOnMobile className="shrink-0" />
-          <SectionNav view={view} />
-          <div className="ml-auto hidden gap-2 md:flex">
-            <Button variant="ghost" size="sm" onClick={onNewUpload}>
-              Novo upload
-            </Button>
-            {installOption && <InstallAppButton install={installOption} />}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-danger hover:text-danger"
-              onClick={(event) => openClear(event.currentTarget)}
-            >
-              Limpar dados
-            </Button>
+      {desktop ? (
+        <header className="glass sticky top-0 z-30 rounded-none border-x-0 border-t-0 pt-[env(safe-area-inset-top)]">
+          <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-2.5">
+            <BrandMark className="shrink-0" />
+            <SectionNav view={view} />
+            <div className="ml-auto flex items-center gap-1">
+              {wide && (
+                <>
+                  <Button variant="ghost" size="sm" onClick={onNewUpload}>
+                    Novo upload
+                  </Button>
+                  {installOption && <InstallAppButton install={installOption} />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger hover:text-danger"
+                    onClick={(event) => openClear(event.currentTarget)}
+                  >
+                    Limpar dados
+                  </Button>
+                </>
+              )}
+              {optionsMenu}
+            </div>
           </div>
-          <OptionsMenu
-            className="ml-auto md:hidden"
-            onNewUpload={onNewUpload}
-            onClearData={openClear}
-            install={installOption}
-          />
-        </div>
-      </header>
-      <ClearDataDialog
-        open={clearOpen}
-        onOpenChange={setClearOpen}
-        onConfirm={onClear}
-        openerRef={clearOpenerRef}
-      />
+        </header>
+      ) : (
+        <>
+          <CompactHeader title={title} visible={compactHeaderVisible} asHeading={compactOnly} />
+          <div className="fixed top-[calc(env(safe-area-inset-top)+0.25rem)] right-[max(0.75rem,env(safe-area-inset-right))] z-40">
+            {optionsMenu}
+          </div>
+        </>
+      )}
+      <ClearDataDialog open={clearOpen} onOpenChange={setClearOpen} onConfirm={onClear} openerRef={clearOpenerRef} />
       <IosInstallDialog open={iosInstallOpen} onOpenChange={setIosInstallOpen} openerRef={iosInstallOpenerRef} />
 
-      {/* Bottom padding clears the fixed tab bar below md. It is set once per breakpoint, so no sm: rule can override it. */}
-      <main className="mx-auto max-w-6xl px-4 pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pt-12 md:pb-12">
-        <p className="mb-6 hidden text-sm text-muted-foreground md:block">
-          {curriculum.courseName}, currículo {curriculum.version}
-        </p>
+      <main className="mx-auto max-w-6xl px-4 pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(var(--bottom-chrome)+2rem+env(safe-area-inset-bottom))] md:pt-8">
+        {!compactOnly && <PageTitle title={title} context={context} titleRef={setTitleEl} className="mb-8 pr-14 md:pr-0" />}
         {view === 'visao-geral' && (
-          <OverviewScreen
-            data={dataset.data}
-            analysis={analysis}
-            reveal={!dataset.revealed}
-            onRevealed={onRevealed}
-          />
+          <OverviewScreen data={dataset.data} analysis={analysis} reveal={!dataset.revealed} onRevealed={onRevealed} />
         )}
         {view === 'fluxograma' && (
           <ErrorBoundary onReset={onResetDataset}>
@@ -118,6 +138,8 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
         {view === 'disciplinas' && <CoursesScreen data={dataset.data} />}
         {view === 'planejamento' && <PlanningScreen data={dataset.data} analysis={analysis} savedAt={dataset.savedAt} />}
       </main>
+
+      {!desktop && <TabBar view={view} />}
     </div>
   );
 }

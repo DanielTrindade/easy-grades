@@ -47,6 +47,28 @@
   box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
 }
 
+/* Scroll edge effect under a floating bar: content fades into the canvas instead of meeting a hard border. */
+@utility scroll-edge {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 100% 0 auto;
+    height: 1rem;
+    pointer-events: none;
+    background: linear-gradient(var(--canvas), transparent);
+  }
+}
+
+/* Menus belong to the navigation layer. Unlayered, so it wins over the popover classes of the shadcn component. */
+[data-slot='dropdown-menu-content'] {
+  background-color: var(--glass-tint);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
+  border-radius: var(--radius-group);
+}
+
 @theme inline {
   --font-sans: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-heading: "Mona Sans Variable", -apple-system, system-ui, sans-serif;
@@ -365,6 +387,10 @@
   animation: node-in 250ms var(--ease-snap) both;
   animation-delay: calc(var(--col, 0) * 40ms);
 }
+/* The selected-section pill slides with the snappy spring (tab bar and the desktop segmented nav). */
+.tab-indicator {
+  transition: transform 430ms var(--ease-spring-snappy);
+}
 /* PNG export: the capture clones the live DOM, so freeze the entrance animation and never capture a hidden node. */
 .is-exporting .course-node {
   animation: none !important;
@@ -424,20 +450,39 @@
   }
 }
 
-/* Toasts clear the fixed bottom chrome. Sonner sets its offsets as inline custom properties, so bottom is set directly.
-   Below md the tab bar (56 px) is there; on Planejamento below lg the "Meu semestre" bar (56 px) sits above it. */
-@media (max-width: 767.98px) {
-  [data-sonner-toaster][data-y-position='bottom'] {
-    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+/* Fixed chrome under the content: the floating tab bar (below md) and a screen accessory such as the "Meu semestre"
+   bar (below lg). Their heights live here so the main padding, the accessory and the toasts stay in step. */
+body {
+  --tab-bar-space: 0px;
+  --accessory-space: 0px;
+  --bottom-chrome: calc(var(--tab-bar-space) + var(--accessory-space));
+}
+@media (max-width: 47.99rem) {
+  body[data-tab-bar='expanded'] {
+    --tab-bar-space: 4.25rem;
   }
-  body[data-summary-bar] [data-sonner-toaster][data-y-position='bottom'] {
-    bottom: calc(128px + env(safe-area-inset-bottom)) !important;
+  body[data-tab-bar='minimized'] {
+    --tab-bar-space: 3.75rem;
   }
 }
-@media (min-width: 768px) and (max-width: 1023.98px) {
-  body[data-summary-bar] [data-sonner-toaster][data-y-position='bottom'] {
-    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+@media (max-width: 63.99rem) {
+  body[data-bottom-accessory] {
+    --accessory-space: 3.75rem;
   }
+}
+/* Sonner sets its offsets as inline custom properties, so bottom is set directly. */
+[data-sonner-toaster][data-y-position='bottom'] {
+  bottom: calc(var(--bottom-chrome) + 1.5rem + env(safe-area-inset-bottom)) !important;
+}
+/* Three attributes, so it outranks Sonner's own [data-sonner-toast][data-styled] rules. */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
+}
+[data-sonner-toaster] [data-sonner-toast][data-styled='true']:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -456,6 +501,9 @@
   .course-node {
     animation: node-fade 150ms var(--ease-snap) both;
     animation-delay: 0s;
+  }
+  .tab-indicator {
+    transition: none;
   }
 }
 

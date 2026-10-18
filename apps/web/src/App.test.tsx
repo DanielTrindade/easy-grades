@@ -1,5 +1,6 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { clearAaccActivities, loadAaccActivities, saveAaccActivities } from './lib/aacc-storage';
@@ -36,7 +37,7 @@ describe('App', () => {
   it('opens the dashboard with the stored dataset', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
-    expect(await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: '64,69%' }, { timeout: 10000 })).toBeInTheDocument();
     expect(screen.getByText('7,757')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute('aria-current', 'page');
   });
@@ -44,7 +45,7 @@ describe('App', () => {
   it('[reveal] plays the marker reveal once per dataset, not again after navigating back', async () => {
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 });
+    await screen.findByRole('heading', { level: 2, name: '64,69%' }, { timeout: 10000 });
     const band = document.querySelector('.marker-band');
     expect(band).toHaveAttribute('data-reveal');
     fireEvent.animationEnd(band!);
@@ -62,11 +63,13 @@ describe('App', () => {
   });
 
   it('[clear] confirming "Limpar dados" empties storage and returns to the upload screen', async () => {
+    const user = userEvent.setup({ delay: null });
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 });
+    await screen.findByRole('heading', { level: 2, name: '64,69%' }, { timeout: 10000 });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Limpar dados' }));
+    await user.click(screen.getByRole('button', { name: 'Mais opções' }));
+    await user.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: 'Limpar dados' }));
     const dialog = await screen.findByRole('alertdialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
@@ -75,12 +78,14 @@ describe('App', () => {
   });
 
   it('[clear] the dialog warns that registered activities are erased too, and confirming removes them', async () => {
+    const user = userEvent.setup({ delay: null });
     await saveDataset({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     await saveAaccActivities([{ id: 'a1', description: 'Monitoria de cálculo', hours: 20, type: 'monitoria' }]);
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: '64,69%' }, { timeout: 10000 });
+    await screen.findByRole('heading', { level: 2, name: '64,69%' }, { timeout: 10000 });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Limpar dados' }));
+    await user.click(screen.getByRole('button', { name: 'Mais opções' }));
+    await user.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: 'Limpar dados' }));
     const dialog = await screen.findByRole('alertdialog');
     expect(
       within(dialog).getByText(

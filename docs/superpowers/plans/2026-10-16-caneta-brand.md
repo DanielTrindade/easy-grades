@@ -19,7 +19,7 @@
 - Os PNGs nunca são editados à mão; são gerados por `pnpm --filter @easy-grades/web icons` e commitados.
 - Nomes em código em inglês; comentários só para o "porquê".
 - Testes: `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2`.
-- Branch: `feat/caneta-brand` a partir de `main`. Commits com `Co-Authored-By: Claude <noreply@anthropic.com>`. `pnpm react-doctor:changed` sem erros.
+- Branch: `feat/caneta-brand` a partir de `main`. Commits sem trailer de co-autoria de agente. `pnpm react-doctor:changed` sem erros.
 
 ## Review Focus
 
@@ -158,7 +158,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/brand/icon.svg apps/web/public/favicon.svg apps/web/public/icons apps/web/src/components/BrandMark.tsx apps/web/src/components/BrandMark.test.tsx apps/web/scripts/generate-icons.mjs
-git commit -m "feat(web): pen blue grid symbol for the favicon, the app mark and the PWA icons" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): pen blue grid symbol for the favicon, the app mark and the PWA icons"
 ```
 
 ---
@@ -203,7 +203,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src
-git commit -m "chore(web): drop tokens and rules left unused by the Caneta rebrand" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "chore(web): drop tokens and rules left unused by the Caneta rebrand"
 ```
 
 ---
@@ -246,7 +246,7 @@ Manual, com o build de produção (`docker build -t easy-grades . && docker run 
 
 ```bash
 git add CLAUDE.md README.md docs/superpowers/specs
-git commit -m "docs: Caneta is the current identity" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "docs: Caneta is the current identity"
 ```
 
 Revisão da branch inteira (Opus 5.5, médio); `gh auth status`, push, PR, merge `--no-ff`.

@@ -242,20 +242,20 @@ describe('PlanningScreen', () => {
     expect(within(dialog).getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).toBeInTheDocument();
   });
 
-  it('flags the body while the summary bar is shown, so toasts clear it', async () => {
+  it('flags the body while the summary bar is shown, so the bottom chrome clears it', async () => {
     setDesktop(false);
     const { unmount } = render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
     await screen.findByRole('button', { name: /CR projetado/ });
-    expect(document.body).toHaveAttribute('data-summary-bar');
+    expect(document.body).toHaveAttribute('data-bottom-accessory');
 
     unmount();
-    expect(document.body).not.toHaveAttribute('data-summary-bar');
+    expect(document.body).not.toHaveAttribute('data-bottom-accessory');
   });
 
   it('does not flag the body at lg and up, where the summary bar is not shown', async () => {
     setDesktop(true);
     render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
     await screen.findByRole('heading', { name: 'Meu semestre', level: 2 });
-    expect(document.body).not.toHaveAttribute('data-summary-bar');
+    expect(document.body).not.toHaveAttribute('data-bottom-accessory');
   });
 });

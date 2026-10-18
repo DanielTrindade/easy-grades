@@ -1,5 +1,5 @@
 import type { ParseResponse } from '@easy-grades/core';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { PwaUpdatePrompt } from '@/components/PwaUpdatePrompt';
 import { Toaster } from '@/components/ui/sonner';
@@ -80,8 +80,18 @@ export default function App() {
         </ErrorBoundary>
       )}
       <PwaUpdatePrompt />
-      {/* Bottom clearance for the tab bar and the Planejamento summary bar is set in index.css. */}
-      <Toaster position="bottom-right" />
+      {/* The bottom clearance comes from --bottom-chrome in index.css; these replace the component's own colors. */}
+      <Toaster
+        position="bottom-right"
+        style={
+          {
+            '--normal-bg': 'var(--glass-tint)',
+            '--normal-text': 'var(--ink)',
+            '--normal-border': 'var(--glass-edge)',
+            '--border-radius': '1.5rem',
+          } as CSSProperties
+        }
+      />
     </TooltipProvider>
   );
 }

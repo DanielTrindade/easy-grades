@@ -24,7 +24,7 @@
 - Exportação de PNG: comportamento inalterado (as regras `.is-exporting` continuam).
 - `src/components/ui/` sem patch novo.
 - Testes: `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2`; CSS lido com `readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), 'index.css'), 'utf8')`, nunca `?raw`.
-- Branch: `feat/caneta-flowchart-planning-upload` a partir de `main`. Commits com `Co-Authored-By: Claude <noreply@anthropic.com>`. `pnpm react-doctor:changed` sem erros antes da revisão.
+- Branch: `feat/caneta-flowchart-planning-upload` a partir de `main`. Commits sem trailer de co-autoria de agente. `pnpm react-doctor:changed` sem erros antes da revisão.
 
 ## Review Focus
 
@@ -230,7 +230,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/features/flowchart/FlowControls.tsx apps/web/src/features/flowchart/FlowControls.test.tsx
-git commit -m "feat(web): glass zoom controls and collapsible legend for the flowchart" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): glass zoom controls and collapsible legend for the flowchart"
 ```
 
 ---
@@ -394,7 +394,7 @@ Expected: PASS (inclusive os testes de exportação e do switch "Ver como lista"
 
 ```bash
 git add apps/web/src/features/flowchart apps/web/src/styles
-git commit -m "feat(web): edge-to-edge flowchart with floating glass controls" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): edge-to-edge flowchart with floating glass controls"
 ```
 
 ---
@@ -459,7 +459,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/features/flowchart/FlowchartList.tsx apps/web/src/features/flowchart/FlowchartList.test.tsx
-git commit -m "feat(web): flowchart list view as iOS grouped lists" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): flowchart list view as iOS grouped lists"
 ```
 
 ---
@@ -556,7 +556,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/features/planning
-git commit -m "feat(web): planning catalog as a grouped list, carded panel and capsule meter" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): planning catalog as a grouped list, carded panel and capsule meter"
 ```
 
 ---
@@ -643,7 +643,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/components/TabBar.tsx apps/web/src/components/TabBar.test.tsx apps/web/src/features/planning/PlanningScreen.tsx apps/web/src/styles
-git commit -m "feat(web): semester bar slides beside the minimized tab bar" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): semester bar slides beside the minimized tab bar"
 ```
 
 ---
@@ -714,7 +714,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/features/upload
-git commit -m "feat(web): upload dropzones as cards with a pen blue primary action" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): upload dropzones as cards with a pen blue primary action"
 ```
 
 ---
@@ -742,7 +742,7 @@ Run: `pnpm react-doctor:changed` (0 erros) e `pnpm --filter @easy-grades/web exe
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs: flowchart, planning and upload conventions" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "docs: flowchart, planning and upload conventions"
 ```
 
 Revisão da branch inteira (Opus 5.5, médio); `gh auth status`, push, PR, merge `--no-ff`.

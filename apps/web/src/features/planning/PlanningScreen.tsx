@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { formatCr, formatHours, pluralize, toTitleCase } from '@/lib/format';
+import { useBodyData } from '@/lib/body-data';
 import type { Analysis } from '@/lib/use-analysis';
 import { useFitsViewport } from '@/lib/use-fits-viewport';
 import { useMediaQuery } from '@/lib/use-media-query';
@@ -56,14 +57,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
     };
   }, []);
 
-  useEffect(() => {
-    // The summary bar is fixed above the tab bar below lg. This flag lets the toaster clear it (see index.css).
-    if (desktop) return;
-    document.body.dataset.summaryBar = '';
-    return () => {
-      delete document.body.dataset.summaryBar;
-    };
-  }, [desktop]);
+  useBodyData('bottomAccessory', desktop ? null : '');
 
   useEffect(() => {
     void savePlan(savedAt, plan);
@@ -153,11 +147,10 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
   const summary = `${pluralize(chosen.length, 'disciplina', 'disciplinas')}, ${pluralize(credits, 'crédito', 'créditos')}`;
 
   return (
-    <div className="grid gap-12 max-lg:pb-16">
+    <div className="grid gap-12">
       <div className="grid gap-6 border-b border-hairline pb-8 md:grid-cols-2 md:items-end">
         <div>
-          <h1 className="text-large-title">Planejamento</h1>
-          <p className="mt-2 max-w-[40ch] text-ink-muted">Monte o próximo semestre e veja o CR mudar enquanto escolhe.</p>
+          <p className="max-w-[40ch] text-ink-muted">Monte o próximo semestre e veja o CR mudar enquanto escolhe.</p>
         </div>
         <div className="md:text-right">
           <p className="text-sm text-ink-muted">{projectedTerm ? `${formatTerm(projectedTerm)}, CR projetado` : 'CR projetado'}</p>
@@ -231,7 +224,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             type="button"
             aria-haspopup="dialog"
             onClick={() => setSheetOpen(true)}
-            className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex min-h-14 items-center justify-between gap-3 border-t border-hairline bg-canvas pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-left text-sm md:bottom-[env(safe-area-inset-bottom)]"
+            className="glass fixed inset-x-[max(0.75rem,env(safe-area-inset-left))] bottom-[calc(var(--tab-bar-space)+0.5rem+env(safe-area-inset-bottom))] z-30 flex h-13 items-center justify-between gap-3 rounded-full px-5 text-left text-sm transition-[bottom] duration-200 ease-snap motion-reduce:transition-none"
           >
             <span className="tabular-nums">
               {summary}, CR projetado{' '}
