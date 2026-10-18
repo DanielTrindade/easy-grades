@@ -18,6 +18,7 @@
     "react-doctor:gate": "node scripts/react-doctor-gate.mjs"
   },
   "simple-git-hooks": {
+    "commit-msg": "node scripts/commit-msg.mjs $1",
     "pre-push": "pnpm react-doctor:gate"
   },
   "devDependencies": {
