@@ -51,6 +51,17 @@ function stubShareSheet(canShare = true) {
   return share;
 }
 
+/** The touch export path up to the "Fluxograma pronto" sheet. */
+async function openExportSheet() {
+  mockTouchScreen();
+  stubShareSheet();
+  render(<FlowchartScreen data={data} />);
+
+  fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+  return screen.findByRole('dialog', { name: 'Fluxograma pronto' });
+}
+
 beforeEach(() => {
   seen.nodes.length = 0;
   readiness.ready = true;
@@ -290,6 +301,50 @@ describe('FlowchartScreen focus', () => {
     expect(shared?.files?.[0]?.name).toBe('fluxograma.png');
     expect(shared?.files?.[0]?.type).toBe('image/png');
     await waitFor(() => expect(screen.queryByAltText('Fluxograma do curso')).toBeNull());
+  });
+
+  it('shows the exported image in a content-fit medium sheet without an expand control', async () => {
+    const dialog = await openExportSheet();
+
+    expect(dialog).toHaveAttribute('data-detent', 'medium');
+    expect(dialog.style.height).toBe('');
+    expect(screen.queryByRole('button', { name: /Expandir|Reduzir/ })).toBeNull();
+  });
+
+  it('keeps the sheet closed until the image is ready', async () => {
+    mockTouchScreen();
+    stubShareSheet();
+    let finish!: (blob: Blob) => void;
+    png.toBlob.mockReturnValueOnce(new Promise<Blob>((resolve) => (finish = resolve)));
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+    await screen.findByRole('button', { name: 'Exportando…' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    finish(new Blob(['png'], { type: 'image/png' }));
+    expect(await screen.findByRole('dialog', { name: 'Fluxograma pronto' })).toBeInTheDocument();
+  });
+
+  it('returns focus to the export button after closing the sheet with Fechar or Escape', async () => {
+    const user = userEvent.setup({ delay: null });
+    mockTouchScreen();
+    stubShareSheet();
+    render(<FlowchartScreen data={data} />);
+    const exportButton = screen.getByRole('button', { name: 'Exportar PNG' });
+
+    fireEvent.click(exportButton);
+    await screen.findByRole('dialog', { name: 'Fluxograma pronto' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(exportButton).toHaveFocus());
+
+    fireEvent.click(exportButton);
+    await screen.findByRole('dialog', { name: 'Fluxograma pronto' });
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(exportButton).toHaveFocus());
   });
 
   it('offers the download inside the sheet when the browser cannot share files', async () => {
