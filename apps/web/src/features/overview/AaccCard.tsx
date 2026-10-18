@@ -89,7 +89,7 @@ export function AaccCard({
       </div>
 
       {officialHours > 0 && activities.length > 0 && (
-        <p role="status" className="rounded-lg border border-erro/40 bg-erro/10 p-3 text-sm">
+        <p role="status" className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm">
           {`O histórico já tem ${formatHours(officialHours)} lançadas. Confira se alguma atividade registrada aqui já foi lançada e remova-a para não contar duas vezes.`}
         </p>
       )}
@@ -106,7 +106,7 @@ export function AaccCard({
             aria-describedby={errors.description ? `${descriptionId}-erro` : undefined}
           />
           {errors.description && (
-            <p id={`${descriptionId}-erro`} role="alert" className="text-sm text-erro">
+            <p id={`${descriptionId}-erro`} role="alert" className="text-sm text-danger">
               {errors.description}
             </p>
           )}
@@ -128,7 +128,7 @@ export function AaccCard({
             aria-describedby={errors.hours ? `${hoursId}-erro` : undefined}
           />
           {errors.hours && (
-            <p id={`${hoursId}-erro`} role="alert" className="text-sm text-erro">
+            <p id={`${hoursId}-erro`} role="alert" className="text-sm text-danger">
               {errors.hours}
             </p>
           )}

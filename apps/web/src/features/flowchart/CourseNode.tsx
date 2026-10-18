@@ -30,7 +30,7 @@ function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
         style.accent,
       )}
     >
-      <Handle type="target" position={Position.Left} isConnectable={false} className="!size-1.5 !border-0 !bg-suave" />
+      <Handle type="target" position={Position.Left} isConnectable={false} className="!size-1.5 !border-0 !bg-ink-muted" />
       <div className="flex items-center justify-between gap-2">
         <span className="code-label text-xs font-semibold">{course.code}</span>
         <span className="flex items-center gap-1 text-xs font-medium">
@@ -40,7 +40,7 @@ function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
       </div>
       <p className="mt-1.5 line-clamp-2 text-sm font-medium leading-tight break-words">{toTitleCase(course.name)}</p>
       <p className="mt-auto pt-1 text-xs text-muted-foreground">{pluralize(course.credits, 'crédito', 'créditos')}</p>
-      <Handle type="source" position={Position.Right} isConnectable={false} className="!size-1.5 !border-0 !bg-suave" />
+      <Handle type="source" position={Position.Right} isConnectable={false} className="!size-1.5 !border-0 !bg-ink-muted" />
     </div>
   );
 }

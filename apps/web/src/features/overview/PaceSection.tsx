@@ -3,11 +3,11 @@ import { CircleCheck, Clock, OctagonAlert, TriangleAlert, type LucideIcon } from
 import { formatHours, formatOneDecimal, formatPercent } from '@/lib/format';
 
 const PACE_STATUS: Record<PaceInsights['status'], { icon: LucideIcon; label: string; iconColor: string }> = {
-  concluido: { icon: CircleCheck, label: 'Carga horária concluída', iconColor: 'text-esmeralda-texto' },
+  concluido: { icon: CircleCheck, label: 'Carga horária concluída', iconColor: 'text-success' },
   inicio: { icon: Clock, label: 'Ainda sem período concluído para medir o ritmo', iconColor: 'text-muted-foreground' },
-  no_ritmo: { icon: CircleCheck, label: 'No ritmo para o prazo ideal', iconColor: 'text-esmeralda-texto' },
-  atrasado: { icon: TriangleAlert, label: 'Abaixo do ritmo do prazo ideal', iconColor: 'text-erro' },
-  risco_prazo_maximo: { icon: OctagonAlert, label: 'Risco de ultrapassar o prazo máximo', iconColor: 'text-erro' },
+  no_ritmo: { icon: CircleCheck, label: 'No ritmo para o prazo ideal', iconColor: 'text-success' },
+  atrasado: { icon: TriangleAlert, label: 'Abaixo do ritmo do prazo ideal', iconColor: 'text-danger' },
+  risco_prazo_maximo: { icon: OctagonAlert, label: 'Risco de ultrapassar o prazo máximo', iconColor: 'text-danger' },
 };
 
 interface PaceSectionProps {

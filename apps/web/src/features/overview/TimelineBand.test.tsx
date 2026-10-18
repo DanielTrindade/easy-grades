@@ -36,6 +36,6 @@ describe('TimelineBand', () => {
     const { container } = render(<TimelineBand timeline={{ ...timeline, paceSlack: -1 }} />);
     const warning = screen.getByText(/além do prazo máximo/);
     expect(warning).toBeInTheDocument();
-    expect(container.querySelector('svg')).toHaveClass('text-erro');
+    expect(container.querySelector('svg')).toHaveClass('text-danger');
   });
 });

@@ -23,7 +23,7 @@ export function GradeStrip({ grades }: { grades: GradeInsights }) {
             <span className="text-muted-foreground">{BAND_LABELS[band.key]}</span>
             <span
               aria-hidden
-              className="h-2 rounded-full bg-esmeralda"
+              className="h-2 rounded-full bg-pen"
               style={{ width: `${max === 0 ? 0 : (band.count / max) * 100}%` }}
             />
             <span className="text-right tabular-nums">{band.count}</span>

@@ -62,28 +62,28 @@ export function TimelineBand({ timeline }: TimelineBandProps) {
         {current !== null && (
           <span
             data-segment="done"
-            className="absolute inset-y-0 left-0 rounded-l-full bg-esmeralda"
+            className="absolute inset-y-0 left-0 rounded-l-full bg-pen"
             style={{ width: `${current.toFixed(2)}%` }}
           />
         )}
         {current !== null && forecast !== null && forecast > current && (
           <span
             data-segment="forecast"
-            className="absolute inset-y-0 bg-esmeralda/30"
+            className="absolute inset-y-0 bg-pen/30"
             style={{ left: `${current.toFixed(2)}%`, width: `${(forecast - current).toFixed(2)}%` }}
           />
         )}
         {current !== null && (
           <span
             data-marker="today"
-            className="absolute -top-1 size-4 -translate-x-1/2 rounded-full border-2 border-fundo bg-esmeralda"
+            className="absolute -top-1 size-4 -translate-x-1/2 rounded-full border-2 border-canvas bg-pen"
             style={{ left: `${current.toFixed(2)}%` }}
           />
         )}
         {forecast !== null && (
           <span
             data-marker="forecast"
-            className="absolute -top-1 size-4 -translate-x-1/2 rounded-full border-2 border-esmeralda bg-fundo"
+            className="absolute -top-1 size-4 -translate-x-1/2 rounded-full border-2 border-pen bg-canvas"
             style={{ left: `${forecast.toFixed(2)}%` }}
           />
         )}
@@ -100,11 +100,11 @@ export function TimelineBand({ timeline }: TimelineBandProps) {
         <p
           className={
             late
-              ? 'mt-3 flex max-w-[60ch] items-start gap-2 text-sm text-erro'
+              ? 'mt-3 flex max-w-[60ch] items-start gap-2 text-sm text-danger'
               : 'mt-3 max-w-[60ch] text-sm text-muted-foreground'
           }
         >
-          {late && <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-erro" />}
+          {late && <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-danger" />}
           <span>{sentence}</span>
         </p>
       )}

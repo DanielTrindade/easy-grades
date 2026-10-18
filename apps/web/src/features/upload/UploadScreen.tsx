@@ -36,7 +36,7 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
     <main className="mx-auto grid min-h-dvh max-w-6xl content-center gap-12 px-4 py-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
       <section className="grid-paper">
         <BrandMark size={64} className="flex-col items-start gap-3" />
-        <h1 className="mt-8 max-w-[18ch] text-4xl sm:text-display">
+        <h1 className="mt-8 max-w-[18ch] text-large-title">
           Veja onde você está no curso e o que cabe no próximo semestre.
         </h1>
         <p className="mt-5 max-w-[60ch] text-muted-foreground">
@@ -80,7 +80,7 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           )}
         </p>
         {error && (
-          <p role="alert" className="rounded-lg border border-erro/40 bg-erro/10 p-3 text-sm text-erro">
+          <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
             {error}
           </p>
         )}

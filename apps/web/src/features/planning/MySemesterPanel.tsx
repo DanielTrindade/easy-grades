@@ -63,13 +63,13 @@ export function MySemesterPanel({
   return (
     <div className="grid gap-5">
       <div className="grid grid-cols-2 gap-[2px]">
-        <div className="rounded-lg bg-fundo p-3.5">
-          <p className="text-sm text-suave">Créditos</p>
+        <div className="rounded-lg bg-canvas p-3.5">
+          <p className="text-sm text-ink-muted">Créditos</p>
           <p className="heading-ink mt-1 text-[1.75rem] tabular-nums">{credits}</p>
         </div>
-        <div className="rounded-lg bg-fundo p-3.5">
-          <p className="text-sm text-suave">CR projetado</p>
-          <p className="heading-ink mt-1 text-[1.75rem] tabular-nums text-esmeralda-texto">{formatCr(projected)}</p>
+        <div className="rounded-lg bg-canvas p-3.5">
+          <p className="text-sm text-ink-muted">CR projetado</p>
+          <p className="heading-ink mt-1 text-[1.75rem] tabular-nums text-pen-ink">{formatCr(projected)}</p>
         </div>
       </div>
 
@@ -77,24 +77,24 @@ export function MySemesterPanel({
 
       <section aria-labelledby={`${id}-escolhidas`} className="grid gap-2">
         <h3 id={`${id}-escolhidas`} className="text-base">
-          Escolhidas <span className="font-normal text-suave tabular-nums">({chosen.length})</span>
+          Escolhidas <span className="font-normal text-ink-muted tabular-nums">({chosen.length})</span>
         </h3>
         {chosen.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-linha p-4 text-sm text-suave">
+          <p className="rounded-lg border border-dashed border-hairline p-4 text-sm text-ink-muted">
             Nenhuma disciplina escolhida. Adicione pelo catálogo.
           </p>
         ) : (
-          <ul className="divide-y divide-linha border-t border-linha">
+          <ul className="divide-y divide-hairline border-t border-hairline">
             {chosen.map((course) => (
               <li key={course.code} className="flex items-center gap-3 py-3">
                 <div className="grid min-w-0 flex-1 gap-0.5">
                   <p className="line-clamp-2 text-sm leading-snug font-semibold">{toTitleCase(course.name)}</p>
-                  <p className="text-xs text-suave tabular-nums">
+                  <p className="text-xs text-ink-muted tabular-nums">
                     <span className="code-label">{course.code}</span>, {course.credits} cr
                   </p>
                   {course.pending && (
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-texto">
-                      <Lock aria-hidden className="size-3.5 shrink-0 text-suave" />
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink">
+                      <Lock aria-hidden className="size-3.5 shrink-0 text-ink-muted" />
                       Pré-requisito pendente
                     </p>
                   )}
@@ -109,7 +109,7 @@ export function MySemesterPanel({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="-mr-2 size-11 shrink-0 text-suave"
+                  className="-mr-2 size-11 shrink-0 text-ink-muted"
                   aria-label={`Remover ${toTitleCase(course.name)} do semestre`}
                   onClick={() => onRemove(course.code)}
                 >
@@ -121,14 +121,14 @@ export function MySemesterPanel({
         )}
       </section>
 
-      <div className="grid gap-3 border-t border-linha pt-4">
+      <div className="grid gap-3 border-t border-hairline pt-4">
         {inProgress.length > 0 && (
           <details className="group">
             <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold select-none">
-              Em curso agora <span className="font-normal text-suave tabular-nums">({inProgress.length})</span>
-              <ChevronDown aria-hidden className="size-4 shrink-0 text-suave transition-transform duration-200 ease-snap group-open:rotate-180 motion-reduce:transition-none" />
+              Em curso agora <span className="font-normal text-ink-muted tabular-nums">({inProgress.length})</span>
+              <ChevronDown aria-hidden className="size-4 shrink-0 text-ink-muted transition-transform duration-200 ease-snap group-open:rotate-180 motion-reduce:transition-none" />
             </summary>
-            <ul className="mt-1 divide-y divide-linha border-t border-linha">
+            <ul className="mt-1 divide-y divide-hairline border-t border-hairline">
               {inProgress.map((course) => (
                 <li key={course.code} className="flex items-center gap-3 py-3">
                   <p className="min-w-0 flex-1 text-sm leading-snug">{toTitleCase(course.name)}</p>
@@ -151,13 +151,13 @@ export function MySemesterPanel({
         </div>
       </div>
 
-      <details className="group border-t border-linha pt-3">
+      <details className="group border-t border-hairline pt-3">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold select-none">
           Ver projeção
-          <ChevronDown aria-hidden className="size-4 shrink-0 text-suave transition-transform duration-200 ease-snap group-open:rotate-180 motion-reduce:transition-none" />
+          <ChevronDown aria-hidden className="size-4 shrink-0 text-ink-muted transition-transform duration-200 ease-snap group-open:rotate-180 motion-reduce:transition-none" />
         </summary>
         <div className="mt-2 grid gap-4">
-          <p className="text-sm text-suave">
+          <p className="text-sm text-ink-muted">
             Hoje: {formatCr(currentCr)}. Com notas entre 5 e 10 nessas disciplinas, ficaria entre {formatCr(scenarios.worst)} e{' '}
             {formatCr(scenarios.best)}. Disciplinas com pré-requisito pendente ficam de fora.
           </p>

@@ -15,7 +15,7 @@ interface MarkerBandProps {
 }
 
 /**
- * Signature element: a progress band over a grid track. Completed hours are a solid esmeralda fill up to the
+ * Signature element: a progress band over a grid track. Completed hours are a solid pen blue fill up to the
  * percentage, with a hard edge; the rest is the empty track. Activities the student registered are a hatched fill
  * right after the done part.
  */
@@ -51,7 +51,7 @@ export function MarkerBand({ progress, pendingPercent = 0, milestone = null, inP
       >
         {/* Only the fills animate: the border and the grid track stay visible while the fill sweeps in. */}
         <div className="marker-fills absolute inset-0">
-          <span aria-hidden data-segment="done" className="absolute inset-y-0 left-0 bg-esmeralda" style={{ width: `${percent}%` }} />
+          <span aria-hidden data-segment="done" className="absolute inset-y-0 left-0 bg-pen" style={{ width: `${percent}%` }} />
           {hasPending && (
             <span
               aria-hidden
@@ -68,7 +68,7 @@ export function MarkerBand({ progress, pendingPercent = 0, milestone = null, inP
             <span
               data-milestone={milestone.target}
               aria-hidden
-              className="absolute inset-y-0 border-l border-dashed border-suave"
+              className="absolute inset-y-0 border-l border-dashed border-ink-muted"
               style={milestone.target === 100 ? { right: 0 } : { left: `${milestone.target}%` }}
             />
           )}

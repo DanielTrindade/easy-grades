@@ -125,7 +125,7 @@ function Graph({ data }: { data: ParseResponse }) {
           target: edge.target,
           focusable: false,
           style: {
-            stroke: edge.satisfied ? 'var(--texto)' : 'var(--suave)',
+            stroke: edge.satisfied ? 'var(--ink)' : 'var(--ink-muted)',
             strokeWidth: inChain ? 2.5 : 1.5,
             strokeDasharray: edge.alternative ? '5 4' : undefined,
             opacity: highlighted === null || inChain ? 1 : 0.15,
@@ -213,7 +213,7 @@ function Graph({ data }: { data: ParseResponse }) {
     <div className="grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl sm:text-display">Fluxograma do curso</h1>
+          <h1 className="text-large-title">Fluxograma do curso</h1>
           <p className="mt-2 max-w-[60ch] text-muted-foreground">
             Passe o mouse ou toque numa disciplina para ver o que ela exige e o que ela libera. Arraste o fundo para
             percorrer os períodos.

@@ -78,7 +78,7 @@ export function OptionsMenu({ onNewUpload, onClearData, install, className }: Op
             dialogRequested.current = true;
             onClearData(triggerRef.current);
           }}
-          className="text-erro focus:text-erro max-md:min-h-11"
+          className="text-danger focus:text-danger max-md:min-h-11"
         >
           Limpar dados
         </DropdownMenuItem>
