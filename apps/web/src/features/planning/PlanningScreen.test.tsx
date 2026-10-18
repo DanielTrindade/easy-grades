@@ -1,6 +1,6 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import type { CurriculumCourse } from '@easy-grades/core';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -45,6 +45,40 @@ function renderScreen() {
   );
   // The first render loads the lazy chart, which is slow when the whole workspace runs in parallel: the default 1 s is not enough.
   return screen.findByRole('heading', { name: 'Meu semestre', level: 2 }, { timeout: 10000 });
+}
+
+/** The sheet handle: only it and the header drag the sheet. */
+function handleOf(dialog: HTMLElement) {
+  return dialog.querySelector('[data-sheet-handle]') as HTMLElement;
+}
+
+/** jsdom moves no finger between events, so the drag carries its own clock. */
+function drag(target: Element, from: number, to: number, durationMs: number) {
+  const now = vi.spyOn(performance, 'now');
+  const base = { pointerId: 1, isPrimary: true, button: 0 };
+  now.mockReturnValue(1000);
+  fireEvent.pointerDown(target, { ...base, clientY: from });
+  now.mockReturnValue(1000 + durationMs / 2);
+  fireEvent.pointerMove(target, { ...base, clientY: (from + to) / 2 });
+  now.mockReturnValue(1000 + durationMs);
+  fireEvent.pointerMove(target, { ...base, clientY: to });
+  fireEvent.pointerUp(target, { ...base, clientY: to });
+  now.mockRestore();
+}
+
+function startDrag(target: Element, from: number, to: number) {
+  const base = { pointerId: 1, isPrimary: true, button: 0 };
+  fireEvent.pointerDown(target, { ...base, clientY: from });
+  fireEvent.pointerMove(target, { ...base, clientY: to });
+}
+
+/** Opens the sheet from the real capsule and resolves its dialog. */
+async function openMobileSheet() {
+  const user = userEvent.setup({ delay: null });
+  const summary = await screen.findByRole('button', { name: /CR projetado/ });
+  await user.click(summary);
+  const dialog = await screen.findByRole('dialog', { name: 'Meu semestre' });
+  return { user, summary, dialog };
 }
 
 /** The catalog ("Próximo semestre"): its toggle buttons add and remove courses. */
@@ -240,6 +274,110 @@ describe('PlanningScreen', () => {
     await user.click(summary);
     const dialog = await screen.findByRole('dialog', { name: 'Meu semestre' });
     expect(within(dialog).getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).toBeInTheDocument();
+  });
+
+  it('opens Meu semestre at medium and toggles medium/large from the grabber', async () => {
+    setDesktop(false);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const { user, dialog } = await openMobileSheet();
+
+    expect(dialog).toHaveAttribute('data-detent', 'medium');
+    const grabber = within(dialog).getByRole('button', { name: 'Expandir' });
+
+    await user.click(grabber);
+    expect(dialog).toHaveAttribute('data-detent', 'large');
+    await user.click(within(dialog).getByRole('button', { name: 'Reduzir' }));
+    expect(dialog).toHaveAttribute('data-detent', 'medium');
+  });
+
+  it('closes from the header button, with a 44 px target, and returns focus to the capsule', async () => {
+    setDesktop(false);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const { user, summary, dialog } = await openMobileSheet();
+
+    const close = within(dialog).getByRole('button', { name: 'Fechar' });
+    expect(close.closest('[data-sheet-handle]')).not.toBeNull();
+    expect(close).toHaveClass('h-11');
+
+    await user.click(close);
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meu semestre' })).not.toBeInTheDocument());
+    await waitFor(() => expect(summary).toHaveFocus());
+  });
+
+  it('closes with Escape and returns focus to the capsule', async () => {
+    setDesktop(false);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const { user, summary } = await openMobileSheet();
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meu semestre' })).not.toBeInTheDocument());
+    await waitFor(() => expect(summary).toHaveFocus());
+  });
+
+  it('closes on a downward drag and returns focus to the capsule', async () => {
+    setDesktop(false);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const { summary, dialog } = await openMobileSheet();
+
+    drag(handleOf(dialog), 400, 520, 60);
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meu semestre' })).not.toBeInTheDocument());
+    await waitFor(() => expect(summary).toHaveFocus());
+  });
+
+  it('reopens at medium after expanding before closing', async () => {
+    setDesktop(false);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const { user, summary, dialog } = await openMobileSheet();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Expandir' }));
+    expect(dialog).toHaveAttribute('data-detent', 'large');
+    await user.click(within(dialog).getByRole('button', { name: 'Fechar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meu semestre' })).not.toBeInTheDocument());
+
+    await user.click(summary);
+    const reopened = await screen.findByRole('dialog', { name: 'Meu semestre' });
+    expect(reopened).toHaveAttribute('data-detent', 'medium');
+  });
+
+  it('unmounts the sheet and releases the drag when the layout switches to desktop', async () => {
+    let desktop = false;
+    const listeners = new Set<() => void>();
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          get matches() {
+            return desktop && query === '(min-width: 1024px)';
+          },
+          media: query,
+          addEventListener: (_: string, listener: () => void) => {
+            listeners.add(listener);
+          },
+          removeEventListener: (_: string, listener: () => void) => {
+            listeners.delete(listener);
+          },
+        }) as unknown as MediaQueryList,
+    );
+
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const { dialog } = await openMobileSheet();
+
+    startDrag(handleOf(dialog), 400, 300);
+    expect(document.body.style.getPropertyValue('--sheet-drag')).not.toBe('');
+
+    desktop = true;
+    act(() => {
+      for (const listener of listeners) listener();
+    });
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meu semestre' })).not.toBeInTheDocument());
+    expect(document.body.style.getPropertyValue('--sheet-drag')).toBe('');
+
+    desktop = false;
+    act(() => {
+      for (const listener of listeners) listener();
+    });
+    await screen.findByRole('button', { name: /CR projetado/ });
+    expect(screen.queryByRole('dialog', { name: 'Meu semestre' })).not.toBeInTheDocument();
   });
 
   it('keeps the projected CR separate from the truncatable semester summary', async () => {
