@@ -50,7 +50,7 @@ export function IntegrationTable({ components }: IntegrationTableProps) {
         Integralização oficial
       </h2>
       {/* The region scrolls the table on narrow screens, so the page itself never does. */}
-      <div role="region" aria-labelledby="integralizacao" tabIndex={0} className="overflow-x-auto">
+      <div role="region" aria-label="Tabela de integralização" tabIndex={0} className="overflow-x-auto">
         <table aria-labelledby="integralizacao" className="w-full caption-bottom text-sm">
           <TableHeader>
             <TableRow>
