@@ -18,6 +18,7 @@ import { VIEW_LABELS, useHashView } from '@/lib/use-hash-view';
 import { useInView } from '@/lib/use-in-view';
 import { useInstallApp } from '@/lib/use-install-app';
 import { useMediaQuery } from '@/lib/use-media-query';
+import { cn } from '@/lib/utils';
 
 // React Flow is the heaviest dependency: load it only when the flowchart is opened.
 const FlowchartScreen = lazy(() => import('@/features/flowchart/FlowchartScreen'));
@@ -44,6 +45,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
   const context = `${curriculum.courseName}, currículo ${curriculum.version}`;
   // On a phone the flowchart canvas needs the height, so its title lives in the compact header instead.
   const compactOnly = !desktop && view === 'fluxograma';
+  const compactHeaderVisible = compactOnly || !titleInView;
   const [clearOpen, setClearOpen] = useState(false);
   // Whichever control opened the confirmation (desktop button or options menu trigger), so focus can return to it.
   const clearOpenerRef = useRef<HTMLElement | null>(null);
@@ -77,7 +79,8 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
       onClearData={openClear}
       install={installOption}
       showActions={!wide}
-      className={desktop ? undefined : 'glass size-11'}
+      // Never glass on glass: on mobile the trigger floats right on top of the compact header whenever it shows.
+      className={desktop ? undefined : cn('size-11', !compactHeaderVisible && 'glass')}
     />
   );
 
@@ -111,7 +114,7 @@ export function Dashboard({ dataset, onRevealed, onNewUpload, onClear, onResetDa
         </header>
       ) : (
         <>
-          <CompactHeader title={title} visible={compactOnly || !titleInView} asHeading={compactOnly} />
+          <CompactHeader title={title} visible={compactHeaderVisible} asHeading={compactOnly} />
           <div className="fixed top-[calc(env(safe-area-inset-top)+0.25rem)] right-[max(0.75rem,env(safe-area-inset-right))] z-40">
             {optionsMenu}
           </div>

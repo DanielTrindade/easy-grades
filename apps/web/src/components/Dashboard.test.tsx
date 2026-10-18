@@ -121,6 +121,19 @@ describe('Dashboard shell', () => {
     expect(screen.getAllByRole('button', { name: 'Mais opções' })).toHaveLength(1);
   });
 
+  it('drops the glass from the floating options trigger while the compact header shows', () => {
+    setWidth(false);
+    const { container } = renderAt('#/fluxograma');
+    expect(container.querySelector('.scroll-edge')).toHaveClass('opacity-100');
+    expect(screen.getByRole('button', { name: 'Mais opções' })).not.toHaveClass('glass');
+  });
+
+  it('keeps the floating options trigger glassy while the page title is up top', () => {
+    setWidth(false);
+    renderAt('#/visao-geral');
+    expect(screen.getByRole('button', { name: 'Mais opções' })).toHaveClass('glass');
+  });
+
   it('observes the new page title after leaving the flowchart', async () => {
     setWidth(false);
     vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
