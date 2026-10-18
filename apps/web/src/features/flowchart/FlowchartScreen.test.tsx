@@ -285,4 +285,16 @@ describe('FlowchartScreen focus', () => {
     expect(container.querySelector('.react-flow')).not.toBeNull();
     expect(exportButton).toBeEnabled();
   });
+
+  it('floats glass zoom controls and the legend over the canvas instead of React Flow controls', async () => {
+    render(<FlowchartScreen data={data} />);
+    expect(await screen.findByRole('group', { name: 'Zoom' })).toHaveClass('glass');
+    expect(screen.getByRole('button', { name: 'Legenda' })).toBeInTheDocument();
+    expect(document.querySelector('.react-flow__controls')).toBeNull();
+  });
+
+  it('keeps the export button as a capsule in the toolbar', async () => {
+    render(<FlowchartScreen data={data} />);
+    expect(await screen.findByRole('button', { name: 'Exportar PNG' })).toHaveClass('rounded-full');
+  });
 });
