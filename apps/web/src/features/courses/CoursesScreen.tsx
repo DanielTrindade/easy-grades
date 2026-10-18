@@ -63,8 +63,6 @@ export function CoursesScreen({ data }: { data: ParseResponse }) {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-large-title">Disciplinas cursadas</h1>
-
       <div className="grid gap-4">
         <ChipGroup
           label="Filtrar por situação"

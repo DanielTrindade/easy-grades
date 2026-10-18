@@ -31,9 +31,9 @@ export function MarkerBand({ progress, pendingPercent = 0, milestone = null, inP
 
   return (
     <section aria-labelledby="progresso" className="min-w-0">
-      <h1 id="progresso" className="text-[clamp(2.75rem,8vw,4rem)]">
+      <h2 id="progresso" className="text-[clamp(2.75rem,8vw,4rem)]">
         {formatPercent(percent)}
-      </h1>
+      </h2>
       <p className="mt-2 max-w-[60ch] text-muted-foreground">
         do curso concluído: {formatHours(progress.doneHours)} de {formatHours(progress.requiredHours)}.
       </p>
