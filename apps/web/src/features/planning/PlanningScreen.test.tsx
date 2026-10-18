@@ -242,6 +242,25 @@ describe('PlanningScreen', () => {
     expect(within(dialog).getByRole('textbox', { name: 'Nota esperada em Trabalho de Conclusão de Curso' })).toBeInTheDocument();
   });
 
+  it('keeps the projected CR separate from the truncatable semester summary', async () => {
+    setDesktop(false);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const summary = await screen.findByRole('button', { name: /Meu semestre,/ });
+
+    expect(summary).toHaveAccessibleName(/^Meu semestre, \d+ disciplinas?, \d+ créditos?, CR projetado \d+,\d+, abrir$/);
+    expect(summary).toHaveClass('h-12', 'right-[max(0.75rem,env(safe-area-inset-right))]', 'left-[max(0.75rem,env(safe-area-inset-left))]');
+    expect(summary.querySelector('.semester-bar-full')).toHaveClass('truncate');
+    expect(summary.querySelector('.semester-bar-projected')).toHaveClass('shrink-0');
+    expect(summary.querySelector('.semester-bar-summary')).toHaveClass('min-w-0');
+    expect(summary.querySelector('.semester-bar-compact-count')).toHaveClass('shrink-0');
+    expect(summary.querySelector('.semester-bar-compact-count')).toHaveTextContent(/\d+ disc\./);
+    expect(summary.querySelector('.semester-bar-compact-line')).toHaveTextContent(/disc\. · \d+ cr/);
+    expect(summary.querySelector('.semester-bar-compact-credits')).toHaveClass('shrink-0');
+    expect(summary.querySelector('.semester-bar-compact-credits')).toHaveTextContent(/\d+ cr/);
+    expect(summary.querySelector('.semester-bar-compact-cr')).toHaveTextContent(/^CR \d+,\d+$/);
+    expect(summary.querySelector('.semester-bar-cta-label')?.parentElement).toHaveClass('shrink-0');
+  });
+
   it('flags the body while the summary bar is shown, so the bottom chrome clears it', async () => {
     setDesktop(false);
     const { unmount } = render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
@@ -250,6 +269,24 @@ describe('PlanningScreen', () => {
 
     unmount();
     expect(document.body).not.toHaveAttribute('data-bottom-accessory');
+  });
+
+  it('lists the catalog as an iOS grouped list with a capsule search', async () => {
+    setDesktop(true);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const search = await screen.findByRole('searchbox');
+    expect(search).toHaveClass('rounded-full', 'pl-10');
+    const user = userEvent.setup({ delay: null });
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
+    const row = screen.getAllByRole('listitem').find((li) => within(li).queryByRole('button', { name: /Adicionar/ }))!;
+    expect(row.parentElement).toHaveClass('rounded-group', 'bg-surface');
+  });
+
+  it('shows the semester panel as an opaque card from lg up', async () => {
+    setDesktop(true);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const heading = await screen.findByRole('heading', { name: 'Meu semestre', level: 2 });
+    expect(heading.closest('aside')).toHaveClass('rounded-card', 'bg-surface');
   });
 
   it('does not flag the body at lg and up, where the summary bar is not shown', async () => {

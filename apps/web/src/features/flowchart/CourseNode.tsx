@@ -25,7 +25,7 @@ function CourseNodeView({ data }: NodeProps<CourseNodeType>) {
       style={{ '--col': course.column, width: COURSE_NODE_WIDTH, height: COURSE_NODE_HEIGHT } as CSSProperties}
       className={cn(
         // overflow-hidden + a clamped name keep every text inside the fixed card, however long the course name is.
-        'course-node flex flex-col overflow-hidden rounded-lg border border-l-4 px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
+        'course-node flex flex-col overflow-hidden rounded-node border border-l-4 px-3 py-2 text-left transition-opacity duration-150 data-[dimmed]:opacity-25',
         style.surface,
         style.accent,
       )}

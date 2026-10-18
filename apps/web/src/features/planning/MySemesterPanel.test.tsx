@@ -41,6 +41,11 @@ describe('MySemesterPanel', () => {
     expect(screen.getByRole('button', { name: 'Usar sugestão' })).toHaveClass('max-md:h-11');
   });
 
+  it('makes Usar sugestão the screen accent action', () => {
+    renderPanel();
+    expect(screen.getByRole('button', { name: 'Usar sugestão' })).toHaveClass('bg-pen', 'text-pen-foreground');
+  });
+
   it('removes the course whose Remover button was pressed', async () => {
     const user = userEvent.setup({ delay: null });
     const { onRemove } = renderPanel();

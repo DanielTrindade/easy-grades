@@ -1,6 +1,7 @@
-import { Check, Lock, Plus } from 'lucide-react';
+import { Check, Lock, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { ChipGroup } from '@/components/ChipGroup';
+import { ListGroupRow } from '@/components/ListGroup';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +27,7 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
   const blocked = item.missing.length > 0;
   const name = toTitleCase(item.name);
   return (
-    <li className="flex items-start gap-4 py-4">
+    <ListGroupRow className="items-start gap-4 py-4">
       <div className="grid min-w-0 flex-1 gap-1">
         <p className="font-semibold">{name}</p>
         <p className="text-sm text-ink-muted tabular-nums">
@@ -70,7 +71,7 @@ function CatalogRow({ item, added, onToggle }: { item: CatalogItem; added: boole
         </span>
         {added ? 'No semestre' : 'Adicionar'}
       </Button>
-    </li>
+    </ListGroupRow>
   );
 }
 
@@ -100,14 +101,17 @@ export function CourseCatalog({
         <Label htmlFor="busca-disciplinas" className="font-normal text-ink-muted">
           Buscar por código ou nome
         </Label>
-        <Input
-          id="busca-disciplinas"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Ex.: ICC412 ou Cálculo"
-          className="h-11 md:h-9 md:pointer-coarse:h-11"
-        />
+        <div className="relative">
+          <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-muted" />
+          <Input
+            id="busca-disciplinas"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Ex.: ICC412 ou Cálculo"
+            className="h-11 pl-10 md:h-9 md:pointer-coarse:h-11"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Switch
             id="contar-em-curso"
@@ -146,11 +150,11 @@ export function CourseCatalog({
       />
 
       {visible.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-hairline p-6 text-ink-muted">
+        <p className="rounded-group border border-dashed border-hairline p-6 text-ink-muted">
           Nenhuma disciplina nesse filtro. Tente outra busca ou outro filtro.
         </p>
       ) : (
-        <ul className="divide-y divide-hairline border-t border-hairline">
+        <ul className="rounded-group bg-surface pl-4">
           {visible.map((item) => (
             <CatalogRow key={item.code} item={item} added={selected.has(item.code)} onToggle={() => onToggle(item)} />
           ))}

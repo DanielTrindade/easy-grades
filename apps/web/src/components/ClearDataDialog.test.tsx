@@ -40,6 +40,20 @@ function MenuHarness() {
   );
 }
 
+describe('ClearDataDialog shape', () => {
+  it('is a 20 px card (rounded-xl, --radius-xl 1.25rem) with capsule buttons and a danger confirm', () => {
+    render(<ClearDataDialog open onOpenChange={vi.fn()} onConfirm={vi.fn()} openerRef={{ current: null }} />);
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).toHaveClass('rounded-xl');
+    expect(within(dialog).getByRole('button', { name: 'Cancelar' })).toHaveClass('rounded-full');
+    expect(within(dialog).getByRole('button', { name: 'Limpar dados' })).toHaveClass(
+      'rounded-full',
+      'bg-danger',
+      'text-danger-foreground',
+    );
+  });
+});
+
 describe('ClearDataDialog focus', () => {
   it('returns focus to the desktop button that opened it when it is cancelled', async () => {
     const user = userEvent.setup({ delay: null });

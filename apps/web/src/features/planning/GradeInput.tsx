@@ -42,7 +42,7 @@ export function GradeInput({ id, courseName, value, onChange }: GradeInputProps)
   }
 
   return (
-    <div className="inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-lg border border-field focus-within:ring-3 focus-within:ring-ring/50 md:h-[34px] md:pointer-coarse:h-11">
+    <div className="inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-full border border-field focus-within:ring-3 focus-within:ring-ring/50 md:h-[34px] md:pointer-coarse:h-11">
       <Button
         type="button"
         variant="ghost"

@@ -415,14 +415,12 @@
   --xy-background-color: transparent;
   --xy-node-boxshadow-selected: 0 0 0 2px var(--pen);
   --xy-minimap-background-color: var(--card);
-  --xy-controls-button-background-color: var(--card);
-  --xy-controls-button-color: var(--foreground);
-  --xy-controls-button-border-color: var(--border);
 }
 .react-flow__minimap {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-group);
+  overflow: hidden;
 }
 /* SVG presentation attributes ignore CSS variables, so React Flow colors are set here. */
 .react-flow__minimap-node.mini-done {
@@ -440,14 +438,7 @@
 .react-flow__node:focus-visible {
   outline: 2px solid var(--pen);
   outline-offset: 3px;
-  border-radius: var(--radius);
-}
-/* Touch targets: React Flow's zoom buttons are 26 px; below md they grow to 44 px. */
-@media (max-width: 767.98px) {
-  .react-flow__controls-button {
-    width: 44px;
-    height: 44px;
-  }
+  border-radius: var(--radius-node);
 }
 
 /* The desktop glass header (Dashboard): one fixed row height, so the sticky course headers can sit right below it. */
@@ -479,6 +470,58 @@ body {
 @media (max-width: 63.99rem) {
   body[data-bottom-accessory] {
     --accessory-space: 3.75rem;
+  }
+}
+/* "Meu semestre" bar: above the tab bar, or beside its minimized 10 rem pill on one row (like Music's mini player). */
+.semester-bar-compact {
+  display: none;
+}
+.semester-bar {
+  transition: left 430ms var(--ease-spring-snappy), bottom 430ms var(--ease-spring-snappy);
+}
+.semester-bar-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.semester-bar-full {
+  min-width: 0;
+}
+.semester-bar-compact-line {
+  display: flex;
+  white-space: nowrap;
+}
+@media (max-width: 47.99rem) {
+  body[data-tab-bar='minimized'] .semester-bar {
+    left: calc(max(0.75rem, env(safe-area-inset-left)) + 10.5rem);
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    gap: 0.25rem;
+    padding-inline: 0.5rem;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-summary {
+    align-items: flex-start;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-projected {
+    display: none;
+  }
+  body[data-tab-bar='minimized'][data-bottom-accessory] {
+    --accessory-space: 0px;
+  }
+  /* Beside the pill there are ~10 rem; the full summary would truncate mid sentence. */
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-full {
+    display: none;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-compact {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.125rem;
+    font-size: 0.75rem;
+    line-height: 1.125;
+    white-space: nowrap;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-cta-label {
+    display: none;
   }
 }
 /* Sonner sets its offsets as inline custom properties, so bottom is set directly. */
@@ -514,6 +557,9 @@ body {
     animation-delay: 0s;
   }
   .tab-indicator {
+    transition: none;
+  }
+  .semester-bar {
     transition: none;
   }
 }
