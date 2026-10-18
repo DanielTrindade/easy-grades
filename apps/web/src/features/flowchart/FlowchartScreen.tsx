@@ -70,6 +70,7 @@ function Graph({ data }: { data: ParseResponse }) {
   const touchScreen = useMediaQuery('(pointer: coarse)');
   const { fitView, setViewport } = useReactFlow();
   const containerRef = useRef<HTMLDivElement>(null);
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
 
   // The sheet owns the image: release the previous object URL when a new export replaces it, and on unmount.
   useEffect(() => {
@@ -254,6 +255,7 @@ function Graph({ data }: { data: ParseResponse }) {
           </Label>
         </div>
         <Button
+          ref={exportButtonRef}
           variant="outline"
           onClick={exportPng}
           disabled={exporting}
@@ -318,7 +320,11 @@ function Graph({ data }: { data: ParseResponse }) {
         </div>
       )}
 
-      <ExportSheet image={exportImage} onClose={() => setExportImage(null)} />
+      <ExportSheet
+        image={exportImage}
+        onClose={() => setExportImage(null)}
+        returnFocusRef={exportButtonRef}
+      />
     </div>
   );
 }

@@ -185,6 +185,9 @@
   /* Opacity floor that keeps --ink-muted at 4.5:1 with any content color under the glass (tokens.test.ts). */
   --glass-opacity: 84%;
   --glass-tint: color-mix(in oklab, var(--surface) var(--glass-opacity), transparent);
+  /* A sheet pulled up to the large detent nearly covers the screen, so its tint is near opaque; every solid mode below
+     replaces this token instead of only patching the sheet. */
+  --glass-expanded-tint: color-mix(in oklab, var(--surface) 97%, transparent);
   --glass-edge: color-mix(in oklab, #ffffff 60%, transparent);
   --glass-shadow: 0 8px 24px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.06);
   --glass-filter: blur(16px) saturate(170%);
@@ -275,12 +278,14 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --glass-tint: var(--surface);
+    --glass-expanded-tint: var(--surface);
     --glass-edge: var(--hairline);
   }
 }
 @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
   :root {
     --glass-tint: var(--surface);
+    --glass-expanded-tint: var(--surface);
     --glass-filter: none;
     --glass-edge: var(--hairline);
   }
@@ -292,6 +297,7 @@
 }
 :root[data-appearance='solid'] {
   --glass-tint: var(--surface);
+  --glass-expanded-tint: var(--surface);
   --glass-filter: none;
   --glass-edge: var(--hairline);
 }
@@ -621,5 +627,60 @@ body {
   }
   [data-slot='sheet-overlay'][data-state='closed'] {
     animation: sheet-fade-out 150ms ease both;
+  }
+}
+
+/* Detent sheets (DetentSheet): the detent is a transform from --detent-offset, so dragging and settling never relayout. */
+[data-slot='sheet-content'][data-detent] {
+  transform: translateY(var(--detent-offset));
+  transition: transform 380ms var(--ease-spring-smooth);
+}
+@keyframes detent-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes detent-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+[data-slot='sheet-content'][data-detent][data-state='open'] {
+  animation: detent-in 300ms var(--ease-drawer) backwards;
+}
+[data-slot='sheet-content'][data-detent][data-state='closed'] {
+  animation: detent-out 200ms var(--ease-drawer) forwards;
+}
+/* Declared after the state animations on purpose: the same specificity means source order lets data-dragging win, so a
+   finger on the sheet is never fought by the entrance animation or the spring. */
+[data-slot='sheet-content'][data-detent][data-dragging] {
+  transition: none;
+  animation: none;
+}
+/* Pulled up to large the sheet becomes the task, so the glass goes almost opaque (iOS does the same). */
+[data-slot='sheet-content'][data-detent='large'] {
+  --glass-tint: var(--glass-expanded-tint);
+}
+/* The dim carries --sheet-drag (set on body by the component), so it lightens under the finger while Radix animates the
+   overlay opacity. The overlay's own blur comes off: the sheet glass already blurs the backdrop, and a second blur on top
+   of it only muddies the glass and costs GPU. */
+[data-slot='sheet-overlay'] {
+  background-color: rgb(0 0 0 / calc(0.4 * (1 - var(--sheet-drag, 0))));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Reduced motion: detent changes lose the spring, and entering and leaving are fades of at most 150 ms (no blur). */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='sheet-content'][data-detent] {
+    transition: none;
+  }
+  [data-slot='sheet-content'][data-detent][data-state='open'] {
+    animation: sheet-fade-in 150ms ease both;
+  }
+  [data-slot='sheet-content'][data-detent][data-state='closed'] {
+    animation: sheet-fade-out 150ms ease both;
+  }
+  [data-slot='sheet-content'][data-detent][data-dragging] {
+    animation: none;
   }
 }

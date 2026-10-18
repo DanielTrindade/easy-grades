@@ -1,6 +1,8 @@
+import type { RefObject } from 'react';
 import { toast } from 'sonner';
+import { DetentSheet } from '@/components/DetentSheet';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { SheetClose } from '@/components/ui/sheet';
 import { canShareImage, downloadImage, imageFile } from './export-image';
 
 export interface ExportImage {
@@ -12,7 +14,15 @@ export interface ExportImage {
  * Bottom sheet with the exported PNG on a touch screen. The share sheet is where the image lands on Photos, Files or
  * another app; the preview also takes a long press, the one way an installed iOS PWA has to save it.
  */
-export function ExportSheet({ image, onClose }: { image: ExportImage | null; onClose: () => void }) {
+export function ExportSheet({
+  image,
+  onClose,
+  returnFocusRef,
+}: {
+  image: ExportImage | null;
+  onClose: () => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
+}) {
   const shareable = image !== null && canShareImage(image.blob);
 
   async function share() {
@@ -36,22 +46,31 @@ export function ExportSheet({ image, onClose }: { image: ExportImage | null; onC
   }
 
   return (
-    <Sheet open={image !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className="max-h-[85dvh] gap-5 overflow-y-auto rounded-t-xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-none"
-      >
-        <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-hairline" />
-        <SheetHeader className="p-0">
-          <SheetTitle className="heading-ink text-2xl">Fluxograma pronto</SheetTitle>
-          <SheetDescription>
-            {shareable
-              ? 'Salve a imagem no celular ou compartilhe com quem quiser.'
-              : 'Toque e segure a imagem para salvá-la no celular.'}
-          </SheetDescription>
-        </SheetHeader>
-        <img src={image?.url} alt="Fluxograma do curso" className="w-full rounded-lg border border-border bg-card" />
+    <DetentSheet
+      open={image !== null}
+      onOpenChange={(open) => !open && onClose()}
+      title="Fluxograma pronto"
+      description={
+        shareable
+          ? 'Salve a imagem no celular ou compartilhe com quem quiser.'
+          : 'Toque e segure a imagem para salvá-la no celular.'
+      }
+      detents={['medium']}
+      returnFocusRef={returnFocusRef}
+      headerAction={
+        <SheetClose asChild>
+          <Button variant="ghost" className="h-11 rounded-full px-3">
+            Fechar
+          </Button>
+        </SheetClose>
+      }
+    >
+      <div className="grid gap-5">
+        <img
+          src={image?.url}
+          alt="Fluxograma do curso"
+          className="w-full rounded-group border border-hairline bg-surface"
+        />
         <div className="grid gap-2">
           {shareable ? (
             <Button onClick={() => void share()} className="max-md:h-11">
@@ -62,13 +81,8 @@ export function ExportSheet({ image, onClose }: { image: ExportImage | null; onC
               Baixar imagem
             </Button>
           )}
-          <SheetClose asChild>
-            <Button variant="outline" className="max-md:h-11">
-              Fechar
-            </Button>
-          </SheetClose>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </DetentSheet>
   );
 }
