@@ -65,10 +65,10 @@ export function TabBar({ view }: { view: View }) {
           onFocus={() => {
             if (keyboardFocus.current) reveal();
           }}
-          className="flex h-12 animate-in items-center gap-2 rounded-full px-4 text-sm font-semibold text-pen-ink outline-none fade-in zoom-in-95 duration-200 motion-reduce:duration-150 focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="flex h-12 w-40 animate-in items-center gap-2 rounded-full px-4 text-sm font-semibold text-pen-ink outline-none fade-in zoom-in-95 duration-200 motion-reduce:duration-150 focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <CurrentIcon aria-hidden className="size-5 fill-current/15" />
-          {VIEW_LABELS[view]}
+          <span className="truncate">{VIEW_LABELS[view]}</span>
         </button>
       ) : (
         <div className="relative h-14 animate-in p-1 fade-in duration-200 motion-reduce:duration-150">

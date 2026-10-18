@@ -55,6 +55,14 @@ describe('TabBar', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
+  it('gives the minimized pill a fixed width so a screen accessory can sit beside it', () => {
+    render(<TabBar view="planejamento" />);
+    scrollTo(30);
+    scrollTo(300);
+    const pill = screen.getByRole('button', { name: 'Planejamento: mostrar seções' });
+    expect(pill).toHaveClass('w-40');
+  });
+
   it('expands when the pill is tapped without trapping pointer focus', async () => {
     const user = userEvent.setup();
     render(<TabBar view="disciplinas" />);

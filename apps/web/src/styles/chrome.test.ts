@@ -38,6 +38,27 @@ describe('bottom chrome', () => {
   });
 });
 
+describe('semester bar beside the minimized tab bar', () => {
+  it('reserves a single row when the tab bar is minimized', () => {
+    expect(rule("body[data-tab-bar='minimized'][data-bottom-accessory]")).toContain('--accessory-space: 0px;');
+  });
+
+  it('moves the bar next to the minimized pill and back with the snappy spring', () => {
+    const base = rule('.semester-bar');
+    expect(base).toContain('transition: left 430ms var(--ease-spring-snappy), bottom 430ms var(--ease-spring-snappy);');
+    const beside = rule("body[data-tab-bar='minimized'] .semester-bar");
+    expect(beside).toContain('left: calc(max(0.75rem, env(safe-area-inset-left)) + 10.5rem);');
+    expect(beside).toContain('bottom: calc(0.75rem + env(safe-area-inset-bottom));');
+  });
+
+  it('swaps to a compact summary beside the pill, and drops the action word on the narrowest phones', () => {
+    expect(rule('.semester-bar-compact')).toContain('display: none;');
+    expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-full")).toContain('display: none;');
+    expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-compact")).toContain('display: inline;');
+    expect(rule("body[data-tab-bar='minimized'] .semester-bar .semester-bar-cta-label")).toContain('display: none;');
+  });
+});
+
 describe('toasts', () => {
   it('are glass capsules on the navigation layer', () => {
     const toast = rule("[data-sonner-toaster] [data-sonner-toast][data-styled='true']");

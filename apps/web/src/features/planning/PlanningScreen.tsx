@@ -224,14 +224,15 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             type="button"
             aria-haspopup="dialog"
             onClick={() => setSheetOpen(true)}
-            className="glass fixed inset-x-[max(0.75rem,env(safe-area-inset-left))] bottom-[calc(var(--tab-bar-space)+0.5rem+env(safe-area-inset-bottom))] z-30 flex h-13 items-center justify-between gap-3 rounded-full px-5 text-left text-sm transition-[bottom] duration-200 ease-snap motion-reduce:transition-none"
+            className="glass semester-bar fixed right-[max(0.75rem,env(safe-area-inset-right))] left-[max(0.75rem,env(safe-area-inset-left))] bottom-[calc(var(--tab-bar-space)+0.5rem+env(safe-area-inset-bottom))] z-30 flex h-12 items-center justify-between gap-3 rounded-full px-5 text-left text-sm"
           >
-            <span className="tabular-nums">
-              {summary}, CR projetado{' '}
+            <span className="min-w-0 truncate tabular-nums">
+              <span className="semester-bar-full">{summary}, CR projetado </span>
+              <span className="semester-bar-compact">CR </span>
               <span className="font-semibold text-pen-ink">{formatCr(projected)}</span>
             </span>
             <span className="flex shrink-0 items-center gap-1 font-medium text-ink">
-              Ver
+              <span className="semester-bar-cta-label">Ver</span>
               <ChevronUp aria-hidden className="size-4" />
             </span>
           </button>
