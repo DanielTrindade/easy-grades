@@ -21,19 +21,30 @@
   }
 }
 
-/* Headings and big numbers: Mona Sans at weight 800 on the widest axis (wdth 125), with tight spacing. */
+/* Headings and big numbers: Mona Sans close to the bold of the iOS large titles, so the switch to the system body font
+   stays smooth on SF, Roboto and Segoe UI. */
 @utility heading-ink {
   font-family: var(--font-heading);
-  font-weight: 800;
-  font-stretch: 125%;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-weight: 750;
+  font-stretch: 106%;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
 }
 
-/* Course codes: the same family at 87.5% width, in the muted ink. No monospace font. */
+/* Course codes: Mona Sans at 87.5% width, in the muted ink. */
 @utility code-label {
+  font-family: var(--font-heading);
   font-stretch: 87.5%;
   color: var(--ink-muted);
+}
+
+/* Navigation-layer material only (tab bar, headers, menus, floating controls, toasts, sheets). Never on content. */
+@utility glass {
+  background-color: var(--glass-tint);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
 }
 
 /* Scroll edge effect under a floating bar: content fades into the canvas instead of meeting a hard border. */
@@ -59,11 +70,32 @@
 }
 
 @theme inline {
-  --font-sans: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Mona Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  /* Type scale steps from the visual direction (44 px and 64 px). */
-  --text-display: 2.75rem;
-  --text-stat: 4rem;
+  --font-sans: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Mona Sans Variable", -apple-system, system-ui, sans-serif;
+  /* iOS Dynamic Type at the default "Large" size. Fixed line heights keep layouts stable whatever the system font. */
+  --text-large-title: 2.125rem;
+  --text-large-title--line-height: 2.5625rem;
+  --text-title1: 1.75rem;
+  --text-title1--line-height: 2.125rem;
+  --text-title2: 1.375rem;
+  --text-title2--line-height: 1.75rem;
+  --text-title3: 1.25rem;
+  --text-title3--line-height: 1.5625rem;
+  --text-headline: 1.0625rem;
+  --text-headline--line-height: 1.375rem;
+  --text-headline--font-weight: 600;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.375rem;
+  --text-callout: 1rem;
+  --text-callout--line-height: 1.3125rem;
+  --text-subhead: 0.9375rem;
+  --text-subhead--line-height: 1.25rem;
+  --text-footnote: 0.8125rem;
+  --text-footnote--line-height: 1.125rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-stat: clamp(2.75rem, 8vw, 4rem);
+  --text-stat--line-height: 1;
 
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -81,9 +113,12 @@
   --color-danger-foreground: var(--danger-foreground);
 
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
   /* Bottom sheet: enters and leaves with a soft landing. */
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Springs sampled from SwiftUI's Spring(duration:bounce:) (mass 1). The CSS duration is the settle time, longer than
+     the perceived one: smooth = d 0.25 s, bounce 0, ~380 ms; snappy = d 0.3 s, bounce 0.2, ~430 ms. */
+  --ease-spring-smooth: linear(0, 0.09, 0.256, 0.427, 0.576, 0.694, 0.783, 0.848, 0.895, 0.928, 0.951, 0.967, 0.978, 0.985, 0.99, 0.993, 0.996, 0.997, 0.998, 0.999, 1);
+  --ease-spring-snappy: linear(0, 0.085, 0.257, 0.446, 0.617, 0.754, 0.856, 0.925, 0.97, 0.996, 1.009, 1.014, 1.014, 1.012, 1.01, 1.007, 1.005, 1.003, 1.002, 1.001, 1);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -119,8 +154,12 @@
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  /* Panels and sheets are 14 px; controls stay on --radius (8 px). */
-  --radius-xl: 0.875rem;
+  /* Concentric shapes: cards 20, list groups 16, flowchart nodes 12, sheet tops 28. Controls are capsules. */
+  --radius-xl: 1.25rem;
+  --radius-card: 1.25rem;
+  --radius-group: 1rem;
+  --radius-node: 0.75rem;
+  --radius-sheet: 1.75rem;
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
@@ -231,6 +270,37 @@
   }
 }
 
+/* The glass turns solid where it cannot blur, when contrast or less transparency is asked for, and when the user picks
+   the solid appearance (Safari does not report "Reduce transparency", so the app offers its own switch). */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-tint: var(--surface);
+    --glass-edge: var(--hairline);
+  }
+}
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-tint: var(--surface);
+    --glass-filter: none;
+    --glass-edge: var(--hairline);
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --glass-edge: var(--ink);
+  }
+}
+:root[data-appearance='solid'] {
+  --glass-tint: var(--surface);
+  --glass-filter: none;
+  --glass-edge: var(--hairline);
+}
+@media (prefers-contrast: more) {
+  :root[data-appearance='solid'] {
+    --glass-edge: var(--ink);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -241,7 +311,12 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-variant-numeric: tabular-nums;
-    line-height: 1.55;
+    font-size: 1.0625rem;
+    line-height: 1.375rem;
+    @media (min-width: 48rem) {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
   }
   h1,
   h2,

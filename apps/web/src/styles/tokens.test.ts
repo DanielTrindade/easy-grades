@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { composite, contrastRatio, parseHex, type Rgb } from '@/lib/contrast';
 
-const css = readFileSync('src/styles/index.css', 'utf8');
+const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), 'index.css'), 'utf8');
 
 type Tokens = Record<string, string>;
 
