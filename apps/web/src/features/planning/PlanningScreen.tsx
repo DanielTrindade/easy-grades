@@ -12,8 +12,8 @@ import {
 import { ChevronUp } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { DetentSheet } from '@/components/DetentSheet';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { formatCr, formatHours, pluralize, toTitleCase } from '@/lib/format';
 import { useBodyData } from '@/lib/body-data';
 import type { Analysis } from '@/lib/use-analysis';
@@ -43,6 +43,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
   // The side panel is sticky only while it fits the window; a taller one scrolls with the page, so its bottom stays reachable.
   const asideRef = useRef<HTMLElement>(null);
   const asideFits = useFitsViewport(asideRef, 48, desktop);
+  const summaryBarRef = useRef<HTMLButtonElement>(null);
   // Undo toasts still open when the board unmounts are dismissed, so an undo cannot fail silently.
   const undoToastIds = useRef<(string | number)[]>([]);
   const { countInProgress } = plan;
@@ -58,6 +59,10 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
   }, []);
 
   useBodyData('bottomAccessory', desktop ? null : '');
+
+  useEffect(() => {
+    if (desktop) setSheetOpen(false);
+  }, [desktop]);
 
   useEffect(() => {
     void savePlan(savedAt, plan);
@@ -221,6 +226,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
         <>
           {/* Below lg the summary is a fixed bar above the tab bar; the full panel opens in a bottom sheet. */}
           <button
+            ref={summaryBarRef}
             type="button"
             aria-label={`Meu semestre, ${summary}, CR projetado ${formatCr(projected)}, abrir`}
             aria-haspopup="dialog"
@@ -247,27 +253,21 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             </span>
           </button>
 
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetContent
-              side="bottom"
-              showCloseButton={false}
-              className="max-h-[85dvh] gap-6 overflow-y-auto rounded-t-xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-none"
-            >
-              <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-hairline" />
-              <SheetHeader className="p-0">
-                <SheetTitle className="heading-ink text-2xl">Meu semestre</SheetTitle>
-                <SheetDescription>
-                  {summary}, máximo {maxCredits}
-                </SheetDescription>
-              </SheetHeader>
-              {panel}
-              <SheetClose asChild>
-                <Button variant="outline" className="max-md:h-11">
-                  Fechar
-                </Button>
-              </SheetClose>
-            </SheetContent>
-          </Sheet>
+          <DetentSheet
+            open={sheetOpen}
+            onOpenChange={setSheetOpen}
+            title="Meu semestre"
+            description={`${summary}, máximo ${maxCredits}`}
+            initialDetent="medium"
+            returnFocusRef={summaryBarRef}
+            headerAction={
+              <Button type="button" variant="ghost" className="h-11" onClick={() => setSheetOpen(false)}>
+                Fechar
+              </Button>
+            }
+          >
+            {panel}
+          </DetentSheet>
         </>
       )}
 
