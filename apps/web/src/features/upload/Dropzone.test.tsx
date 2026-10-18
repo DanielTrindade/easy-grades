@@ -32,6 +32,23 @@ describe('Dropzone', () => {
     expect(onFile).toHaveBeenCalledWith(null);
   });
 
+  it('is a large opaque card', () => {
+    render(
+      <Dropzone id="curriculo" label="Currículo do curso" documentName="Currículo de Curso" file={null} onFile={vi.fn()} />,
+    );
+    expect(screen.getByText('Currículo do curso').closest('label')).toHaveClass('rounded-card', 'bg-surface');
+  });
+
+  it('marks a chosen file in pen blue with a check icon and the file name', () => {
+    const file = new File(['%PDF-1.7'], 'curriculo.pdf', { type: 'application/pdf' });
+    render(
+      <Dropzone id="curriculo" label="Currículo do curso" documentName="Currículo de Curso" file={file} onFile={vi.fn()} />,
+    );
+    const label = screen.getByText('curriculo.pdf').closest('label')!;
+    expect(label).toHaveAttribute('data-filled');
+    expect(label.querySelector('svg')).toHaveClass('text-pen');
+  });
+
   it('clears the input after a pick so the same file can be chosen again', async () => {
     render(<Dropzone id="curriculo" label="Currículo do curso" documentName="Currículo de Curso" file={null} onFile={vi.fn()} />);
     const input = screen.getByLabelText(/Currículo do curso/) as HTMLInputElement;

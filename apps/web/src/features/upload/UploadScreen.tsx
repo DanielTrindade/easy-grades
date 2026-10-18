@@ -70,7 +70,7 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
         {/* Always mounted: screen readers announce text added to a live region, not a region inserted already filled. */}
         <p
           role="status"
-          className={online ? 'sr-only' : 'flex items-start gap-2 rounded-lg border border-border bg-muted p-3 text-sm'}
+          className={online ? 'sr-only' : 'flex items-start gap-2 rounded-card border border-border bg-muted p-4 text-sm'}
         >
           {!online && (
             <>
@@ -80,12 +80,12 @@ export function UploadScreen({ onParsed, onCancel }: UploadScreenProps) {
           )}
         </p>
         {error && (
-          <p role="alert" className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
+          <p role="alert" className="rounded-card border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
             {error}
           </p>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" size="lg" disabled={!curriculo || !historico || sending || !online}>
+          <Button type="submit" variant="accent" size="lg" disabled={!curriculo || !historico || sending || !online}>
             {sending ? 'Lendo os PDFs…' : 'Ler meus PDFs'}
           </Button>
           {onCancel && (
