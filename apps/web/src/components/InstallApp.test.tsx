@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { InstallAppButton, IOS_INSTALL_HINT, IosInstallDialog } from './InstallApp';
@@ -23,5 +23,12 @@ describe('IosInstallDialog', () => {
     render(<IosInstallDialog open onOpenChange={onOpenChange} openerRef={{ current: null }} />);
     await userEvent.click(screen.getByRole('button', { name: 'Entendi' }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('is a 20 px card (rounded-xl, --radius-xl 1.25rem) with a capsule action', () => {
+    render(<IosInstallDialog open onOpenChange={vi.fn()} openerRef={{ current: null }} />);
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).toHaveClass('rounded-xl');
+    expect(within(dialog).getByRole('button', { name: 'Entendi' })).toHaveClass('rounded-full');
   });
 });
