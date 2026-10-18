@@ -148,7 +148,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
 
   return (
     <div className="grid gap-12">
-      <div className="grid gap-6 border-b border-hairline pb-8 md:grid-cols-2 md:items-end">
+      <div className="grid gap-6 pb-2 md:grid-cols-2 md:items-end">
         <div>
           <p className="max-w-[40ch] text-ink-muted">Monte o próximo semestre e veja o CR mudar enquanto escolhe.</p>
         </div>
@@ -174,7 +174,7 @@ function PlanningBoard({ data, analysis, savedAt, initial }: PlanningBoardProps)
             ref={asideRef}
             aria-labelledby="meu-semestre"
             className={cn(
-              'grid content-start gap-5 rounded-xl border border-hairline bg-surface p-[22px]',
+              'grid content-start gap-5 rounded-card bg-surface p-5',
               asideFits && 'lg:sticky lg:top-6',
             )}
           >

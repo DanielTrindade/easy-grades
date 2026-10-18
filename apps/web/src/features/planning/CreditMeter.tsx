@@ -40,7 +40,7 @@ export function CreditMeter({ credits, min, max }: CreditMeterProps) {
       >
         {`${credits} créditos`}
       </meter>
-      <div aria-hidden className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${cells}, minmax(0, 1fr))` }}>
+      <div aria-hidden className="grid gap-[2px] overflow-hidden rounded-full" style={{ gridTemplateColumns: `repeat(${cells}, minmax(0, 1fr))` }}>
         {Array.from({ length: cells }, (_, index) => {
           const filled = index < filledCells;
           const overflow = index >= limitCells;
@@ -50,7 +50,7 @@ export function CreditMeter({ credits, min, max }: CreditMeterProps) {
               aria-hidden
               data-cell={overflow ? 'over' : filled ? 'filled' : 'empty'}
               data-min={index === minCell || undefined}
-              className="relative h-3.5 overflow-hidden rounded-[2px] bg-hairline"
+              className="relative h-2.5 bg-hairline"
             >
               {/* Fills fade in with opacity only, so a change of credits never moves the layout. */}
               <span

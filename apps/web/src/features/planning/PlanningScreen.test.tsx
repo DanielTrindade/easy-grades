@@ -252,6 +252,24 @@ describe('PlanningScreen', () => {
     expect(document.body).not.toHaveAttribute('data-bottom-accessory');
   });
 
+  it('lists the catalog as an iOS grouped list with a capsule search', async () => {
+    setDesktop(true);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const search = await screen.findByRole('searchbox');
+    expect(search).toHaveClass('rounded-full', 'pl-10');
+    const user = userEvent.setup({ delay: null });
+    await user.click(screen.getByRole('radio', { name: /^Eletivas,/ }));
+    const row = screen.getAllByRole('listitem').find((li) => within(li).queryByRole('button', { name: /Adicionar/ }))!;
+    expect(row.parentElement).toHaveClass('rounded-group', 'bg-surface');
+  });
+
+  it('shows the semester panel as an opaque card from lg up', async () => {
+    setDesktop(true);
+    render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
+    const heading = await screen.findByRole('heading', { name: 'Meu semestre', level: 2 });
+    expect(heading.closest('aside')).toHaveClass('rounded-card', 'bg-surface');
+  });
+
   it('does not flag the body at lg and up, where the summary bar is not shown', async () => {
     setDesktop(true);
     render(<PlanningScreen data={data} analysis={analyze(data)} savedAt={savedAt} />);
