@@ -55,13 +55,13 @@ describe('TabBar', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('expands when the pill is tapped and moves focus to the current section', async () => {
+  it('expands when the pill is tapped without trapping pointer focus', async () => {
     const user = userEvent.setup();
     render(<TabBar view="disciplinas" />);
     scrollTo(30);
     scrollTo(300);
     await user.click(screen.getByRole('button', { name: 'Disciplinas: mostrar seções' }));
-    expect(screen.getByRole('link', { name: 'Disciplinas' })).toHaveFocus();
+    expect(screen.getByRole('link', { name: 'Disciplinas' })).toBeInTheDocument();
     expect(document.body).toHaveAttribute('data-tab-bar', 'expanded');
   });
 
@@ -82,6 +82,40 @@ describe('TabBar', () => {
     scrollTo(300);
     expect(link).toHaveFocus();
     expect(document.body).toHaveAttribute('data-tab-bar', 'expanded');
+  });
+
+  it('minimizes after a pointer click on a link and a later downward scroll', async () => {
+    const user = userEvent.setup();
+    render(<TabBar view="disciplinas" />);
+    await user.click(screen.getByRole('link', { name: 'Disciplinas' }));
+    scrollTo(30);
+    scrollTo(300);
+    expect(document.body).toHaveAttribute('data-tab-bar', 'minimized');
+  });
+
+  it('minimizes after the pill is tapped and a later downward scroll', async () => {
+    const user = userEvent.setup();
+    render(<TabBar view="disciplinas" />);
+    scrollTo(30);
+    scrollTo(300);
+    await user.click(screen.getByRole('button', { name: 'Disciplinas: mostrar seções' }));
+    scrollTo(30);
+    scrollTo(300);
+    expect(document.body).toHaveAttribute('data-tab-bar', 'minimized');
+  });
+
+  it('minimizes after focus leaves the navigation and the page scrolls down', () => {
+    render(
+      <>
+        <TabBar view="disciplinas" />
+        <button type="button">Fora da navegação</button>
+      </>,
+    );
+    act(() => screen.getByRole('link', { name: 'Disciplinas' }).focus());
+    act(() => screen.getByRole('button', { name: 'Fora da navegação' }).focus());
+    scrollTo(30);
+    scrollTo(300);
+    expect(document.body).toHaveAttribute('data-tab-bar', 'minimized');
   });
 
   it('never minimizes on the flowchart, whose canvas does not scroll the page', () => {

@@ -11,7 +11,24 @@ export function TabBar({ view }: { view: View }) {
   const { minimized, expand } = useScrollMinimize(view !== 'fluxograma' && !focusWithin);
   const currentLink = useRef<HTMLAnchorElement>(null);
   const focusOnExpand = useRef(false);
+  const keyboardFocus = useRef(true);
   useBodyData('tabBar', minimized ? 'minimized' : 'expanded');
+
+  useEffect(() => {
+    const markKeyboardInput = () => {
+      keyboardFocus.current = true;
+    };
+    const markPointerInput = () => {
+      keyboardFocus.current = false;
+    };
+
+    document.addEventListener('keydown', markKeyboardInput);
+    document.addEventListener('pointerdown', markPointerInput);
+    return () => {
+      document.removeEventListener('keydown', markKeyboardInput);
+      document.removeEventListener('pointerdown', markPointerInput);
+    };
+  }, []);
 
   useEffect(() => {
     if (minimized || !focusOnExpand.current) return;
@@ -29,7 +46,8 @@ export function TabBar({ view }: { view: View }) {
   return (
     <nav
       aria-label="Seções"
-      onFocus={() => setFocusWithin(true)}
+      onPointerDown={() => setFocusWithin(false)}
+      onFocus={() => setFocusWithin(keyboardFocus.current)}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false);
       }}
@@ -43,8 +61,10 @@ export function TabBar({ view }: { view: View }) {
           type="button"
           aria-expanded={false}
           aria-label={`${VIEW_LABELS[view]}: mostrar seções`}
-          onClick={reveal}
-          onFocus={reveal}
+          onClick={expand}
+          onFocus={() => {
+            if (keyboardFocus.current) reveal();
+          }}
           className="flex h-12 animate-in items-center gap-2 rounded-full px-4 text-sm font-semibold text-pen-ink outline-none fade-in zoom-in-95 duration-200 motion-reduce:duration-150 focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <CurrentIcon aria-hidden className="size-5 fill-current/15" />
