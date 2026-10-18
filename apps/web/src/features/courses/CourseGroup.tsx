@@ -6,6 +6,7 @@ import { CATEGORY_LABELS, type EntryGroup } from './filter-entries';
 
 interface CourseGroupProps {
   group: EntryGroup;
+  /** Period CR. Omit it for category groups, where a CR would mix periods. */
   cr?: number | null;
 }
 
@@ -29,6 +30,7 @@ export function CourseGroup({ group, cr }: CourseGroupProps) {
         </span>
       </h2>
 
+      {/* A plain table, not the shadcn Table wrapper: its overflow would break the sticky header. */}
       <div className="hidden rounded-card bg-surface px-4 md:block">
         <table className="w-full text-sm">
           <caption className="sr-only">Disciplinas de {group.label}</caption>
