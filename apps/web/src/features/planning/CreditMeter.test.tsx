@@ -74,6 +74,13 @@ describe('CreditMeter', () => {
     expect(cells.filter((cell) => cell.dataset.cell === 'over')).toHaveLength(4);
   });
 
+  it('draws the cells inside one capsule bar', () => {
+    const { container } = render(<CreditMeter credits={12} min={16} max={30} />);
+    const bar = container.querySelector('[data-cell]')!.parentElement!;
+    expect(bar).toHaveClass('rounded-full', 'overflow-hidden');
+    expect(container.querySelector('[data-cell]')).not.toHaveClass('rounded-[2px]');
+  });
+
   it('gives one cell per two credits when the maximum is above 40', () => {
     const { container } = render(<CreditMeter credits={10} min={20} max={60} />);
     const cells = cellsOf(container);

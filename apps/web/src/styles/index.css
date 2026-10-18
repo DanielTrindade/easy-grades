@@ -472,6 +472,58 @@ body {
     --accessory-space: 3.75rem;
   }
 }
+/* "Meu semestre" bar: above the tab bar, or beside its minimized 10 rem pill on one row (like Music's mini player). */
+.semester-bar-compact {
+  display: none;
+}
+.semester-bar {
+  transition: left 430ms var(--ease-spring-snappy), bottom 430ms var(--ease-spring-snappy);
+}
+.semester-bar-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.semester-bar-full {
+  min-width: 0;
+}
+.semester-bar-compact-line {
+  display: flex;
+  white-space: nowrap;
+}
+@media (max-width: 47.99rem) {
+  body[data-tab-bar='minimized'] .semester-bar {
+    left: calc(max(0.75rem, env(safe-area-inset-left)) + 10.5rem);
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    gap: 0.25rem;
+    padding-inline: 0.5rem;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-summary {
+    align-items: flex-start;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-projected {
+    display: none;
+  }
+  body[data-tab-bar='minimized'][data-bottom-accessory] {
+    --accessory-space: 0px;
+  }
+  /* Beside the pill there are ~10 rem; the full summary would truncate mid sentence. */
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-full {
+    display: none;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-compact {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.125rem;
+    font-size: 0.75rem;
+    line-height: 1.125;
+    white-space: nowrap;
+  }
+  body[data-tab-bar='minimized'] .semester-bar .semester-bar-cta-label {
+    display: none;
+  }
+}
 /* Sonner sets its offsets as inline custom properties, so bottom is set directly. */
 [data-sonner-toaster][data-y-position='bottom'] {
   bottom: calc(var(--bottom-chrome) + 1.5rem + env(safe-area-inset-bottom)) !important;
@@ -505,6 +557,9 @@ body {
     animation-delay: 0s;
   }
   .tab-indicator {
+    transition: none;
+  }
+  .semester-bar {
     transition: none;
   }
 }

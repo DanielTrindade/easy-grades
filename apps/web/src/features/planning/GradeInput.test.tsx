@@ -44,6 +44,11 @@ describe('GradeInput', () => {
     expect(input).toHaveValue('7,5');
   });
 
+  it('is a capsule field', () => {
+    const { input } = setup();
+    expect(input.parentElement).toHaveClass('rounded-full');
+  });
+
   it('gives the field little side padding, so "10,0" is not clipped', () => {
     const { input } = setup(10);
     expect(input).toHaveValue('10,0');

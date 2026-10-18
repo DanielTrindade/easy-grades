@@ -1,6 +1,7 @@
 import type { TermCr } from '@easy-grades/core';
 import { ChevronDown, Lock, X } from 'lucide-react';
 import { lazy, Suspense, useId } from 'react';
+import { ListGroupRow } from '@/components/ListGroup';
 import { Button } from '@/components/ui/button';
 import { formatCr, toTitleCase } from '@/lib/format';
 import { CreditMeter } from './CreditMeter';
@@ -63,11 +64,11 @@ export function MySemesterPanel({
   return (
     <div className="grid gap-5">
       <div className="grid grid-cols-2 gap-[2px]">
-        <div className="rounded-lg bg-canvas p-3.5">
+        <div className="rounded-group bg-canvas p-3.5">
           <p className="text-sm text-ink-muted">Créditos</p>
           <p className="heading-ink mt-1 text-[1.75rem] tabular-nums">{credits}</p>
         </div>
-        <div className="rounded-lg bg-canvas p-3.5">
+        <div className="rounded-group bg-canvas p-3.5">
           <p className="text-sm text-ink-muted">CR projetado</p>
           <p className="heading-ink mt-1 text-[1.75rem] tabular-nums text-pen-ink">{formatCr(projected)}</p>
         </div>
@@ -84,9 +85,9 @@ export function MySemesterPanel({
             Nenhuma disciplina escolhida. Adicione pelo catálogo.
           </p>
         ) : (
-          <ul className="divide-y divide-hairline border-t border-hairline">
+          <ul className="rounded-group bg-canvas pl-3">
             {chosen.map((course) => (
-              <li key={course.code} className="flex items-center gap-3 py-3">
+              <ListGroupRow key={course.code} className="gap-3 py-3">
                 <div className="grid min-w-0 flex-1 gap-0.5">
                   <p className="line-clamp-2 text-sm leading-snug font-semibold">{toTitleCase(course.name)}</p>
                   <p className="text-xs text-ink-muted tabular-nums">
@@ -115,7 +116,7 @@ export function MySemesterPanel({
                 >
                   <X aria-hidden />
                 </Button>
-              </li>
+              </ListGroupRow>
             ))}
           </ul>
         )}
@@ -145,7 +146,7 @@ export function MySemesterPanel({
         )}
 
         <div className="flex justify-end">
-          <Button type="button" variant="ghost" className="max-md:h-11" onClick={onUseSuggestion}>
+          <Button type="button" variant="accent" className="max-md:h-11" onClick={onUseSuggestion}>
             Usar sugestão
           </Button>
         </div>
