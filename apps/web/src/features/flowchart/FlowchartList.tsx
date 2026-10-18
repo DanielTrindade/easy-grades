@@ -1,4 +1,5 @@
 import type { Curriculum, FlowNode } from '@easy-grades/core';
+import { ListGroupRow } from '@/components/ListGroup';
 import { StateBadge } from '@/components/StatusBadge';
 import { formatGrade, toTitleCase } from '@/lib/format';
 
@@ -7,20 +8,20 @@ export function FlowchartList({ nodes, curriculum }: { nodes: FlowNode[]; curric
   const prereqs = new Map(curriculum.courses.map((c) => [c.code, c.prerequisites]));
   const periods = [...new Set(nodes.map((n) => n.idealPeriod))].sort((a, b) => a - b);
   return (
-    <div className="grid gap-8">
+    <div className="grid gap-6">
       {periods.map((period) => (
         <section key={period} aria-labelledby={`periodo-${period}`}>
-          <h2 id={`periodo-${period}`} className="text-lg">
+          <h2 id={`periodo-${period}`} className="text-title3">
             {period}º período
           </h2>
-          <ul className="mt-3 grid gap-2">
+          <ul className="mt-2 rounded-group bg-surface pl-4">
             {nodes
               .filter((n) => n.idealPeriod === period)
               .map((n) => {
                 const blocks = prereqs.get(n.code) ?? [];
                 return (
-                  <li key={n.code} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border pb-2">
-                    <span className="text-sm text-muted-foreground">{n.code}</span>
+                  <ListGroupRow key={n.code} className="flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="code-label text-footnote">{n.code}</span>
                     <span className="font-medium">{toTitleCase(n.name)}</span>
                     <StateBadge state={n.state} />
                     {n.grade !== null && <span className="text-sm">nota {formatGrade(n.grade)}</span>}
@@ -29,7 +30,7 @@ export function FlowchartList({ nodes, curriculum }: { nodes: FlowNode[]; curric
                         Pré-requisitos: {blocks.map((b) => b.join(' e ')).join(' ou ')}
                       </span>
                     )}
-                  </li>
+                  </ListGroupRow>
                 );
               })}
           </ul>
