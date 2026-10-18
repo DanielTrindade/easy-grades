@@ -26,7 +26,7 @@ export function OverviewSummary({ cr, officialCr, performance, forecast, project
         <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
           Coeficiente de rendimento
         </h2>
-        <p className="mt-1 heading-ink text-display leading-none">{formatCr(officialCr ?? cr)}</p>
+        <p className="mt-1 heading-ink text-[2.75rem] leading-none">{formatCr(officialCr ?? cr)}</p>
         {officialCr !== null && cr !== null && officialCr !== cr && (
           <p className="mt-2 text-sm text-muted-foreground">Pelas notas do histórico: {formatCr(cr)}.</p>
         )}
@@ -43,7 +43,7 @@ export function OverviewSummary({ cr, officialCr, performance, forecast, project
         <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
           Previsão de formatura
         </h2>
-        <p className="mt-1 heading-ink text-display leading-none">{graduation}</p>
+        <p className="mt-1 heading-ink text-[2.75rem] leading-none">{graduation}</p>
         <p className="mt-2 text-sm text-muted-foreground">
           {forecast.remainingTerms === 0
             ? 'Sem obrigatórias pendentes além das que estão em curso.'
@@ -55,7 +55,7 @@ export function OverviewSummary({ cr, officialCr, performance, forecast, project
         <h2 className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
           Fora das disciplinas
         </h2>
-        <p className="mt-1 heading-ink text-display leading-none">{formatHours(outsideHours)}</p>
+        <p className="mt-1 heading-ink text-[2.75rem] leading-none">{formatHours(outsideHours)}</p>
         <p className="mt-2 text-sm text-muted-foreground">
           de atividades complementares e extensão ainda por cumprir.
         </p>

@@ -41,9 +41,9 @@ export function Dropzone({ id, label, documentName, file, onFile, disabled }: Dr
         onDrop={handleDrop}
         data-dragging={dragging || undefined}
         data-filled={file ? true : undefined}
-        className="flex cursor-pointer items-start gap-4 rounded-xl border-2 border-dashed border-input bg-card p-5 transition-[border-color,background-color] duration-150 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50 data-[dragging]:border-esmeralda data-[dragging]:bg-accent data-[filled]:border-solid data-[filled]:border-esmeralda"
+        className="flex cursor-pointer items-start gap-4 rounded-xl border-2 border-dashed border-input bg-card p-5 transition-[border-color,background-color] duration-150 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50 data-[dragging]:border-pen data-[dragging]:bg-accent data-[filled]:border-solid data-[filled]:border-pen"
       >
-        <FileText aria-hidden className="mt-0.5 size-5 shrink-0 text-texto" />
+        <FileText aria-hidden className="mt-0.5 size-5 shrink-0 text-ink" />
         <span className="grid gap-1">
           <span className="font-medium">{label}</span>
           <span className="text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ export function Dropzone({ id, label, documentName, file, onFile, disabled }: Dr
         />
       </label>
       {error && (
-        <p id={errorId} role="alert" className="mt-1.5 text-sm text-erro">
+        <p id={errorId} role="alert" className="mt-1.5 text-sm text-danger">
           {error}
         </p>
       )}

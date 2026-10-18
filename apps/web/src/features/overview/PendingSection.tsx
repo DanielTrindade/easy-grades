@@ -59,7 +59,7 @@ export function PendingSection({ pending }: { pending: PendingInsights }) {
         </div>
       )}
       <p>
-        <a href="#/planejamento" className="text-sm font-medium text-esmeralda-texto underline-offset-4 hover:underline">
+        <a href="#/planejamento" className="text-sm font-medium text-pen-ink underline-offset-4 hover:underline">
           Montar o próximo semestre
         </a>
       </p>

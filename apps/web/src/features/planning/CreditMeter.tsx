@@ -13,7 +13,7 @@ const CREDITS_PER_CELL_ABOVE = 40;
 
 /**
  * Credits chosen against the period limits of the curriculum, as a grid of cells: one per credit, the same 3×3
- * rhythm as the symbol. Filled cells are esmeralda, the cell that holds the minimum has a marker, and credits past
+ * rhythm as the symbol. Filled cells are pen blue, the cell that holds the minimum has a marker, and credits past
  * the maximum add error cells. The status line carries an icon and text, never color alone.
  */
 export function CreditMeter({ credits, min, max }: CreditMeterProps) {
@@ -50,26 +50,26 @@ export function CreditMeter({ credits, min, max }: CreditMeterProps) {
               aria-hidden
               data-cell={overflow ? 'over' : filled ? 'filled' : 'empty'}
               data-min={index === minCell || undefined}
-              className="relative h-3.5 overflow-hidden rounded-[2px] bg-linha"
+              className="relative h-3.5 overflow-hidden rounded-[2px] bg-hairline"
             >
               {/* Fills fade in with opacity only, so a change of credits never moves the layout. */}
               <span
-                className={cn('absolute inset-0 transition-opacity duration-150 ease-snap', overflow ? 'bg-erro' : 'bg-esmeralda')}
+                className={cn('absolute inset-0 transition-opacity duration-150 ease-snap', overflow ? 'bg-danger' : 'bg-pen')}
                 style={{ opacity: filled ? 1 : 0 }}
               />
-              {index === minCell && <span className="absolute inset-x-0 bottom-0 h-[3px] bg-texto" />}
+              {index === minCell && <span className="absolute inset-x-0 bottom-0 h-[3px] bg-ink" />}
             </span>
           );
         })}
       </div>
-      <div className="flex items-center justify-between gap-3 text-sm tabular-nums text-suave">
+      <div className="flex items-center justify-between gap-3 text-sm tabular-nums text-ink-muted">
         <span>mínimo {min}</span>
-        <span className={cn('inline-flex items-center gap-1', above && 'font-medium text-erro')}>
+        <span className={cn('inline-flex items-center gap-1', above && 'font-medium text-danger')}>
           {above && <OctagonAlert aria-hidden className="size-3.5 shrink-0" />}
           máximo {max}
         </span>
       </div>
-      <p className={cn('flex items-start gap-1.5 text-sm', above ? 'text-erro' : 'text-suave')} aria-live="polite">
+      <p className={cn('flex items-start gap-1.5 text-sm', above ? 'text-danger' : 'text-ink-muted')} aria-live="polite">
         {above && <OctagonAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
         {status === 'below' && <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />}
         <span>

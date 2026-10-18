@@ -42,7 +42,7 @@ export function ExportSheet({ image, onClose }: { image: ExportImage | null; onC
         showCloseButton={false}
         className="max-h-[85dvh] gap-5 overflow-y-auto rounded-t-xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-none"
       >
-        <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-linha" />
+        <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-hairline" />
         <SheetHeader className="p-0">
           <SheetTitle className="heading-ink text-2xl">Fluxograma pronto</SheetTitle>
           <SheetDescription>

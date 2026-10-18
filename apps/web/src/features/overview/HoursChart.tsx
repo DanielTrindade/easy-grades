@@ -6,8 +6,8 @@ import { hoursAverage, hoursByTerm } from './chart-utils';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 
 const config = {
-  done: { label: 'Horas concluídas', color: 'var(--esmeralda)' },
-  failed: { label: 'Horas reprovadas', color: 'var(--erro)' },
+  done: { label: 'Horas concluídas', color: 'var(--pen)' },
+  failed: { label: 'Horas reprovadas', color: 'var(--danger)' },
   inProgress: { label: 'Em curso', color: 'var(--band-pending)' },
 } satisfies ChartConfig;
 
@@ -33,9 +33,9 @@ export default function HoursChart({ transcript }: { transcript: Transcript }) {
           {average !== null && (
             <ReferenceLine
               y={average}
-              stroke="var(--suave)"
+              stroke="var(--ink-muted)"
               strokeDasharray="4 4"
-              label={{ value: 'sua média', position: 'insideTopRight', fill: 'var(--suave)', fontSize: 12 }}
+              label={{ value: 'sua média', position: 'insideTopRight', fill: 'var(--ink-muted)', fontSize: 12 }}
             />
           )}
         </BarChart>
