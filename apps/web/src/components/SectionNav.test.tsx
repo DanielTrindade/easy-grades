@@ -22,6 +22,14 @@ describe('SectionNav', () => {
     expect(screen.getByRole('link', { name: 'Visão geral' })).not.toHaveAttribute('aria-current');
   });
 
+  it('keeps the links at 44 px on touch tablets', () => {
+    render(<SectionNav view="visao-geral" />);
+    const nav = screen.getByRole('navigation', { name: 'Seções' });
+    for (const link of within(nav).getAllByRole('link')) {
+      expect(link).toHaveClass('pointer-coarse:h-11');
+    }
+  });
+
   it('is a capsule segmented control with a sliding pill under the active section', () => {
     const { container } = render(<SectionNav view="fluxograma" />);
     expect(screen.getByRole('navigation', { name: 'Seções' })).toHaveClass('rounded-full');

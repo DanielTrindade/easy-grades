@@ -49,7 +49,7 @@ export function OptionsMenu({ onNewUpload, onClearData, install, showActions = t
           variant="ghost"
           size="icon"
           aria-label="Mais opções"
-          className={cn('rounded-full max-md:size-11', className)}
+          className={cn('rounded-full max-md:size-11 md:pointer-coarse:size-11', className)}
         >
           <Ellipsis />
         </Button>
@@ -64,7 +64,7 @@ export function OptionsMenu({ onNewUpload, onClearData, install, showActions = t
       >
         {showActions && (
           <>
-            <DropdownMenuItem onSelect={onNewUpload} className="max-md:min-h-11">
+            <DropdownMenuItem onSelect={onNewUpload} className="max-md:min-h-11 md:pointer-coarse:min-h-11">
               Novo upload
             </DropdownMenuItem>
             {install && (
@@ -75,7 +75,7 @@ export function OptionsMenu({ onNewUpload, onClearData, install, showActions = t
                   dialogRequested.current = install.kind === 'ios';
                   install.onSelect(triggerRef.current);
                 }}
-                className="max-md:min-h-11"
+                className="max-md:min-h-11 md:pointer-coarse:min-h-11"
               >
                 Instalar app
               </DropdownMenuItem>
@@ -87,7 +87,7 @@ export function OptionsMenu({ onNewUpload, onClearData, install, showActions = t
                 dialogRequested.current = true;
                 onClearData(triggerRef.current);
               }}
-              className="text-danger focus:text-danger max-md:min-h-11"
+              className="text-danger focus:text-danger max-md:min-h-11 md:pointer-coarse:min-h-11"
             >
               Limpar dados
             </DropdownMenuItem>
@@ -96,10 +96,10 @@ export function OptionsMenu({ onNewUpload, onClearData, install, showActions = t
         {showActions && <DropdownMenuSeparator />}
         <DropdownMenuLabel className="text-footnote font-normal text-ink-muted">Aparência</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={appearance} onValueChange={(value) => setAppearance(value as Appearance)}>
-          <DropdownMenuRadioItem value="glass" className="max-md:min-h-11">
+          <DropdownMenuRadioItem value="glass" className="max-md:min-h-11 md:pointer-coarse:min-h-11">
             Vidro
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="solid" className="max-md:min-h-11">
+          <DropdownMenuRadioItem value="solid" className="max-md:min-h-11 md:pointer-coarse:min-h-11">
             Sólida
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>

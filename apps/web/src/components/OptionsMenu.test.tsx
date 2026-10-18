@@ -40,6 +40,18 @@ describe('OptionsMenu', () => {
     expect(within(menu).queryByRole('menuitem', { name: 'Instalar app' })).not.toBeInTheDocument();
   });
 
+  it('keeps the trigger and every item at 44 px on touch tablets', async () => {
+    render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} install={{ kind: 'native', onSelect: vi.fn() }} />);
+    const { menu } = await openMenu();
+    expect(screen.getByRole('button', { name: 'Mais opções' })).toHaveClass('md:pointer-coarse:size-11');
+    for (const item of within(menu).getAllByRole('menuitem')) {
+      expect(item).toHaveClass('md:pointer-coarse:min-h-11');
+    }
+    for (const item of within(menu).getAllByRole('menuitemradio')) {
+      expect(item).toHaveClass('md:pointer-coarse:min-h-11');
+    }
+  });
+
   it('passes the trigger to the install handler', async () => {
     const onSelect = vi.fn();
     render(<OptionsMenu onNewUpload={vi.fn()} onClearData={vi.fn()} install={{ kind: 'ios', onSelect }} />);

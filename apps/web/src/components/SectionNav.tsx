@@ -15,7 +15,7 @@ export function SectionNav({ view, className }: { view: View; className?: string
             <a
               href={`#/${v}`}
               aria-current={view === v ? 'page' : undefined}
-              className="flex h-8 flex-1 items-center justify-center rounded-full px-3 text-sm whitespace-nowrap text-ink-muted outline-none transition-colors duration-150 ease-snap hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50 aria-[current=page]:font-medium aria-[current=page]:text-ink"
+              className="flex h-8 pointer-coarse:h-11 flex-1 items-center justify-center rounded-full px-3 text-sm whitespace-nowrap text-ink-muted outline-none transition-colors duration-150 ease-snap hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50 aria-[current=page]:font-medium aria-[current=page]:text-ink"
             >
               {VIEW_LABELS[v]}
             </a>
