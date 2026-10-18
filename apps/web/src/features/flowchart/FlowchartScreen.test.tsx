@@ -51,7 +51,6 @@ function stubShareSheet(canShare = true) {
   return share;
 }
 
-/** The touch export path up to the "Fluxograma pronto" sheet. */
 async function openExportSheet() {
   mockTouchScreen();
   stubShareSheet();

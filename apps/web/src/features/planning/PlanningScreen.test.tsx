@@ -47,7 +47,6 @@ function renderScreen() {
   return screen.findByRole('heading', { name: 'Meu semestre', level: 2 }, { timeout: 10000 });
 }
 
-/** The sheet handle: only it and the header drag the sheet. */
 function handleOf(dialog: HTMLElement) {
   return dialog.querySelector('[data-sheet-handle]') as HTMLElement;
 }
@@ -72,7 +71,6 @@ function startDrag(target: Element, from: number, to: number) {
   fireEvent.pointerMove(target, { ...base, clientY: to });
 }
 
-/** Opens the sheet from the real capsule and resolves its dialog. */
 async function openMobileSheet() {
   const user = userEvent.setup({ delay: null });
   const summary = await screen.findByRole('button', { name: /CR projetado/ });
