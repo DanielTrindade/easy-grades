@@ -23,7 +23,7 @@
 - `src/components/ui/` sem patch novo.
 - Gráficos continuam lazy e com o comentário `react-doctor-disable-next-line react-doctor/prefer-dynamic-import` acima do import do recharts.
 - Testes: rodar a suíte com `pnpm --filter @easy-grades/web exec vitest run --maxWorkers=2` (não `pnpm test -- ...`). Testes que leem o `index.css` usam `readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), 'index.css'), 'utf8')`, nunca `?raw`.
-- Branch: `feat/caneta-overview-courses` a partir de `main`. Nunca alterar `git config`. Commits terminam com `Co-Authored-By: Claude <noreply@anthropic.com>`.
+- Branch: `feat/caneta-overview-courses` a partir de `main`. Nunca alterar `git config`. Commits sem trailer de co-autoria de agente.
 - Antes da revisão: `pnpm react-doctor:changed` sem erros.
 
 ## Review Focus
@@ -240,7 +240,7 @@ Expected: PASS (todos, inclusive os textos antigos).
 
 ```bash
 git add apps/web/src/components/MetricCard.tsx apps/web/src/components/MetricCard.test.tsx apps/web/src/features/overview/OverviewSummary.tsx apps/web/src/features/overview/OverviewSummary.test.tsx
-git commit -m "feat(web): Health-style metric cards for the overview summary" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): Health-style metric cards for the overview summary"
 ```
 
 ---
@@ -338,7 +338,7 @@ Expected: PASS. Se algum teste de seção verificar uma classe antiga (`text-xl`
 
 ```bash
 git add apps/web/src/features/overview apps/web/src/styles/index.css
-git commit -m "feat(web): overview sections as cards with the progress band as the hero" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): overview sections as cards with the progress band as the hero"
 ```
 
 ---
@@ -380,7 +380,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/features/overview/CrChart.tsx apps/web/src/features/overview/HoursChart.tsx
-git commit -m "feat(web): Swift Charts style for the overview charts" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): Swift Charts style for the overview charts"
 ```
 
 ---
@@ -619,7 +619,7 @@ Expected: PASS (inclusive os testes antigos da tabela, das chips e dos `h2`).
 
 ```bash
 git add apps/web/src/features/courses
-git commit -m "feat(web): courses with a capsule search, a carded table and an iOS grouped list" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): courses with a capsule search, a carded table and an iOS grouped list"
 ```
 
 ---
@@ -656,7 +656,7 @@ Expected: PASS.
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs: overview and courses conventions" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "docs: overview and courses conventions"
 ```
 
 Revisão da branch inteira (Opus 5.5, esforço médio); depois `gh auth status`, push, PR e merge `--no-ff`.

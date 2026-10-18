@@ -21,7 +21,7 @@
 - `localStorage` sempre dentro de `try/catch`.
 - `src/components/ui/` só recebe os patches documentados no `CLAUDE.md` (esta fase acrescenta `button.tsx` e `input.tsx`).
 - Branch: `feat/caneta-foundation` a partir de `main`. Commits com a identidade local do repo (já configurada); nunca alterar `git config`.
-- Toda mensagem de commit termina com a linha `Co-Authored-By: Claude <noreply@anthropic.com>`.
+- Commits sem trailer de co-autoria de agente (nada de `Co-Authored-By` de IA).
 - Antes da revisão: `pnpm react-doctor:changed` sem erros.
 
 ## Review Focus
@@ -163,7 +163,7 @@ Expected: PASS (todos).
 
 ```bash
 git add apps/web/src/lib/contrast.ts apps/web/src/lib/contrast.test.ts
-git commit -m "feat(web): WCAG contrast helpers" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): WCAG contrast helpers"
 ```
 
 ---
@@ -568,7 +568,7 @@ Expected: PASS. Se algum teste de tela falhar, é porque ainda espera uma classe
 
 ```bash
 git add apps/web
-git commit -m "feat(web): Caneta color tokens in English, pen blue accent and success green" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): Caneta color tokens in English, pen blue accent and success green"
 ```
 
 ---
@@ -724,7 +724,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web
-git commit -m "feat(web): system body font, tuned Mona Sans headings and iOS type scale" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): system body font, tuned Mona Sans headings and iOS type scale"
 ```
 
 ---
@@ -901,7 +901,7 @@ Expected: PASS (inclusive `tokens.test.ts`, que lê o primeiro `:root {` e os bl
 
 ```bash
 git add apps/web/src/styles
-git commit -m "feat(web): concentric radii, glass material with solid fallbacks and spring easings" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): concentric radii, glass material with solid fallbacks and spring easings"
 ```
 
 ---
@@ -1071,7 +1071,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/lib/appearance.ts apps/web/src/lib/appearance.test.ts apps/web/src/main.tsx
-git commit -m "feat(web): glass or solid appearance preference" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): glass or solid appearance preference"
 ```
 
 ---
@@ -1167,7 +1167,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/components/ui
-git commit -m "feat(web): capsule buttons and inputs, accent button variant" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): capsule buttons and inputs, accent button variant"
 ```
 
 ---
@@ -1334,7 +1334,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/components/Card.tsx apps/web/src/components/Card.test.tsx apps/web/src/components/ListGroup.tsx apps/web/src/components/ListGroup.test.tsx
-git commit -m "feat(web): Card and iOS-style ListGroup components" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): Card and iOS-style ListGroup components"
 ```
 
 ---
@@ -1518,7 +1518,7 @@ Expected: PASS (os testes de `CoursesScreen`, `ChoiceGroup` e `PlanningScreen` c
 
 ```bash
 git add apps/web/src
-git commit -m "feat(web): SegmentedControl and ChipGroup, adopted by the courses and catalog filters" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): SegmentedControl and ChipGroup, adopted by the courses and catalog filters"
 ```
 
 ---
@@ -1600,7 +1600,7 @@ Registrar no PR o que foi verificado.
 
 ```bash
 git add CLAUDE.md docs/superpowers/specs/2026-10-16-caneta-rebranding-design.md
-git commit -m "docs: Caneta foundation conventions and glass opacity" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "docs: Caneta foundation conventions and glass opacity"
 ```
 
 - [ ] **Step 7: Revisão da branch e merge**

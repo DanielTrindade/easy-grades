@@ -23,7 +23,7 @@
 - Sem CDN, sem script inline (CSP `script-src 'self'`).
 - `src/components/ui/` não recebe patch novo nesta fase (menus e toasts são estilizados pelo `index.css` e por props).
 - Branch: `feat/caneta-navigation` a partir de `main` (com a fase 1 já mergeada). Nunca alterar `git config`.
-- Toda mensagem de commit termina com a linha `Co-Authored-By: Claude <noreply@anthropic.com>`.
+- Commits sem trailer de co-autoria de agente (nada de `Co-Authored-By` de IA).
 - Antes da revisão: `pnpm react-doctor:changed` sem erros.
 - No Windows, se o shim `pnpm` do bash falhar, usar `pnpm.cmd` com os mesmos argumentos.
 
@@ -236,7 +236,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/lib/use-scroll-minimize.ts apps/web/src/lib/use-scroll-minimize.test.ts
-git commit -m "feat(web): scroll minimize state with hysteresis" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): scroll minimize state with hysteresis"
 ```
 
 ---
@@ -420,7 +420,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/lib/body-data.ts apps/web/src/lib/body-data.test.ts apps/web/src/styles/index.css apps/web/src/styles/chrome.test.ts apps/web/src/features/planning/PlanningScreen.tsx apps/web/src/features/planning/PlanningScreen.test.tsx
-git commit -m "feat(web): one bottom chrome space for the tab bar, the semester bar and toasts" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): one bottom chrome space for the tab bar, the semester bar and toasts"
 ```
 
 ---
@@ -667,7 +667,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/components/section-icons.ts apps/web/src/components/TabBar.tsx apps/web/src/components/TabBar.test.tsx apps/web/src/styles/index.css
-git commit -m "feat(web): floating glass tab bar that minimizes on scroll" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): floating glass tab bar that minimizes on scroll"
 ```
 
 ---
@@ -896,7 +896,7 @@ Expected: PASS.
 
 ```bash
 git add apps/web/src/lib/use-in-view.ts apps/web/src/lib/use-in-view.test.ts apps/web/src/components/PageTitle.tsx apps/web/src/components/PageTitle.test.tsx apps/web/src/components/CompactHeader.tsx apps/web/src/components/CompactHeader.test.tsx apps/web/src/styles/index.css
-git commit -m "feat(web): large page title and compact glass header" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): large page title and compact glass header"
 ```
 
 ---
@@ -1006,7 +1006,7 @@ Expected: PASS (os testes antigos continuam verdes: a ordem de `menuitem` não m
 
 ```bash
 git add apps/web/src/components/OptionsMenu.tsx apps/web/src/components/OptionsMenu.test.tsx apps/web/src/styles/index.css
-git commit -m "feat(web): appearance choice in the options menu, glass menus" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): appearance choice in the options menu, glass menus"
 ```
 
 ---
@@ -1308,7 +1308,7 @@ Expected: PASS. Se algum teste de tela procurar um `h1` que saiu ("Disciplinas c
 
 ```bash
 git add apps/web/src
-git commit -m "feat(web): glass shell with large titles, compact header and desktop segmented nav" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): glass shell with large titles, compact header and desktop segmented nav"
 ```
 
 ---
@@ -1426,7 +1426,7 @@ Expected: tudo PASS.
 
 ```bash
 git add apps/web/src/App.tsx apps/web/src/styles apps/web/src/pwa CLAUDE.md
-git commit -m "feat(web): glass toasts, pen blue theme color and navigation docs" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "feat(web): glass toasts, pen blue theme color and navigation docs"
 ```
 
 - [ ] **Step 7: Revisão da branch e merge**
