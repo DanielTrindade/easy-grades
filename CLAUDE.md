@@ -42,6 +42,7 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 - **Every branch touching `apps/web`: run `pnpm react-doctor:changed` and fix every error before requesting review.**
 - **Score gate:** the pre-push hook (simple-git-hooks, installed by `prepare`) runs `pnpm react-doctor:gate` (score ≥ 90 and 0 errors) before any push or PR. CI runs the same gate in the "Lint, types, tests, React Doctor, build" job and blocks the merge when it fails. The gate calls react-doctor's score API and sends the diagnostics report (rules, files and lines) to that service, so it does not use `--no-telemetry`. `REACT_DOCTOR_MIN_SCORE` overrides the minimum. `pnpm react-doctor:changed` stays local and without telemetry.
 - TDD: failing test first. Commit per task.
+- **No AI attribution in commits:** never write `Co-Authored-By: Claude` or `Generated with Claude Code`, and never add any co-author trailer for an agent or model. The `commit-msg` hook (`scripts/commit-msg.mjs`, installed by `prepare`) strips those lines before the commit is created.
 
 ## Gotchas
 - pnpm 11: `allowBuilds:` in pnpm-workspace.yaml (not `onlyBuiltDependencies`); `pnpm deploy` requires `--legacy`.
