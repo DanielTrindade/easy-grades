@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 describe('production request logging', () => {
+  // Spawns a tsx subprocess, which is slow when the suite runs in parallel.
   it('records only safe route identifiers for normal, error and rate-limited requests', () => {
     const script = `
       import { buildApp } from './src/app.ts';
@@ -76,5 +77,5 @@ describe('production request logging', () => {
     ]) {
       expect(output).not.toContain(secret);
     }
-  });
+  }, 60_000);
 });

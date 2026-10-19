@@ -1,0 +1,44 @@
+name: Currículos do e-Campus
+
+# The e-Campus publishes the course matrices without authentication. This walks them and checks that the app
+# still reads them: a matrix that stops parsing would leave the student without a curriculum.
+
+on:
+  schedule:
+    # Mondays and Thursdays, early, when the university is quiet.
+    - cron: '17 6 * * 1,4'
+  workflow_dispatch:
+    inputs:
+      sample:
+        description: 'How many courses to check (0 checks every course and every version)'
+        required: false
+        default: '30'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: curricula-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check the published matrices
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # version comes from package.json "packageManager"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Walk the matrices
+        run: |
+          sample="${{ inputs.sample }}"
+          if [ "$sample" = "0" ]; then
+            pnpm --filter @easy-grades/api curricula:check -- --all
+          else
+            pnpm --filter @easy-grades/api curricula:check -- --sample "$sample"
+          fi

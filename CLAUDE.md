@@ -1,6 +1,6 @@
 # Easy Grades — project memory
 
-Platform for UFAM students: upload e-Campus "Currículo de Curso" + "Histórico Escolar Analítico" PDFs and get progress, a flowchart, suggestions, a forecast and a CR projection.
+Platform for UFAM students: pick the course, upload the e-Campus "Histórico Escolar Analítico" PDF and get progress, a flowchart, suggestions, a forecast and a CR projection.
 Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/superpowers/plans/2026-10-10-easy-grades.md`.
 
 ## Architecture
@@ -8,9 +8,25 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 - `apps/api`: Fastify 5, stateless. `POST /api/parse` (multipart `curriculo`, `historico`) returns `{ curriculum, transcript }`. Serves the web build in production.
 - `apps/web`: Vite + React 19 + Tailwind v4 + shadcn/ui + shadcn charts + @xyflow/react. Parsed JSON lives in IndexedDB only.
 
+## The curriculum comes from the e-Campus
+The e-Campus publishes every course matrix **without authentication**, so the app never asks the student for the
+curriculum PDF:
+- `POST /ecampus/gradesCurriculares/loadCursos` (`nivel_curso=3`) → the 198 undergraduate courses.
+- `POST /ecampus/gradesCurriculares/loadVersoes` (`curso=<IDCURSO>`) → the versions of one course.
+- `POST /ecampus/gradesCurriculares/report` (`nivel_curso`, `curso`, `versao`) → the matrix as a PDF, the same one the
+  student downloads by hand.
+`apps/api/src/ecampus/client.ts` talks to it (3 requests at a time, timeouts, no cookies, no student data).
+`CurriculumService` caches the parsed matrix in memory (6 h) and the lists for 12 h. The API exposes
+`GET /api/courses`, `GET /api/courses/:id/versions` and `GET /api/curriculum`; `POST /api/parse/historico?curso=&versao=`
+pairs the published matrix with the uploaded transcript and refuses the pair when the versions differ.
+`apps/api/scripts/check-curricula.mts` (`pnpm --filter @easy-grades/api curricula:check`) walks the matrices and
+reports the ones that stopped parsing; the `curricula` workflow runs it on a schedule.
+
 ## Commands
 - `pnpm install` / `pnpm dev` (api :3001, web :5173 with /api proxy)
 - `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm build`
+- `pnpm --filter @easy-grades/api curricula:check` (walks the matrices the e-Campus publishes; `-- --all` for every
+  course and version, `-- --course IE17` for one)
 - `pnpm react-doctor` (full react-doctor) · `pnpm react-doctor:changed` (only new issues vs main) · `pnpm react-doctor:gate` (score ≥ 90, 0 errors; same check as pre-push and CI). Not `pnpm doctor`: that name is pnpm's built-in environment check.
 - `docker build -t easy-grades . && docker run -p 8080:8080 easy-grades`
 - `pnpm --filter @easy-grades/web icons` regenerates `apps/web/public/icons/` from `apps/web/brand/icon.svg` (commit the PNGs).
@@ -21,13 +37,26 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
   - **To confirm:** `reprovado_freq` without a grade → counted as 0; `trancado` → not counted. Neither appeared in the real histórico used for calibration.
 - **Progress:** hours from the transcript CH (not the curriculum), category from the transcript section. `outros`/`externa` don't count. Capped per category. Sample fixture: 2070/3200 = 64.69%.
 - **Prerequisites:** `string[][]`; same BLOCO = AND, different BLOCOs = OR.
+  - Matrices that do not group prerequisites into blocks print **`SEM BLOCO`** instead of `BLOCO n`. Those
+    prerequisites are required too, and all of them of one course form a single group. Reading only the numbered
+    form dropped every prerequisite of those courses (21% of a sample of 24 courses).
+  - A "**TRONCO COMUM**" section is mandatory: its courses join the obligatory category and its hours join the
+    obligatory budget, so the sum of the obligatory courses still equals the hours the matrix requires.
 - **Planning candidates** (`rankCandidates` / `buildCatalog`): mandatory courses, plus electives while elective hours are pending, plus **extension courses** ("Práticas Extensionistas") while extension hours are pending — they are normal courses (code, credits, prerequisites) and how the student reaches the required 320 h. ENADE, completed and in-progress courses are out. `pickWithinCredits` honors the credit cap and the hours ceilings (elective and extension). The graduation forecast schedules the mandatory path only (electives and extension stay as pending hours).
 - **Overview trajectory metrics** (`insights.ts`): the pace ETA divides the remaining hours by the average of the completed terms and counts from the latest term; the CR projection covers only the remaining mandatory courses, at 10 (best) and 5 (worst); the delay metric uses the last graded attempt per mandatory course and excludes equivalence/transfer/disp; streaks and judgement ignore terms with only enrolment, lock, equivalence or disp entries.
 - **PDF parsing is coordinate-based.** In the curriculum, a course's first prerequisite is printed ~1.8pt above the course baseline and extra ones are stacked on the lines BELOW it. So a prerequisite belongs to the nearest course row at (≤3pt below) or above it on the same page. This was verified against the content-stream order of the real PDF: 117/117 courses match. In the transcript, everything above the "Situação do Aluno:" label on each page is the student header and is ignored, except the whitelisted Curso / Versão (Currículo) / Ano/Período Ingresso values.
+- **Section headers and footer labels are matched by keyword and by prefix, not exactly.** Matrices vary the wording: "OBRIGATÓRIAS", "OBRIGATÓRIAS INCLUÍNDO EXTENSÃO", "ATIVIDADES DE EXTENSÃO", "TRONCO COMUM"; the footer says "CARGA HORÁRIA DE OBRIGATÓRIAS INCLUÍNDO" or "CARGA HORÁRIA DE ATIVIDADES ACADÊMICO-". An exact match dropped whole sections: FA01 went from 76 courses to 30 and lost every prerequisite.
+- **The curriculum version is read leniently** (`CURRICULUM_VERSION_RE` in the core): `2025/2`, `1978/S`, `1981`, `2026-1` and `78/EOB` all occur.
+- **A row of the matrix holds one prerequisite**, stacked one per line; a course with two prerequisites of the same
+  block shows them on consecutive lines. The parser groups them by the printed label, not by the line.
 
 ## Security & privacy (hard rules)
 - The parser output is whitelisted. Never add student name, matrícula, CPF, RG, filiação, birth date, forma de ingresso or docente names to any schema. `apps/api/test/transcript.test.ts` has a PII leak test; keep it.
 - The server persists nothing: no disk writes, logs carry no body/filename/IP, buffers live only for the request.
+- The only outbound call is to the e-Campus, and it carries **no student data**: the app asks for the public course
+  list and the public matrices. Never send a CPF, a matrícula or a student document to it.
+- `extractItems` copies the bytes before handing them to pdfjs, which takes the buffer and detaches it. Without the
+  copy the caller's array comes back empty.
 - Real PDFs are never committed (`*.pdf` in .gitignore). Tests build synthetic PDFs with pdf-lib.
 - No third-party scripts, CDNs or analytics in the web app; fonts self-hosted.
 
@@ -89,6 +118,10 @@ Spec: `docs/superpowers/specs/2026-10-10-easy-grades-design.md`. Plan: `docs/sup
 
 ## API parsing
 - PDF parsing runs in a terminable worker thread: `apps/api/src/parser-worker.ts`, started by `parser-worker-client.ts`. This is what lets the 10 s timeout actually stop pdfjs; a main-thread parse could not be interrupted.
+- The worker also reads a transcript on its own (`parseTranscriptInWorker`), for the flow where the matrix comes from the e-Campus.
+- **The matrix is read in the process, not in the worker** (`parseCurriculumDocument`). It is a small public document
+  (a few hundred milliseconds) and a worker start costs seconds — in the test run, where the worker boots through
+  tsx, it cost 10 to 13 s per request and made the suite flaky. Keep the matrix out of the worker.
 - tsup emits `dist/parser-worker.js` next to `dist/server.js`. The Docker image needs it, and it copies all of `dist/`.
 
 ## PWA

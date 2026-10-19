@@ -1,6 +1,6 @@
 # Easy Grades
 
-O Easy Grades ajuda o estudante da UFAM a acompanhar o curso a partir de dois PDFs do e-Campus: o Currículo de Curso e o Histórico Escolar Analítico. Você envia os dois arquivos e recebe progresso, CR, fluxograma, sugestões para o próximo semestre e uma previsão de formatura.
+O Easy Grades ajuda o estudante da UFAM a acompanhar o curso a partir do Histórico Escolar Analítico. Você escolhe o seu curso, envia o PDF do histórico e recebe progresso, CR, fluxograma, sugestões para o próximo semestre e uma previsão de formatura.
 
 ## O que você vê
 
@@ -14,20 +14,22 @@ O Easy Grades ajuda o estudante da UFAM a acompanhar o curso a partir de dois PD
 
 ## Privacidade
 
-- O servidor lê os PDFs em memória, sem gravar nada em disco, e descarta os arquivos depois de responder. Os logs não registram conteúdo, nome de arquivo nem IP.
+- O servidor lê o PDF em memória, sem gravar nada em disco, e descarta o arquivo depois de responder. Os logs não registram conteúdo, nome de arquivo nem IP.
 - Só campos acadêmicos saem do parser: código, nome, créditos, carga horária, notas, situações e períodos das disciplinas. Nome, matrícula, CPF, RG, filiação, data de nascimento, forma de ingresso e nomes de docentes nunca entram no resultado.
+- O currículo vem do e-Campus, que publica as matrizes de todos os cursos sem autenticação. Nenhum dado do estudante é enviado para lá.
 - O resultado fica só no IndexedDB do seu navegador. Nada é sincronizado entre dispositivos e não há login.
 - O botão "Limpar dados" apaga tudo o que foi salvo neste navegador.
 - Não há analytics nem scripts de terceiros. As fontes são servidas pelo próprio site.
 
-## Como obter os PDFs no e-Campus
+## Como começar
 
-No e-Campus, gere dois relatórios em PDF:
+1. **Escolha o seu curso** na lista e a versão do currículo. O e-Campus publica as matrizes de todos os cursos da UFAM sem autenticação, então o app busca o currículo por conta própria.
+2. **No e-Campus, gere o relatório "Histórico Escolar Analítico"** e salve em PDF.
+3. **Envie o PDF aqui.** O servidor compara o histórico com o currículo escolhido e recusa a combinação se o curso ou a versão não baterem.
 
-1. **Currículo de Curso (por versão e situação)**, na versão que aparece no seu histórico.
-2. **Histórico Escolar Analítico**.
+Se preferir, há um botão "Prefiro enviar os dois PDFs" que abre o caminho antigo: você gera também o relatório "Currículo de Curso (por versão e situação)" e envia os dois arquivos.
 
-A versão do currículo precisa ser a mesma indicada no histórico. Se não for, o site recusa os arquivos e mostra a divergência. Cada arquivo pode ter até 5 MB e 20 páginas.
+A versão do currículo precisa ser a mesma indicada no seu histórico. Se não for, o site recusa os arquivos e mostra a divergência. Cada arquivo pode ter até 5 MB e 20 páginas.
 
 ## Como o CR é calculado
 
@@ -66,6 +68,7 @@ pnpm dev
 | `pnpm typecheck` | Checa os tipos de todos os pacotes. |
 | `pnpm lint` | Roda o ESLint no repositório. |
 | `pnpm build` | Gera o build do front e da API. |
+| `pnpm --filter @easy-grades/api curricula:check` | Percorre as matrizes que o e-Campus publica e avisa quais pararam de ser lidas. Use `-- --all` para checar todos os cursos e todas as versões, ou `-- --course IE17` para um curso. |
 | `pnpm --filter @easy-grades/web icons` | Regenera os ícones do app (PNG) a partir de `apps/web/brand/icon.svg`. |
 | `pnpm react-doctor` | Analisa o front com react-doctor e falha em erros. |
 | `pnpm react-doctor:changed` | Mesma análise, mostrando só os problemas novos em relação à `main`. |
@@ -95,10 +98,10 @@ O health check fica em `/api/health`.
 Monorepo pnpm com três partes:
 
 - `packages/core`: tipos, schemas zod e regras puras (status, CR, progresso, pré-requisitos, sugestões, previsão e layout do fluxograma). Usado pela API e pelo front.
-- `apps/api`: Fastify 5, sem estado. Recebe os PDFs em `POST /api/parse`, extrai o texto e devolve o JSON validado.
+- `apps/api`: Fastify 5, sem estado. Recebe os PDFs em `POST /api/parse`, extrai o texto e devolve o JSON validado. Lê as matrizes do curso no e-Campus (`GET /api/courses`, `GET /api/courses/:id/versions`, `GET /api/curriculum`) e combina a matriz publicada com o histórico enviado em `POST /api/parse/historico`.
 - `apps/web`: Vite, React 19, Tailwind v4, shadcn/ui, Recharts para os gráficos e React Flow para o fluxograma.
 
-A extração usa `pdfjs-dist` e lê a posição de cada texto (x e y), não a ordem em que ele aparece no arquivo, porque a ordem de leitura desalinha códigos e nomes. O parse roda num worker thread com timeout de 10 s, que consegue interromper a extração de fato.
+A extração usa `pdfjs-dist` e lê a posição de cada texto (x e y), não a ordem em que ele aparece no arquivo, porque a ordem de leitura desalinha códigos e nomes. O parse dos documentos enviados roda num worker thread com timeout de 10 s, que consegue interromper a extração de fato. A matriz do e-Campus é pequena e pública, então é lida no próprio processo: um worker custaria mais que a leitura.
 
 A especificação e o plano ficam em `docs/superpowers/specs/2026-10-10-easy-grades-design.md` e `docs/superpowers/plans/2026-10-10-easy-grades.md`. As convenções de código, as regras de domínio e os detalhes de cada ferramenta estão em `CLAUDE.md`.
 
@@ -126,7 +129,7 @@ O GitHub se autentica no Google Cloud por Workload Identity Federation, sem chav
 ## Limitações conhecidas
 
 - Só funciona com o formato de PDF do e-Campus da UFAM. Outras universidades e outros formatos não são suportados.
-- Validado com o currículo de Engenharia de Software (IE17), versão 2025/2. Outros cursos ou versões podem ter estrutura diferente e não foram testados.
+- A leitura das matrizes foi conferida na versão corrente dos 198 cursos que o e-Campus publica. Matrizes antigas, de antes de 1990, usam outro formato e não são lidas.
 - Só semestres 1 e 2 de cada ano. Outros períodos letivos não são suportados.
 - Regras a confirmar: reprovação por falta sem nota (contada como 0) e trancamento (não conta).
 - Horários de turmas e a oferta do semestre não estão nos PDFs. As sugestões não dizem se a disciplina será oferecida.

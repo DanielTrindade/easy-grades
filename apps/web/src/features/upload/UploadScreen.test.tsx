@@ -1,19 +1,31 @@
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, uploadDocuments } from '@/lib/api';
+import { ApiError, fetchCourseVersions, fetchCourses, uploadDocuments, uploadTranscript } from '@/lib/api';
 import { UploadScreen } from './UploadScreen';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api')>()),
+  fetchCourses: vi.fn(),
+  fetchCourseVersions: vi.fn(),
   uploadDocuments: vi.fn(),
+  uploadTranscript: vi.fn(),
 }));
 
 const uploadDocumentsMock = vi.mocked(uploadDocuments);
+const uploadTranscriptMock = vi.mocked(uploadTranscript);
+const fetchCoursesMock = vi.mocked(fetchCourses);
+const fetchCourseVersionsMock = vi.mocked(fetchCourseVersions);
 
 const OFFLINE_MESSAGE = 'Você está offline. Para ler novos PDFs, conecte-se. Seus dados já salvos continuam disponíveis.';
+
+const COURSES = [
+  { id: 2663, code: 'IE17', name: 'Engenharia de Software' },
+  { id: 72, code: 'FA01', name: 'Administração' },
+];
+const VERSIONS = [{ id: 11572, version: '2025/2', situation: 'corrente' }];
 
 function pdfFile(name: string) {
   return new File(['%PDF-1.7'], name, { type: 'application/pdf' });
@@ -22,6 +34,14 @@ function pdfFile(name: string) {
 function setOnLine(value: boolean) {
   Object.defineProperty(navigator, 'onLine', { value, configurable: true });
 }
+
+beforeEach(() => {
+  setOnLine(true);
+  fetchCoursesMock.mockReset().mockResolvedValue(COURSES);
+  fetchCourseVersionsMock.mockReset().mockResolvedValue(VERSIONS);
+  uploadDocumentsMock.mockReset();
+  uploadTranscriptMock.mockReset();
+});
 
 afterEach(() => {
   setOnLine(true);
@@ -33,7 +53,7 @@ describe('UploadScreen offline', () => {
     render(<UploadScreen onParsed={vi.fn()} />);
     expect(screen.getByRole('status')).toHaveTextContent(OFFLINE_MESSAGE);
     expect(screen.getByRole('status')).toHaveClass('rounded-card', 'p-4');
-    expect(screen.getByRole('button', { name: 'Ler meus PDFs' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Ler meu histórico' })).toBeDisabled();
   });
 
   it('shows no notice while online', () => {
@@ -72,43 +92,89 @@ describe('UploadScreen offline', () => {
   });
 });
 
-describe('UploadScreen form', () => {
-  beforeEach(() => {
-    uploadDocumentsMock.mockReset();
-  });
-
-  it('makes Ler meus PDFs the accent capsule and keeps it disabled without both files', () => {
-    setOnLine(true);
+describe('UploadScreen with the published curriculum', () => {
+  it('lists the courses the e-Campus publishes', async () => {
+    const user = userEvent.setup();
     render(<UploadScreen onParsed={vi.fn()} />);
-    const submit = screen.getByRole('button', { name: 'Ler meus PDFs' });
-    expect(submit).toHaveClass('bg-pen', 'rounded-full');
-    expect(submit).toBeDisabled();
+    expect(await screen.findByRole('button', { name: /Engenharia de Software/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Administração/ })).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar curso' }), 'administ');
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Engenharia de Software/ })).not.toBeInTheDocument());
   });
 
-  it('reads both PDFs and hands the parsed data over', async () => {
-    setOnLine(true);
+  it('reads only the transcript once a course and a version are picked', async () => {
     const onParsed = vi.fn().mockResolvedValue(undefined);
-    uploadDocumentsMock.mockResolvedValueOnce({ curriculum: sampleCurriculum, transcript: sampleTranscript });
+    uploadTranscriptMock.mockResolvedValueOnce({ curriculum: sampleCurriculum, transcript: sampleTranscript });
     const user = userEvent.setup();
     render(<UploadScreen onParsed={onParsed} />);
-    await user.upload(screen.getByLabelText(/Currículo do curso/), pdfFile('curriculo.pdf'));
+
+    await user.click(await screen.findByRole('button', { name: /Engenharia de Software/ }));
+    await waitFor(() => expect(fetchCourseVersionsMock).toHaveBeenCalledWith(2663));
     await user.upload(screen.getByLabelText(/Histórico escolar/), pdfFile('historico.pdf'));
-    const submit = screen.getByRole('button', { name: 'Ler meus PDFs' });
-    expect(submit).toBeEnabled();
+
+    const submit = screen.getByRole('button', { name: 'Ler meu histórico' });
+    await waitFor(() => expect(submit).toBeEnabled());
     await user.click(submit);
+
+    expect(uploadTranscriptMock).toHaveBeenCalledWith(expect.any(File), 2663, 11572);
+    expect(uploadDocumentsMock).not.toHaveBeenCalled();
     expect(onParsed).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a failed read visible as an alert card', async () => {
-    setOnLine(true);
-    uploadDocumentsMock.mockRejectedValueOnce(new ApiError('INTERNAL'));
+    uploadTranscriptMock.mockRejectedValueOnce(new ApiError('INTERNAL'));
     const user = userEvent.setup();
     render(<UploadScreen onParsed={vi.fn()} />);
-    await user.upload(screen.getByLabelText(/Currículo do curso/), pdfFile('curriculo.pdf'));
+
+    await user.click(await screen.findByRole('button', { name: /Engenharia de Software/ }));
     await user.upload(screen.getByLabelText(/Histórico escolar/), pdfFile('historico.pdf'));
-    await user.click(screen.getByRole('button', { name: 'Ler meus PDFs' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Ler meu histórico' })).toBeEnabled());
+    await user.click(screen.getByRole('button', { name: 'Ler meu histórico' }));
+
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveClass('rounded-card', 'p-4');
-    expect(screen.getByRole('button', { name: 'Ler meus PDFs' })).toBeEnabled();
+  });
+
+  it('reports a version mismatch the way the server explains it', async () => {
+    uploadTranscriptMock.mockRejectedValueOnce(new ApiError('CURRICULUM_MISMATCH'));
+    const user = userEvent.setup();
+    render(<UploadScreen onParsed={vi.fn()} />);
+
+    await user.click(await screen.findByRole('button', { name: /Engenharia de Software/ }));
+    await user.upload(screen.getByLabelText(/Histórico escolar/), pdfFile('historico.pdf'));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Ler meu histórico' })).toBeEnabled());
+    await user.click(screen.getByRole('button', { name: 'Ler meu histórico' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/diferentes/i);
+  });
+});
+
+describe('UploadScreen with both PDFs', () => {
+  it('falls back to reading the two documents the student uploaded', async () => {
+    const onParsed = vi.fn().mockResolvedValue(undefined);
+    uploadDocumentsMock.mockResolvedValueOnce({ curriculum: sampleCurriculum, transcript: sampleTranscript });
+    const user = userEvent.setup();
+    render(<UploadScreen onParsed={onParsed} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Prefiro enviar os dois PDFs' }));
+    await user.upload(screen.getByLabelText(/Currículo do curso/), pdfFile('curriculo.pdf'));
+    await user.upload(screen.getByLabelText(/Histórico escolar/), pdfFile('historico.pdf'));
+
+    const submit = screen.getByRole('button', { name: 'Ler meus PDFs' });
+    await waitFor(() => expect(submit).toBeEnabled());
+    await user.click(submit);
+
+    expect(uploadDocumentsMock).toHaveBeenCalledTimes(1);
+    expect(uploadTranscriptMock).not.toHaveBeenCalled();
+    expect(onParsed).toHaveBeenCalledTimes(1);
+  });
+
+  it('makes Ler meus PDFs the accent capsule and keeps it disabled without both files', async () => {
+    const user = userEvent.setup();
+    render(<UploadScreen onParsed={vi.fn()} />);
+    await user.click(await screen.findByRole('button', { name: 'Prefiro enviar os dois PDFs' }));
+    const submit = screen.getByRole('button', { name: 'Ler meus PDFs' });
+    expect(submit).toHaveClass('bg-pen', 'rounded-full');
+    expect(submit).toBeDisabled();
   });
 });

@@ -29,12 +29,18 @@ export type CurriculumCourse = z.infer<typeof CurriculumCourseSchema>;
 
 const RequirementSchema = z.object({ hours: Int, credits: Int });
 export const REQUIREMENT_KEYS = ['obrigatoria', 'optativa', 'eletiva', 'aacc', 'extensao'] as const;
+
+/**
+ * Curriculum version as printed by e-Campus. Current courses use `2025/2`, but older ones carry `1978/S`, a bare
+ * year (`1981`), a dash (`2026-1`) or a two digit year (`78/EOB`).
+ */
+export const CURRICULUM_VERSION_RE = /^\d{2,4}(?:[/.-][A-Za-z0-9]+)?$/;
 export type RequirementKey = (typeof REQUIREMENT_KEYS)[number];
 
 export const CurriculumSchema = z.object({
   courseCode: z.string().regex(/^[A-Z0-9]{2,8}$/),
   courseName: z.string().max(200),
-  version: z.string().regex(/^\d{4}\/\d$/),
+  version: z.string().regex(CURRICULUM_VERSION_RE),
   courses: z.array(CurriculumCourseSchema),
   requirements: z.object({
     totalHours: Int,
@@ -99,7 +105,7 @@ export type EnadeRecord = z.infer<typeof EnadeRecordSchema>;
 
 export const TranscriptSchema = z.object({
   courseCode: z.string().regex(/^[A-Z0-9]{2,8}$/),
-  curriculumVersion: z.string().regex(/^\d{4}\/\d$/),
+  curriculumVersion: z.string().regex(CURRICULUM_VERSION_RE),
   admissionTerm: TermSchema.nullable(),
   officialCr: z.number().min(0).max(10).nullable(),
   officialProgressPercent: z.number().min(0).max(100).nullable(),
