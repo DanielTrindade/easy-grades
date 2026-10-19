@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { parseCurriculum } from '../src/parsers/curriculum';
 import { extractItems, type TextItem } from '../src/pdf/extract';
 import { buildPdf } from './fixtures/build-pdf';
-import { curriculumPages, semBlocoCurriculumPages } from './fixtures/curriculum-fixture';
+import { curriculumPages, semBlocoCurriculumPages, tolerantCurriculumPages } from './fixtures/curriculum-fixture';
 import { transcriptPages } from './fixtures/transcript-fixture';
 
 describe('parseCurriculum', () => {
@@ -97,5 +97,33 @@ describe('parseCurriculum — matrices without blocks', () => {
   it('reads a legacy version with a letter suffix', async () => {
     const legacy = await extractItems(await buildPdf(semBlocoCurriculumPages({ version: '1978/S' })));
     expect(parseCurriculum(legacy).version).toBe('1978/S');
+  });
+});
+
+describe('parseCurriculum — section headers and footer labels with extra words', () => {
+  let items: TextItem[];
+  beforeAll(async () => {
+    items = await extractItems(await buildPdf(tolerantCurriculumPages()));
+  });
+
+  it('opens a section whose header carries a suffix', () => {
+    const c = parseCurriculum(items);
+    expect(c.courses.map((x) => x.code)).toEqual(['FAA501', 'FAA502', 'FAA601']);
+    expect(c.courses.every((x) => x.category === 'obrigatoria')).toBe(true);
+  });
+
+  it('keeps the prerequisites of a section opened by a suffixed header', () => {
+    expect(parseCurriculum(items).courses.find((x) => x.code === 'FAA502')!.prerequisites).toEqual([['FAA501']]);
+  });
+
+  it('reads a footer label that carries a suffix', () => {
+    // 120h come from "CARGA HORÁRIA DE OBRIGATÓRIAS INCLUÍNDO"; without the suffix match it would read 0.
+    expect(parseCurriculum(items).requirements.byCategory.obrigatoria.hours).toBe(180);
+  });
+
+  it('treats the common trunk as mandatory and adds its hours', () => {
+    const c = parseCurriculum(items);
+    expect(c.courses.find((x) => x.code === 'FAA601')!.category).toBe('obrigatoria');
+    expect(c.requirements.totalHours).toBe(180);
   });
 });

@@ -3,12 +3,51 @@ import { ParseError } from '../errors.js';
 import { groupRows, rowText, valueNear, valueRightOf, type Row, type TextItem } from '../pdf/extract.js';
 
 const CODE_RE = /^[A-Z]{2,7}\d{2,3}$/;
-const SECTIONS: Record<string, Category> = {
-  'ATIVIDADE CURRICULAR DE EXTENSÃO': 'extensao',
-  ELETIVAS: 'eletiva',
-  OBRIGATÓRIAS: 'obrigatoria',
-  OPTATIVAS: 'optativa',
-};
+
+// Column x ranges measured on e-Campus "Currículo de Curso" PDFs (points).
+const PERIOD_MAX_X = 60;
+const CODE_MIN_X = 60;
+const CODE_MAX_X = 115;
+const NAME_MAX_X = 360;
+const PREREQ_MIN_X = 505;
+
+/**
+ * Section headers, matched by keyword: matrices vary the wording ("OBRIGATÓRIAS", "OBRIGATÓRIAS INCLUÍNDO
+ * EXTENSÃO", "ATIVIDADES DE EXTENSÃO"), so an exact match drops whole sections. The first pattern that hits
+ * wins, which keeps "OBRIGATÓRIAS INCLUÍNDO EXTENSÃO" in the mandatory section.
+ */
+const SECTION_PATTERNS: readonly { pattern: RegExp; category: Category }[] = [
+  { pattern: /OBRIGATORI/, category: 'obrigatoria' },
+  { pattern: /OPTATIV/, category: 'optativa' },
+  { pattern: /ELETIV/, category: 'eletiva' },
+  { pattern: /EXTENSAO/, category: 'extensao' },
+  { pattern: /TRONCO/, category: 'obrigatoria' },
+];
+
+/** Lines that carry a section keyword but are totals, column headers or the report header. */
+const NOT_A_SECTION =
+  /CARGA|CR[ÉE]D|TOTAL|M[ÍI]NIMO|M[ÁA]XIMO|LIMITE|PERIODO|NOME DA DISCIPLINA|PR[ÉE]-REQUISITO|CURRICULO|CURSO:|VERS|GRAU|TURNO|SITUACAO|UNIVERSIDADE|FONTE/i;
+
+/** Uppercase, accent-free and separated by single spaces, so labels compare the same across matrices. */
+function normalizeLabel(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim();
+}
+
+/** The category a row opens, or null when the row is not a section header. */
+function detectCategory(row: Row): Category | null {
+  if (row.items.some((i) => i.x >= CODE_MIN_X && i.x < CODE_MAX_X && CODE_RE.test(i.text))) return null;
+  const text = normalizeLabel(rowText(row));
+  if (text.length === 0 || text.length > 60) return null;
+  if (NOT_A_SECTION.test(text)) return null;
+  for (const { pattern, category } of SECTION_PATTERNS) if (pattern.test(text)) return category;
+  return null;
+}
+
 const COLUMN_HEADERS = { 'CRÉD.': 'credits', 'TEOR.': 'theory', 'PRAT.': 'practice', 'EXTE.': 'extension', TOTAL: 'total' } as const;
 type NumericColumn = (typeof COLUMN_HEADERS)[keyof typeof COLUMN_HEADERS];
 
@@ -18,12 +57,6 @@ const NO_BLOCK_RE = /^SEM\s+BLOCO$/;
 /** Group key for prerequisites printed without a block number; never collides with a numbered block. */
 const NO_BLOCK = '';
 
-// Column x ranges measured on e-Campus "Currículo de Curso" PDFs (points).
-const PERIOD_MAX_X = 60;
-const CODE_MIN_X = 60;
-const CODE_MAX_X = 115;
-const NAME_MAX_X = 360;
-const PREREQ_MIN_X = 505;
 /**
  * The first prerequisite is printed ~1.8pt above its course baseline; extra ones are stacked on the
  * lines BELOW it (before the next course). Verified against the content-stream order of real PDFs.
@@ -122,7 +155,12 @@ function parseCourseRow(row: Row, category: Category, columns: { key: NumericCol
 }
 
 function footerNumber(items: readonly TextItem[], label: string, xMin: number, xMax: number): number | null {
-  const anchor = items.find((i) => i.text === label);
+  // Matrices suffix some labels ("CARGA HORÁRIA DE OBRIGATÓRIAS INCLUÍNDO"), so match by prefix.
+  const wanted = normalizeLabel(label);
+  const anchor = items.find((i) => {
+    const text = normalizeLabel(i.text);
+    return text === wanted || text.startsWith(`${wanted} `);
+  });
   if (!anchor) return null;
   const match = /(\d+)/.exec(valueNear(items, anchor, xMin, xMax) ?? '');
   return match ? Number(match[1]) : null;
@@ -133,11 +171,18 @@ function readRequirements(items: readonly TextItem[]): Curriculum['requirements'
   const right = (label: string) => footerNumber(items, label, 520, 590);
   const totalHours = left('CARGA HORÁRIA TOTAL');
   if (totalHours === null) throw new ParseError('NOT_CURRICULUM');
+  // Matrices with a "TRONCO COMUM" section list it apart from the mandatory courses; both are required, so the
+  // trunk's hours join the mandatory bucket and the total stays the sum of what the course demands.
+  const troncoHours = left('CARGA HORÁRIA DE TRONCO COMUM') ?? 0;
+  const troncoCredits = right('CRÉDITOS DE TRONCO COMUM') ?? 0;
   return {
     totalHours,
     totalCredits: right('TOTAL DE CRÉDITOS') ?? 0,
     byCategory: {
-      obrigatoria: { hours: left('CARGA HORÁRIA DE OBRIGATÓRIAS') ?? 0, credits: right('CRÉDITOS DE OBRIGATÓRIAS') ?? 0 },
+      obrigatoria: {
+        hours: (left('CARGA HORÁRIA DE OBRIGATÓRIAS') ?? 0) + troncoHours,
+        credits: (right('CRÉDITOS DE OBRIGATÓRIAS') ?? 0) + troncoCredits,
+      },
       optativa: { hours: left('CARGA HORÁRIA DE OPTATIVAS') ?? 0, credits: right('CRÉDITOS DE OPTATIVAS') ?? 0 },
       eletiva: { hours: left('CARGA HORÁRIA DE ELETIVAS') ?? 0, credits: right('CRÉDITOS DE ELETIVAS') ?? 0 },
       aacc: { hours: left('CARGA HORÁRIA DE ATIVIDADES-ACADÊMICO-') ?? 0, credits: 0 },
@@ -162,7 +207,7 @@ export function parseCurriculum(items: readonly TextItem[]): Curriculum {
   let category: Category | null = null;
 
   for (const row of groupRows(items)) {
-    const section = SECTIONS[rowText(row)];
+    const section = detectCategory(row);
     if (section) {
       category = section;
       continue;

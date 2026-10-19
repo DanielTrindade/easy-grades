@@ -152,3 +152,42 @@ export function semBlocoCurriculumPages(
   );
   return [page];
 }
+
+/**
+ * A matrix whose section headers and footer labels carry extra words: "OBRIGATÓRIAS INCLUÍNDO EXTENSÃO" and a
+ * "TRONCO COMUM" section listed apart from the mandatory courses. Modelled on the real report of FA01.
+ */
+export function tolerantCurriculumPages(): Cell[][] {
+  const page: Cell[] = [
+    { x: 182, y: 797, text: 'UNIVERSIDADE FEDERAL DO AMAZONAS' },
+    { x: 182.6, y: 769.7, text: 'Currículo de Curso (por versão e situação)' },
+    { x: 21, y: 730.7, text: 'Curso:' },
+    { x: 66, y: 730.7, text: 'FA01 - Administração' },
+    { x: 454, y: 730.7, text: 'Versão:' },
+    { x: 500, y: 730.7, text: '2027/1' },
+    ...columnHeader(661.6),
+    { x: 261.5, y: 640, text: 'OBRIGATÓRIAS INCLUÍNDO EXTENSÃO' },
+  ];
+  const mandatory = courseRows(
+    [
+      [1, 'FAA501', 'FUNDAMENTOS DE GESTÃO E ORGANIZAÇÕES I', 4, 60, 0, 0, []],
+      [2, 'FAA502', 'FUNDAMENTOS DE GESTÃO E ORGANIZAÇÕES II', 4, 60, 0, 0, [['FAA501', null]]],
+    ],
+    625,
+  );
+  page.push(...mandatory.cells, { x: 230, y: mandatory.nextY - 10, text: 'TRONCO COMUM' });
+  const trunk = courseRows([[1, 'FAA601', 'METODOLOGIA DA PESQUISA', 4, 60, 0, 0, []]], mandatory.nextY - 25);
+  page.push(...trunk.cells);
+  page.push(
+    { x: 25, y: 350.65, text: 'CARGA HORÁRIA TOTAL' },
+    { x: 258, y: 350.65, text: '=' },
+    { x: 268, y: 350.65, text: '180' },
+    { x: 25, y: 337.65, text: 'CARGA HORÁRIA DE OBRIGATÓRIAS INCLUÍNDO' },
+    { x: 258, y: 337.65, text: '=' },
+    { x: 268, y: 337.65, text: '120' },
+    { x: 25, y: 324.65, text: 'CARGA HORÁRIA DE TRONCO COMUM' },
+    { x: 258, y: 324.65, text: '=' },
+    { x: 268, y: 324.65, text: '60' },
+  );
+  return [page];
+}
