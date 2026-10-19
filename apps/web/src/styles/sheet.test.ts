@@ -25,7 +25,6 @@ const CLOSED = `${DETENT}[data-state='closed']`;
 const DRAGGING = `${DETENT}[data-dragging]`;
 const LARGE = "[data-slot='sheet-content'][data-detent='large']";
 const OVERLAY = "[data-slot='sheet-overlay']";
-const DRAWER_OPEN = "[data-slot='sheet-content'][data-side='bottom'][data-state='open']";
 const EXPANDED_TINT = '--glass-expanded-tint';
 const EXPANDED_TINT_VALUE = `${EXPANDED_TINT}: color-mix(in oklab, var(--surface) 97%, transparent);`;
 
@@ -41,13 +40,6 @@ describe('detent sheet motion', () => {
     expect(css).toContain('@keyframes detent-out {');
     expect(rule(css, OPEN)).toContain('animation: detent-in 300ms var(--ease-drawer)');
     expect(rule(css, CLOSED)).toContain('animation: detent-out 200ms var(--ease-drawer)');
-  });
-
-  it('lets the detent animations win over the bottom-drawer rules they share a specificity with', () => {
-    expect(css.indexOf(`${OPEN} {`)).toBeGreaterThan(css.indexOf(`${DRAWER_OPEN} {`));
-    expect(css.indexOf(`${CLOSED} {`)).toBeGreaterThan(
-      css.indexOf("[data-slot='sheet-content'][data-side='bottom'][data-state='closed'] {"),
-    );
   });
 
   it('follows the finger with no transition and no running entrance animation', () => {

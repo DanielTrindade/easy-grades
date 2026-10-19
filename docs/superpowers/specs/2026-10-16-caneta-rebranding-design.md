@@ -1,7 +1,7 @@
 # Rebranding "Caneta" (inspirado no iOS) — Design Spec
 
 **Data:** 2026-10-16
-**Status:** em revisão
+**Status:** implementada (2026-10-18)
 **Substitui:** a direção visual "Grafite" (spec 3.0, em `2026-10-12-ux-mobile-pwa-design.md`). As regras de UX daquele spec (alvos de 44 px, status com ícone e texto, PWA, offline) continuam valendo.
 **Pesquisa de base:** `docs/research/2026-10-16-rebranding-estetica-ios.md`
 
@@ -218,7 +218,7 @@ Regras comuns: conteúdo opaco, título grande como `h1`, lógica e dados inalte
 ### 5.4 Planejamento
 
 - Catálogo em `ListGroup`, com busca e chips de filtro em cápsula.
-- Abaixo de lg: a barra "Meu semestre" vira uma cápsula `glass` flutuante com contagem, créditos e CR projetado (`pen-ink`). Fica acima da tab bar; quando a tab bar encolhe, ela desliza com mola para o lado da tab bar encolhida. Tocar abre a sheet (a atual até a fase 5).
+- Abaixo de lg: a barra "Meu semestre" vira uma cápsula `glass` flutuante com contagem, créditos e CR projetado (`pen-ink`). Fica acima da tab bar; quando a tab bar encolhe, ela desliza com mola para o lado da tab bar encolhida. Tocar abre a `DetentSheet` em `medium`, expansível a `large`.
 - A partir de lg: o painel lateral sticky vira um cartão opaco. `CreditMeter` vira barra em cápsula; `GradeInput` vira campo em cápsula.
 - "Usar sugestão" é a única ação `accent` da tela.
 
@@ -248,7 +248,7 @@ Componente `DetentSheet` (`components/DetentSheet.tsx`), por cima do `Sheet` do 
 ## 7. Ícone e marca
 
 - `apps/web/brand/icon.svg`: fundo em gradiente vertical `#4677EE` → `#1F47B4`; grade 3×3 de células com raio 26 (de 104 px num viewBox de 512); 5 células concluídas em `#FFFFFF`; 4 pendentes em `#FFFFFF` a 22%. Bordas bem definidas, sem máscara pré-aplicada.
-- O favicon é uma cópia; `BrandMark` embute o SVG; `pnpm --filter @easy-grades/web icons` regenera os PNGs (192, 512, 512 maskable, apple-touch 180), que são commitados. Conferir a versão maskable na zona segura.
+- O favicon é uma cópia; `BrandMark` embute a mesma geometria, gradiente e cores do SVG. O teste compara os desenhos com os IDs normalizados e verifica que cada marca usa a referência ao gradiente da própria instância (`useId`). `pnpm --filter @easy-grades/web icons` regenera deterministicamente os PNGs (192, 512, 512 maskable, apple-touch 180), que são commitados. O gerador mantém um único gradiente contínuo de borda a borda no fundo maskable e apple-touch, posiciona as definições antes do uso e reduz a grade para caber no círculo seguro de 80% do maskable.
 
 ## 8. Testes e qualidade
 

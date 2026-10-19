@@ -1,5 +1,7 @@
 # UX, responsividade e PWA — Design Spec
 
+> A direção visual "Grafite" deste spec foi substituída pela identidade "Caneta" (`docs/superpowers/specs/2026-10-16-caneta-rebranding-design.md`). As regras de UX, responsividade e PWA continuam valendo.
+
 **Data:** 2026-10-12
 **Status:** aprovada (identidade "Grafite" em 2026-10-12, substituindo "Caderno")
 **Branch:** `feat/ux-mobile-pwa`

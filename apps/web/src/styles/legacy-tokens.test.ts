@@ -18,6 +18,10 @@ describe('legacy Grafite tokens', () => {
     expect(css).not.toMatch(LEGACY_STYLESHEET);
   });
 
+  it('has no leftover Grafite-era names in the stylesheet', () => {
+    expect(css).not.toMatch(/esmeralda|grafite|--fundo|--superficie|--suave|--linha|--campo|--erro\b/i);
+  });
+
   it.each(['var(--esmeralda-texto)', 'var(--esmeralda-fundo)', 'var(--erro-foreground)'])(
     'detects legacy stylesheet token %s',
     (token) => {
