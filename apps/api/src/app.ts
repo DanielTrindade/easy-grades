@@ -6,6 +6,8 @@ import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError, type FastifyInstance, type FastifyReply } from 'fastify';
 import { basename } from 'node:path';
 import { ERROR_STATUS, ParseError } from './errors';
+import type { EcampusReader } from './ecampus/curriculum-service';
+import { curriculumRoute } from './routes/curriculum';
 import { MAX_FILE_BYTES, parseRoute } from './routes/parse';
 
 export interface AppOptions {
@@ -14,6 +16,8 @@ export interface AppOptions {
   parseTimeoutMs?: number;
   logger?: boolean;
   trustProxy?: boolean;
+  /** Injected in tests so the e-Campus is never called. */
+  ecampusClient?: EcampusReader;
 }
 
 const MULTIPART_ERRORS: Record<string, ErrorCode> = {
@@ -39,6 +43,9 @@ function setStaticHeaders(reply: FastifyReply, filePath: string): void {
 const SAFE_ROUTE_IDS: Record<string, string> = {
   '/api/health': 'api.health',
   '/api/parse': 'api.parse',
+  '/api/courses': 'api.courses',
+  '/api/courses/:id/versions': 'api.courses.versions',
+  '/api/curriculum': 'api.curriculum',
 };
 
 function safeRouteId(route: string | undefined): string {
@@ -107,6 +114,10 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
 
   app.get('/api/health', async () => ({ ok: true }));
   await app.register(parseRoute, { rateLimitMax: opts.rateLimitMax ?? 10, parseTimeoutMs: opts.parseTimeoutMs ?? 10_000 });
+  await app.register(curriculumRoute, {
+    rateLimitMax: opts.rateLimitMax ?? 30,
+    client: opts.ecampusClient,
+  });
 
   if (opts.staticDir) {
     await app.register(fastifyStatic, { root: opts.staticDir, wildcard: false, setHeaders: setStaticHeaders });

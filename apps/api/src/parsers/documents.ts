@@ -1,4 +1,4 @@
-import { ParseResponseSchema, type ParseResponse } from '@easy-grades/core';
+import { CurriculumSchema, ParseResponseSchema, type Curriculum, type ParseResponse } from '@easy-grades/core';
 import { ParseError } from '../errors.js';
 import { extractItems } from '../pdf/extract.js';
 import { parseCurriculum } from './curriculum.js';
@@ -35,4 +35,15 @@ export async function parseDocuments(
   }
   // Re-validating strips any key not in the whitelisted schema.
   return ParseResponseSchema.parse({ curriculum, transcript });
+}
+
+/** Parses a curriculum on its own — the e-Campus publishes the matrix without any student data in it. */
+export async function parseCurriculumDocument(
+  curriculumPdf: Uint8Array,
+  signal?: AbortSignal,
+): Promise<Curriculum> {
+  throwIfAborted(signal);
+  const items = await extractItems(curriculumPdf, signal);
+  throwIfAborted(signal);
+  return CurriculumSchema.parse(parseCurriculum(items));
 }

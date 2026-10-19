@@ -36,7 +36,8 @@ export async function extractItems(data: Uint8Array, signal?: AbortSignal): Prom
   throwIfAborted(signal);
   // pdfjs 6 has no eval-based font path; also disable font faces, system fonts, worker fetches and XFA.
   const task = getDocument({
-    data,
+    // pdfjs hands the buffer to its own worker, which detaches it: a copy keeps the caller's bytes usable.
+    data: data.slice(),
     disableFontFace: true,
     useSystemFonts: false,
     useWorkerFetch: false,
