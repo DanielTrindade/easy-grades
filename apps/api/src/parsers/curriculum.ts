@@ -1,4 +1,4 @@
-import type { Category, Curriculum, CurriculumCourse } from '@easy-grades/core';
+import { CURRICULUM_VERSION_RE, type Category, type Curriculum, type CurriculumCourse } from '@easy-grades/core';
 import { ParseError } from '../errors.js';
 import { groupRows, rowText, valueNear, valueRightOf, type Row, type TextItem } from '../pdf/extract.js';
 
@@ -11,6 +11,12 @@ const SECTIONS: Record<string, Category> = {
 };
 const COLUMN_HEADERS = { 'CRÉD.': 'credits', 'TEOR.': 'theory', 'PRAT.': 'practice', 'EXTE.': 'extension', TOTAL: 'total' } as const;
 type NumericColumn = (typeof COLUMN_HEADERS)[keyof typeof COLUMN_HEADERS];
+
+/** Block label printed next to a prerequisite: `BLOCO 1` groups it, `SEM BLOCO` means the group carries no number. */
+const BLOCK_RE = /^BLOCO\s+(\d+)$/;
+const NO_BLOCK_RE = /^SEM\s+BLOCO$/;
+/** Group key for prerequisites printed without a block number; never collides with a numbered block. */
+const NO_BLOCK = '';
 
 // Column x ranges measured on e-Campus "Currículo de Curso" PDFs (points).
 const PERIOD_MAX_X = 60;
@@ -29,7 +35,7 @@ interface Located {
   page: number;
   y: number;
 }
-type LocatedCourse = CurriculumCourse & Located & { blocks: Map<number, string[]> };
+type LocatedCourse = CurriculumCourse & Located & { blocks: Map<string, string[]> };
 
 function readColumns(items: readonly TextItem[]): { key: NumericColumn; center: number }[] {
   return Object.entries(COLUMN_HEADERS).map(([label, key]) => {
@@ -46,23 +52,40 @@ function nearestColumn(columns: { key: NumericColumn; center: number }[], item: 
   return best.key;
 }
 
-function prereqPairs(items: readonly TextItem[]): { code: string; block: number }[] {
-  const pairs: { code: string; block: number }[] = [];
+function prereqPairs(items: readonly TextItem[]): { code: string; block: string }[] {
+  const pairs: { code: string; block: string }[] = [];
   const right = items.filter((i) => i.x >= PREREQ_MIN_X);
   for (let k = 0; k < right.length; k++) {
-    const block = /^BLOCO\s+(\d+)$/.exec(right[k + 1]?.text ?? '');
-    if (CODE_RE.test(right[k]!.text) && block) {
-      pairs.push({ code: right[k]!.text, block: Number(block[1]) });
+    const code = right[k]!.text;
+    if (!CODE_RE.test(code)) continue;
+    const label = right[k + 1]?.text ?? '';
+    const numbered = BLOCK_RE.exec(label);
+    if (numbered) {
+      pairs.push({ code, block: numbered[1]! });
+      k++;
+      continue;
+    }
+    // Matrices that do not group prerequisites into blocks print `SEM BLOCO`; those are still required.
+    if (NO_BLOCK_RE.test(label)) {
+      pairs.push({ code, block: NO_BLOCK });
       k++;
     }
   }
   return pairs;
 }
 
-function addToBlock(course: LocatedCourse, block: number, code: string): void {
+function addToBlock(course: LocatedCourse, block: string, code: string): void {
   const list = course.blocks.get(block) ?? [];
   if (!list.includes(code)) list.push(code);
   course.blocks.set(block, list);
+}
+
+/** Numbered blocks come first, in ascending order; the unnumbered group comes last. */
+function compareBlocks(a: [string, string[]], b: [string, string[]]): number {
+  if (a[0] === b[0]) return 0;
+  if (a[0] === NO_BLOCK) return 1;
+  if (b[0] === NO_BLOCK) return -1;
+  return Number(a[0]) - Number(b[0]);
 }
 
 function parseCourseRow(row: Row, category: Category, columns: { key: NumericColumn; center: number }[]): LocatedCourse | null {
@@ -131,11 +154,11 @@ export function parseCurriculum(items: readonly TextItem[]): Curriculum {
   if (!items.some((i) => i.text.startsWith('Currículo de Curso'))) throw new ParseError('NOT_CURRICULUM');
   const courseMatch = /^([A-Z0-9]{2,8})\s*-\s*(.+)$/.exec(valueRightOf(items, 'Curso:') ?? '');
   const version = valueRightOf(items, 'Versão:');
-  if (!courseMatch || !version || !/^\d{4}\/\d$/.test(version)) throw new ParseError('NOT_CURRICULUM');
+  if (!courseMatch || !version || !CURRICULUM_VERSION_RE.test(version)) throw new ParseError('NOT_CURRICULUM');
   const columns = readColumns(items);
 
   const courses: LocatedCourse[] = [];
-  const loosePrereqs: (Located & { code: string; block: number })[] = [];
+  const loosePrereqs: (Located & { code: string; block: string })[] = [];
   let category: Category | null = null;
 
   for (const row of groupRows(items)) {
@@ -171,7 +194,7 @@ export function parseCurriculum(items: readonly TextItem[]): Curriculum {
     version,
     courses: courses.map(({ page: _page, y: _y, blocks, ...course }) => ({
       ...course,
-      prerequisites: [...blocks.entries()].sort((a, b) => a[0] - b[0]).map(([, codes]) => codes),
+      prerequisites: [...blocks.entries()].sort(compareBlocks).map(([, codes]) => codes),
     })),
     requirements: readRequirements(items),
   };

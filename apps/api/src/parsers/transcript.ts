@@ -1,4 +1,5 @@
 import {
+  CURRICULUM_VERSION_RE,
   mapStatus,
   OFFICIAL_COMPONENT_KEYS,
   termFromAdmission,
@@ -163,7 +164,7 @@ export function parseTranscript(items: readonly TextItem[]): Transcript {
   const courseCode = /^([A-Z0-9]{2,8})\s*-/.exec(valueRightOf(items, 'Curso:') ?? '')?.[1];
   const curriculumVersion = valueRightOf(items, 'Versão (Currículo) :');
   const admissionTerm = termFromAdmission(valueRightOf(items, 'Ano/Período Ingresso:') ?? '');
-  if (!courseCode || !curriculumVersion || !/^\d{4}\/\d$/.test(curriculumVersion)) throw new ParseError('NOT_TRANSCRIPT');
+  if (!courseCode || !curriculumVersion || !CURRICULUM_VERSION_RE.test(curriculumVersion)) throw new ParseError('NOT_TRANSCRIPT');
 
   const body = dropStudentHeader(items);
   const entries: TranscriptEntry[] = [];

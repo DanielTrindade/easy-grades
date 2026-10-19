@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { parseCurriculum } from '../src/parsers/curriculum';
 import { extractItems, type TextItem } from '../src/pdf/extract';
 import { buildPdf } from './fixtures/build-pdf';
-import { curriculumPages } from './fixtures/curriculum-fixture';
+import { curriculumPages, semBlocoCurriculumPages } from './fixtures/curriculum-fixture';
 import { transcriptPages } from './fixtures/transcript-fixture';
 
 describe('parseCurriculum', () => {
@@ -66,5 +66,36 @@ describe('parseCurriculum', () => {
   it('rejects a transcript given as curriculum', async () => {
     const transcriptItems = await extractItems(await buildPdf(transcriptPages()));
     expect(() => parseCurriculum(transcriptItems)).toThrow(expect.objectContaining({ code: 'NOT_CURRICULUM' }));
+  });
+});
+
+describe('parseCurriculum — matrices without blocks', () => {
+  let items: TextItem[];
+  beforeAll(async () => {
+    items = await extractItems(await buildPdf(semBlocoCurriculumPages()));
+  });
+  const course = (code: string) => parseCurriculum(items).courses.find((c) => c.code === code);
+
+  it('keeps prerequisites printed as "SEM BLOCO"', () => {
+    expect(course('FAA502')!.prerequisites).toEqual([['FAA501']]);
+  });
+
+  it('groups several "SEM BLOCO" prerequisites of the same course together', () => {
+    expect(course('FAA503')!.prerequisites).toEqual([['FAA502', 'FAA501']]);
+  });
+
+  it('still reads numbered blocks', () => {
+    expect(course('FAA504')!.prerequisites).toEqual([['FAA503']]);
+  });
+
+  it('reads a legacy version without a period', () => {
+    const c = parseCurriculum(items);
+    expect(c.version).toBe('1981');
+    expect(CurriculumSchema.parse(c)).toEqual(c);
+  });
+
+  it('reads a legacy version with a letter suffix', async () => {
+    const legacy = await extractItems(await buildPdf(semBlocoCurriculumPages({ version: '1978/S' })));
+    expect(parseCurriculum(legacy).version).toBe('1978/S');
   });
 });

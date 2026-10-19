@@ -1,7 +1,7 @@
 import type { Cell } from './build-pdf';
 
 /** Synthetic "Currículo de Curso" laid out with the coordinates measured on real e-Campus PDFs. */
-type Course = [period: number | null, code: string, name: string, credits: number, theory: number, practice: number, extension: number, prereqs: [string, number][]];
+type Course = [period: number | null, code: string, name: string, credits: number, theory: number, practice: number, extension: number, prereqs: [string, number | null][]];
 
 function columnHeader(y: number): Cell[] {
   return [
@@ -33,7 +33,8 @@ function courseRows(courses: Course[], startY: number): { cells: Cell[]; nextY: 
     // First prerequisite ~1.8pt above the baseline, extra ones stacked on the lines below.
     prereqs.forEach(([pre, block], k) => {
       const py = y + 1.77 - 15 * k;
-      cells.push({ x: 512, y: py, text: pre }, { x: 547, y: py, text: `BLOCO ${block}` });
+      const label = block === null ? 'SEM BLOCO' : `BLOCO ${block}`;
+      cells.push({ x: 512, y: py, text: pre }, { x: 547, y: py, text: label });
     });
     y -= 15 * Math.max(1, prereqs.length);
   }
@@ -108,4 +109,46 @@ export function curriculumPages(opts: { courseCode?: string; version?: string } 
     { x: 258, y: 265.65, text: '= 30' },
   );
   return [page1, page2];
+}
+
+/**
+ * A matrix that does not group prerequisites into blocks — e-Campus prints `SEM BLOCO` instead of `BLOCO n` —
+ * carrying a legacy version. Modelled on the real report of FA01 (Administração), whose prerequisites all
+ * print without a block number.
+ */
+export function semBlocoCurriculumPages(
+  opts: { courseCode?: string; courseName?: string; version?: string } = {},
+): Cell[][] {
+  const page: Cell[] = [
+    { x: 182, y: 797, text: 'UNIVERSIDADE FEDERAL DO AMAZONAS' },
+    { x: 182.6, y: 769.7, text: 'Currículo de Curso (por versão e situação)' },
+    { x: 21, y: 730.7, text: 'Curso:' },
+    { x: 66, y: 730.7, text: `${opts.courseCode ?? 'FA01'} - ${opts.courseName ?? 'Administração'}` },
+    { x: 454, y: 730.7, text: 'Versão:' },
+    { x: 500, y: 730.7, text: opts.version ?? '1981' },
+    ...columnHeader(661.6),
+    { x: 261.5, y: 640, text: 'OBRIGATÓRIAS' },
+  ];
+  const courses = courseRows(
+    [
+      [1, 'FAA501', 'ADMINISTRAÇÃO FINANCEIRA', 4, 60, 0, 0, []],
+      [2, 'FAA502', 'CONTABILIDADE GERAL', 4, 60, 0, 0, [['FAA501', null]]],
+      [3, 'FAA503', 'AUDITORIA', 4, 60, 0, 0, [['FAA502', null], ['FAA501', null]]],
+      [4, 'FAA504', 'ADMINISTRAÇÃO PÚBLICA', 4, 60, 0, 0, [['FAA503', 1]]],
+    ],
+    625,
+  );
+  page.push(...courses.cells, { x: 25, y: courses.nextY, text: 'TOTAL' }, { x: 371.3, y: courses.nextY, text: '16' });
+  page.push(
+    { x: 25, y: 350.65, text: 'CARGA HORÁRIA TOTAL' },
+    { x: 258, y: 350.65, text: '=' },
+    { x: 268, y: 350.65, text: '960' },
+    { x: 25, y: 337.65, text: 'CARGA HORÁRIA DE OBRIGATÓRIAS' },
+    { x: 258, y: 337.65, text: '=' },
+    { x: 268, y: 337.65, text: '960' },
+    { x: 325, y: 350.65, text: 'TOTAL DE CRÉDITOS' },
+    { x: 526, y: 350.65, text: '=' },
+    { x: 536, y: 350.65, text: '16' },
+  );
+  return [page];
 }
