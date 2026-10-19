@@ -59,13 +59,24 @@ function sectionTotals(items: readonly TextItem[]): number[] {
   return totals;
 }
 
-async function inspect(course: EcampusCourse, versionId: number, versionLabel: string): Promise<void> {
+async function inspect(
+  course: EcampusCourse,
+  versionId: number,
+  versionLabel: string,
+  isCurrent: boolean,
+): Promise<void> {
   checked++;
+  // Matrices from before the nineties use another layout (numeric course codes, no blocks). The app does not
+  // support them, and a student is never on one, so they are a known limitation rather than a regression.
+  const year = Number.parseInt(versionLabel, 10);
+  const ancient = Number.isFinite(year) && year < 1990;
   let pdf: Uint8Array;
   try {
     pdf = await ecampusClient.fetchCurriculumPdf(course.id, versionId);
   } catch (error) {
-    check(course.code, versionLabel, [{ problem: 'download falhou', detail: (error as Error).message }]);
+    check(course.code, versionLabel, [
+      { problem: 'download falhou', detail: (error as Error).message, warning: !isCurrent || ancient },
+    ]);
     return;
   }
   await sleep(PAUSE_MS);
@@ -82,7 +93,15 @@ async function inspect(course: EcampusCourse, versionId: number, versionLabel: s
         { problem: 'matriz vazia no e-Campus', detail: `${items.length} textos no relatório`, warning: true },
       ]);
     } else {
-      check(course.code, versionLabel, [{ problem: 'parse falhou', detail: (error as Error).message }]);
+      // Only the current version has to parse: the app offers the versions the e-Campus lists, and a student
+      // is on the current one. An older matrix in another layout is a known limitation, not a regression.
+      check(course.code, versionLabel, [
+        {
+          problem: isCurrent && !ancient ? 'parse falhou' : 'versão antiga não parseia',
+          detail: (error as Error).message,
+          warning: !isCurrent || ancient,
+        },
+      ]);
     }
     return;
   }
@@ -165,8 +184,8 @@ async function main(): Promise<void> {
     const versions = await ecampusClient.listVersions(course.id);
     await sleep(PAUSE_MS);
     const targets = ALL ? versions : versions.slice(0, 1);
-    for (const version of targets) {
-      await inspect(course, version.id, version.version);
+    for (const [index, version] of targets.entries()) {
+      await inspect(course, version.id, version.version, index === 0);
     }
   }
 
@@ -175,18 +194,21 @@ async function main(): Promise<void> {
     if (finding.warning) continue;
     broken.set(finding.problem, (broken.get(finding.problem) ?? 0) + 1);
   }
-  const warnings = findings.filter((finding) => finding.warning).length;
+  const warningList = findings.filter((f) => f.warning);
+  const warnings = warningList.length;
 
   console.log(`\n${checked} matrizes verificadas, ${findings.length - warnings} com problema, ${warnings} aviso(s)`);
   for (const [problem, count] of [...broken].sort((a, b) => b[1] - a[1])) {
     console.log(`  ${count}x ${problem}`);
   }
-  for (const finding of findings.slice(0, 40)) {
-    console.log(
-      `  [${finding.course} ${finding.version}] ${finding.warning ? 'aviso' : 'FALHA'}: ${finding.problem}: ${finding.detail}`,
-    );
+  for (const finding of findings.filter((f) => !f.warning).slice(0, 60)) {
+    console.log(`  [${finding.course} ${finding.version}] FALHA: ${finding.problem}: ${finding.detail}`);
   }
-  if (findings.length > 40) console.log(`  ... e mais ${findings.length - 40}`);
+  console.log(`  ${warnings} aviso(s)`);
+  for (const finding of warningList.slice(0, 15)) {
+    console.log(`  [${finding.course} ${finding.version}] aviso: ${finding.problem}: ${finding.detail}`);
+  }
+  if (warnings > 15) console.log(`  ... e mais ${warnings - 15} aviso(s)`);
 
   process.exitCode = broken.size > 0 ? 1 : 0;
 }

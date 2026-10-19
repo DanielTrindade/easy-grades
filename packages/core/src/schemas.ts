@@ -31,10 +31,10 @@ const RequirementSchema = z.object({ hours: Int, credits: Int });
 export const REQUIREMENT_KEYS = ['obrigatoria', 'optativa', 'eletiva', 'aacc', 'extensao'] as const;
 
 /**
- * Curriculum version as printed by e-Campus. Current courses use `2025/2`, but older ones carry `1978/S` or a
- * bare year (`1981`), so the year is mandatory and the suffix optional.
+ * Curriculum version as printed by e-Campus. Current courses use `2025/2`, but older ones carry `1978/S`, a bare
+ * year (`1981`), a dash (`2026-1`) or a two digit year (`78/EOB`).
  */
-export const CURRICULUM_VERSION_RE = /^\d{4}(?:\/[A-Za-z0-9]+)?$/;
+export const CURRICULUM_VERSION_RE = /^\d{2,4}(?:[/.-][A-Za-z0-9]+)?$/;
 export type RequirementKey = (typeof REQUIREMENT_KEYS)[number];
 
 export const CurriculumSchema = z.object({

@@ -25,13 +25,13 @@ describe('App', () => {
 
   it('shows the upload screen when nothing is stored', async () => {
     render(<App />);
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 10000 })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meu histórico' }, { timeout: 10000 })).toBeDisabled();
   });
 
   it('[RF-3] falls back to the upload screen when stored data is corrupted', async () => {
     await writeRawForTests({ version: STORAGE_VERSION, data: 42 });
     render(<App />);
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ler meu histórico' })).toBeInTheDocument();
   });
 
   it('opens the dashboard with the stored dataset', async () => {
@@ -73,7 +73,7 @@ describe('App', () => {
     const dialog = await screen.findByRole('alertdialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 10000 })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meu histórico' }, { timeout: 10000 })).toBeDisabled();
     expect(await loadDataset()).toBeNull();
   });
 
@@ -94,7 +94,7 @@ describe('App', () => {
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Limpar dados' }));
 
-    expect(await screen.findByRole('button', { name: 'Ler meus PDFs' }, { timeout: 10000 })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Ler meu histórico' }, { timeout: 10000 })).toBeDisabled();
     await waitFor(async () => expect(await loadAaccActivities()).toEqual([]));
   });
 
