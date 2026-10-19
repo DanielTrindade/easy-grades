@@ -1,12 +1,14 @@
 import { Worker } from 'node:worker_threads';
-import { ERROR_MESSAGES, type ErrorCode, type ParseResponse } from '@easy-grades/core';
+import { ERROR_MESSAGES, type ErrorCode, type ParseResponse, type Transcript } from '@easy-grades/core';
 import { ParseError } from './errors';
 
 type WorkerResult =
-  | { type: 'result'; ok: true; result: ParseResponse }
+  | { type: 'result'; ok: true; result: unknown }
   | { type: 'result' | 'cancelled'; ok: false; code: ErrorCode };
 type WorkerMessage =
-  | { type: 'parse'; curriculumPdf: Uint8Array; transcriptPdf: Uint8Array }
+  | { type: 'parse'; kind: 'documents'; curriculumPdf: Uint8Array; transcriptPdf: Uint8Array }
+  | { type: 'parse'; kind: 'curriculum'; curriculumPdf: Uint8Array }
+  | { type: 'parse'; kind: 'transcript'; transcriptPdf: Uint8Array }
   | { type: 'abort' };
 
 export interface ParseWorkerOptions {
@@ -45,6 +47,21 @@ export function parseInWorker(
   transcriptPdf: Uint8Array,
   options: ParseWorkerOptions,
 ): Promise<ParseResponse> {
+  return runInWorker<ParseResponse>(
+    { type: 'parse', kind: 'documents', curriculumPdf, transcriptPdf },
+    options,
+  );
+}
+
+/** Parses a transcript on its own, for when the curriculum comes from the e-Campus instead of an upload. */
+export function parseTranscriptInWorker(
+  transcriptPdf: Uint8Array,
+  options: ParseWorkerOptions,
+): Promise<Transcript> {
+  return runInWorker<Transcript>({ type: 'parse', kind: 'transcript', transcriptPdf }, options);
+}
+
+function runInWorker<T>(message: WorkerMessage, options: ParseWorkerOptions): Promise<T> {
   const worker = options.createWorker?.() ?? createParserWorker();
   const abortGraceMs = options.abortGraceMs ?? ABORT_GRACE_MS;
 
@@ -59,7 +76,7 @@ export function parseInWorker(
       clearTimeout(timers.abort);
     };
 
-    const terminateAndFinish = (result: { ok: true; value: ParseResponse } | { ok: false; error: ParseError }): void => {
+    const terminateAndFinish = (result: { ok: true; value: T } | { ok: false; error: ParseError }): void => {
       if (settled || terminating) return;
       terminating = true;
       clearTimers();
@@ -86,7 +103,7 @@ export function parseInWorker(
         if (message.type === 'cancelled' || message.type === 'result') terminateWithTimeout();
         return;
       }
-      if (message.ok) terminateAndFinish({ ok: true, value: message.result });
+      if (message.ok) terminateAndFinish({ ok: true, value: message.result as T });
       else terminateAndFinish({ ok: false, error: new ParseError(safeErrorCode(message.code)) });
     });
 
@@ -113,10 +130,13 @@ export function parseInWorker(
     }, options.timeoutMs);
 
     try {
-      worker.postMessage(
-        { type: 'parse', curriculumPdf, transcriptPdf } satisfies WorkerMessage,
-        transferList(curriculumPdf, transcriptPdf),
-      );
+      // The uploaded documents are transferred: their buffers are detached from the request and never used
+      // again. A document fetched from the e-Campus is copied instead, so the caller keeps its own bytes.
+      const transfer =
+        message.type === 'parse' && message.kind === 'documents'
+          ? transferList(message.curriculumPdf, message.transcriptPdf)
+          : [];
+      worker.postMessage(message, transfer);
     } catch {
       terminateAndFinish({ ok: false, error: new ParseError('INTERNAL') });
     }

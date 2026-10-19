@@ -14,7 +14,8 @@ const CourseRowSchema = z.object({
 const VersionRowSchema = z.object({
   ID: z.number(),
   NUMVERSAO: z.string(),
-  SITUACAOVERSAO: z.string(),
+  // The e-Campus leaves the situation empty for some versions.
+  SITUACAOVERSAO: z.string().nullish(),
 });
 
 export interface EcampusCourse {
@@ -81,7 +82,7 @@ export const ecampusClient = {
   async listVersions(courseId: number): Promise<EcampusVersion[]> {
     const response = await gate.run(() => post('gradesCurriculares/loadVersoes', `curso=${courseId}`, REQUEST_TIMEOUT_MS));
     const rows = z.array(VersionRowSchema).parse(await response.json());
-    return rows.map((row) => ({ id: row.ID, version: row.NUMVERSAO, situation: row.SITUACAOVERSAO }));
+    return rows.map((row) => ({ id: row.ID, version: row.NUMVERSAO, situation: row.SITUACAOVERSAO ?? '' }));
   },
 
   /** The "Currículo de Curso" report as the PDF the e-Campus emits. */

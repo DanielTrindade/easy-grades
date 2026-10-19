@@ -1,4 +1,11 @@
-import { CurriculumSchema, ParseResponseSchema, type Curriculum, type ParseResponse } from '@easy-grades/core';
+import {
+  CurriculumSchema,
+  ParseResponseSchema,
+  TranscriptSchema,
+  type Curriculum,
+  type ParseResponse,
+  type Transcript,
+} from '@easy-grades/core';
 import { ParseError } from '../errors.js';
 import { extractItems } from '../pdf/extract.js';
 import { parseCurriculum } from './curriculum.js';
@@ -30,11 +37,7 @@ export async function parseDocuments(
   const transcript = parseTranscript(transcriptItems);
   await yieldToEventLoop();
   throwIfAborted(signal);
-  if (curriculum.courseCode !== transcript.courseCode || curriculum.version !== transcript.curriculumVersion) {
-    throw new ParseError('CURRICULUM_MISMATCH');
-  }
-  // Re-validating strips any key not in the whitelisted schema.
-  return ParseResponseSchema.parse({ curriculum, transcript });
+  return buildParseResponse(curriculum, transcript);
 }
 
 /** Parses a curriculum on its own — the e-Campus publishes the matrix without any student data in it. */
@@ -46,4 +49,24 @@ export async function parseCurriculumDocument(
   const items = await extractItems(curriculumPdf, signal);
   throwIfAborted(signal);
   return CurriculumSchema.parse(parseCurriculum(items));
+}
+
+/** Parses a transcript on its own, for when the curriculum comes from the e-Campus instead of an upload. */
+export async function parseTranscriptDocument(
+  transcriptPdf: Uint8Array,
+  signal?: AbortSignal,
+): Promise<Transcript> {
+  throwIfAborted(signal);
+  const items = await extractItems(transcriptPdf, signal);
+  throwIfAborted(signal);
+  return TranscriptSchema.parse(parseTranscript(items));
+}
+
+/** Pairs a curriculum with a transcript, refusing the pair when they belong to different courses or versions. */
+export function buildParseResponse(curriculum: Curriculum, transcript: Transcript): ParseResponse {
+  if (curriculum.courseCode !== transcript.courseCode || curriculum.version !== transcript.curriculumVersion) {
+    throw new ParseError('CURRICULUM_MISMATCH');
+  }
+  // Re-validating strips any key not in the whitelisted schema.
+  return ParseResponseSchema.parse({ curriculum, transcript });
 }

@@ -1,10 +1,12 @@
 import { parentPort } from 'node:worker_threads';
 import type { ErrorCode } from '@easy-grades/core';
 import { ParseError } from './errors.js';
-import { parseDocuments } from './parsers/documents.js';
+import { parseCurriculumDocument, parseDocuments, parseTranscriptDocument } from './parsers/documents.js';
 
 type WorkerMessage =
-  | { type: 'parse'; curriculumPdf: Uint8Array; transcriptPdf: Uint8Array }
+  | { type: 'parse'; kind: 'documents'; curriculumPdf: Uint8Array; transcriptPdf: Uint8Array }
+  | { type: 'parse'; kind: 'curriculum'; curriculumPdf: Uint8Array }
+  | { type: 'parse'; kind: 'transcript'; transcriptPdf: Uint8Array }
   | { type: 'abort' };
 
 const port = parentPort;
@@ -21,7 +23,14 @@ port.on('message', (message: WorkerMessage) => {
   if (started) return;
   started = true;
 
-  void parseDocuments(message.curriculumPdf, message.transcriptPdf, controller.signal)
+  const work =
+    message.kind === 'documents'
+      ? parseDocuments(message.curriculumPdf, message.transcriptPdf, controller.signal)
+      : message.kind === 'curriculum'
+        ? parseCurriculumDocument(message.curriculumPdf, controller.signal)
+        : parseTranscriptDocument(message.transcriptPdf, controller.signal);
+
+  void work
     .then((result) => {
       port.postMessage({ type: 'result', ok: true, result });
     })

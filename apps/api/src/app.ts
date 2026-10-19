@@ -6,7 +6,7 @@ import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError, type FastifyInstance, type FastifyReply } from 'fastify';
 import { basename } from 'node:path';
 import { ERROR_STATUS, ParseError } from './errors';
-import type { EcampusReader } from './ecampus/curriculum-service';
+import { CurriculumService, type EcampusReader } from './ecampus/curriculum-service';
 import { curriculumRoute } from './routes/curriculum';
 import { MAX_FILE_BYTES, parseRoute } from './routes/parse';
 
@@ -113,10 +113,15 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
   });
 
   app.get('/api/health', async () => ({ ok: true }));
-  await app.register(parseRoute, { rateLimitMax: opts.rateLimitMax ?? 10, parseTimeoutMs: opts.parseTimeoutMs ?? 10_000 });
+  const curriculumService = new CurriculumService(opts.ecampusClient);
+  await app.register(parseRoute, {
+    rateLimitMax: opts.rateLimitMax ?? 10,
+    parseTimeoutMs: opts.parseTimeoutMs ?? 10_000,
+    curriculumService,
+  });
   await app.register(curriculumRoute, {
     rateLimitMax: opts.rateLimitMax ?? 30,
-    client: opts.ecampusClient,
+    service: curriculumService,
   });
 
   if (opts.staticDir) {

@@ -1,13 +1,19 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { FastifyInstance } from 'fastify';
 import { buildApp, type AppOptions } from '../src/app';
 import type { EcampusReader } from '../src/ecampus/curriculum-service';
 import { buildPdf } from './fixtures/build-pdf';
 import { curriculumPages } from './fixtures/curriculum-fixture';
+import { transcriptPages } from './fixtures/transcript-fixture';
 
 let pdf: Uint8Array;
+let transcript: Uint8Array;
+let otherTranscript: Uint8Array;
 
 beforeAll(async () => {
   pdf = await buildPdf(curriculumPages());
+  transcript = await buildPdf(transcriptPages());
+  otherTranscript = await buildPdf(transcriptPages({ courseCode: 'FA01', version: '2027/1' }));
 });
 
 const reader = (overrides: Partial<EcampusReader> = {}): EcampusReader => ({
@@ -71,8 +77,7 @@ describe('GET /api/courses/:id/versions', () => {
   });
 });
 
-describe('GET /api/curriculum', () => {
-  it('returns the parsed curriculum of a course version', async () => {
+describe('GET /api/curriculum', () => {  it('returns the parsed curriculum of a course version', async () => {
     const res = await (await start()).inject({ method: 'GET', url: '/api/curriculum?curso=2663&versao=11572' });
     expect(res.statusCode).toBe(200);
     const { curriculum } = res.json();
@@ -97,5 +102,49 @@ describe('GET /api/curriculum', () => {
     await app.inject({ method: 'GET', url });
     await app.inject({ method: 'GET', url });
     expect(fetchCurriculumPdf).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('POST /api/parse/historico', () => {
+  const upload = (server: FastifyInstance, file: Blob) => {
+    const body = new FormData();
+    body.append('historico', file, 'historico.pdf');
+    return server.inject({
+      method: 'POST',
+      url: '/api/parse/historico?curso=2663&versao=11572',
+      payload: body,
+    });
+  };
+
+  it('pairs the published curriculum with the uploaded transcript', async () => {
+    const server = await start();
+    const res = await upload(server, new Blob([transcript], { type: 'application/pdf' }));
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.curriculum.courseCode).toBe('IE17');
+    expect(body.transcript.entries.length).toBeGreaterThan(0);
+  });
+
+  it('refuses a transcript of another course version', async () => {
+    const server = await start();
+    const res = await upload(server, new Blob([otherTranscript], { type: 'application/pdf' }));
+    expect(res.statusCode).toBe(422);
+    expect(res.json().error.code).toBe('CURRICULUM_MISMATCH');
+  });
+
+  it('rejects a request without a course version', async () => {
+    const server = await start();
+    const body = new FormData();
+    body.append('historico', new Blob([transcript], { type: 'application/pdf' }), 'historico.pdf');
+    const res = await server.inject({ method: 'POST', url: '/api/parse/historico', payload: body });
+    expect(res.statusCode).toBe(404);
+    expect(res.json().error.code).toBe('NOT_FOUND');
+  });
+
+  it('rejects a file that is not a PDF', async () => {
+    const server = await start();
+    const res = await upload(server, new Blob(['nao sou pdf'], { type: 'application/pdf' }));
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe('INVALID_PDF');
   });
 });

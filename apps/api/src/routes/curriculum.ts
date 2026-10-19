@@ -2,17 +2,17 @@ import type { FastifyPluginAsync } from 'fastify';
 import { ParseError } from '../errors';
 import { CurriculumService, type EcampusReader } from '../ecampus/curriculum-service';
 
+function positiveId(value: unknown): number | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 export interface CurriculumRouteOptions {
   rateLimitMax?: number;
   /** Injected in tests so the e-Campus is never called. */
   client?: EcampusReader;
   service?: CurriculumService;
-}
-
-function positiveId(value: unknown): number | null {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const parsed = Number(raw);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
 export const curriculumRoute: FastifyPluginAsync<CurriculumRouteOptions> = async (app, opts) => {
