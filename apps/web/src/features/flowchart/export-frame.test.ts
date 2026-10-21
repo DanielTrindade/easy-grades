@@ -1,7 +1,7 @@
 import { layoutFlowchart } from '@easy-grades/core';
 import { sampleCurriculum, sampleTranscript } from '@easy-grades/core/fixtures';
 import { describe, expect, it } from 'vitest';
-import { exportFrame, exportPixelRatio } from './export-frame';
+import { exportFrame, exportPixelRatio, MOBILE_EXPORT_LIMITS } from './export-frame';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH } from './CourseNode';
 
 const PADDING = 48;
@@ -37,17 +37,26 @@ describe('exportFrame', () => {
 });
 
 describe('exportPixelRatio', () => {
-  it('exports at 2x when the frame fits the canvas ceiling', () => {
-    expect(exportPixelRatio({ width: 1200, height: 800 })).toBe(2);
+  it('exports at 4x on a desktop when the frame fits the canvas ceiling', () => {
+    expect(exportPixelRatio({ width: 1200, height: 800 })).toBe(4);
   });
 
-  // iPhone Safari leaves a 4352 px wide canvas blank, so the scale shrinks to stay under 4096 px.
-  it('shrinks the scale when the frame would cross 4096 px', () => {
-    expect(exportPixelRatio({ width: 2176, height: 1000 })).toBeCloseTo(4096 / 2176, 5);
+  // The full sample flowchart is 2176 px wide: the old 4096 px ceiling kept it near 1.9x and blurry on zoom.
+  it('lets a wide flowchart reach the 8192 px desktop ceiling', () => {
+    expect(exportPixelRatio({ width: 2176, height: 752 })).toBeCloseTo(8192 / 2176, 5);
+  });
+
+  it('shrinks the scale when the frame would cross the given ceiling', () => {
+    expect(exportPixelRatio({ width: 2176, height: 1000 }, MOBILE_EXPORT_LIMITS)).toBeCloseTo(4096 / 2176, 5);
+  });
+
+  // The area cap binds before the side cap: 33.5 MP over 2.56 M CSS px is 3.62x, below the 4x maximum.
+  it('caps the total pixels so a square graph does not blow the canvas memory', () => {
+    expect(exportPixelRatio({ width: 1600, height: 1600 })).toBeCloseTo(Math.sqrt(33_554_432 / 2_560_000), 5);
   });
 
   it('never grows past the given maximum', () => {
-    expect(exportPixelRatio({ width: 300, height: 200 })).toBe(2);
-    expect(exportPixelRatio({ width: 300, height: 200 }, 1)).toBe(1);
+    expect(exportPixelRatio({ width: 300, height: 200 })).toBe(4);
+    expect(exportPixelRatio({ width: 300, height: 200 }, MOBILE_EXPORT_LIMITS)).toBe(3);
   });
 });

@@ -20,7 +20,9 @@ vi.mock('@xyflow/react', async (importOriginal) => {
 });
 
 // Controllable PNG export: each test decides when html-to-image settles.
-const png = vi.hoisted(() => ({ toBlob: vi.fn(async (_node: HTMLElement) => new Blob(['png'], { type: 'image/png' })) }));
+const png = vi.hoisted(() => ({
+  toBlob: vi.fn(async (_node: HTMLElement, _options?: { width?: number; pixelRatio?: number }) => new Blob(['png'], { type: 'image/png' })),
+}));
 vi.mock('html-to-image', () => ({ toBlob: png.toBlob }));
 
 vi.mock('./export-readiness', () => ({ isExportGraphReady: () => readiness.ready }));
@@ -192,6 +194,31 @@ describe('FlowchartScreen focus', () => {
 
     finish(new Blob(['png'], { type: 'image/png' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Exportar PNG' })).toBeEnabled());
+  });
+
+  it('exports the PNG at a resolution meant to be zoomed into, not at the screen size', async () => {
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+    await waitFor(() => expect(png.toBlob).toHaveBeenCalledTimes(1));
+    const options = png.toBlob.mock.calls[0]?.[1];
+    expect(options?.pixelRatio).toBeGreaterThan(2);
+    // The full sample flowchart is 2176 px wide: on a desktop it now fills the 8192 px ceiling.
+    expect((options?.width ?? 0) * (options?.pixelRatio ?? 0)).toBeCloseTo(8192, 5);
+  });
+
+  // iPhone Safari leaves a canvas past 4096 px blank, so the touch export has to stop at that ceiling.
+  it('keeps the PNG inside the 4096 px canvas ceiling of mobile Safari on a touch screen', async () => {
+    mockTouchScreen();
+    stubShareSheet();
+    render(<FlowchartScreen data={data} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar PNG' }));
+
+    await waitFor(() => expect(png.toBlob).toHaveBeenCalledTimes(1));
+    const options = png.toBlob.mock.calls[0]?.[1];
+    expect((options?.width ?? 0) * (options?.pixelRatio ?? 0)).toBeCloseTo(4096, 5);
   });
 
   it('exports in export mode with no course dimmed, even when a course is pinned', async () => {

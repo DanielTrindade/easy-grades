@@ -28,10 +28,37 @@ export function exportFrame(
   };
 }
 
-/** Mobile Safari cannot draw a canvas past 4096 px in either dimension and hands back a blank image. */
-export const MAX_EXPORT_PX = 4096;
+export interface ExportLimits {
+  /** Largest scale factor: past it the PNG only gains file size, not detail. */
+  maxScale: number;
+  /** Longest side of the canvas. */
+  maxDimension: number;
+  /** Total pixels of the canvas, which bounds the memory the browser spends rasterizing it. */
+  maxPixels: number;
+}
 
-/** Export scale: up to 2x, shrunk only when the frame would cross the canvas ceiling of mobile Safari. */
-export function exportPixelRatio(frame: { width: number; height: number }, max = 2): number {
-  return Math.min(max, MAX_EXPORT_PX / frame.width, MAX_EXPORT_PX / frame.height);
+/**
+ * Mobile Safari cannot draw a canvas past 4096 px in either dimension and hands back a blank image.
+ * The full flowchart already fills that ceiling on a phone, and it is the safe resolution for a mobile canvas.
+ */
+export const MOBILE_EXPORT_LIMITS: ExportLimits = { maxScale: 3, maxDimension: 4096, maxPixels: 16_777_216 };
+
+/**
+ * On a desktop the PNG is opened to be zoomed into: 4x turns the 14 px card text into ~56 px, sharp well past
+ * 200%. The 8192 px side and the 32 MP area stay under the usual canvas/GPU ceilings, so the export never comes
+ * back blank or pushes the tab into swapping.
+ */
+export const DESKTOP_EXPORT_LIMITS: ExportLimits = { maxScale: 4, maxDimension: 8192, maxPixels: 33_554_432 };
+
+/** Export scale: the largest of the limits the frame takes without crossing the canvas ceiling of the device. */
+export function exportPixelRatio(
+  frame: { width: number; height: number },
+  limits: ExportLimits = DESKTOP_EXPORT_LIMITS,
+): number {
+  return Math.min(
+    limits.maxScale,
+    limits.maxDimension / frame.width,
+    limits.maxDimension / frame.height,
+    Math.sqrt(limits.maxPixels / (frame.width * frame.height)),
+  );
 }
