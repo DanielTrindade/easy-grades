@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/lib/use-media-query';
 import { COURSE_NODE_HEIGHT, COURSE_NODE_WIDTH, CourseNode, type CourseNodeType } from './CourseNode';
 import { downloadImage } from './export-image';
-import { exportFrame, exportPixelRatio } from './export-frame';
+import { DESKTOP_EXPORT_LIMITS, MOBILE_EXPORT_LIMITS, exportFrame, exportPixelRatio } from './export-frame';
 import { isExportGraphReady } from './export-readiness';
 import { ExportSheet, type ExportImage } from './ExportSheet';
 import { FlowchartList } from './FlowchartList';
@@ -202,7 +202,7 @@ function Graph({ data }: { data: ParseResponse }) {
           backgroundColor: getComputedStyle(document.body).backgroundColor,
           width: frame.width,
           height: frame.height,
-          pixelRatio: exportPixelRatio(frame),
+          pixelRatio: exportPixelRatio(frame, touchScreen ? MOBILE_EXPORT_LIMITS : DESKTOP_EXPORT_LIMITS),
           style: {
             width: `${frame.width}px`,
             height: `${frame.height}px`,
